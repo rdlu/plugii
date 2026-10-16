@@ -9,6 +9,10 @@ authorization, and what the power source lets the CPU do. A one-shot CLI report
 ends in a health verdict; a ratatui TUI updates live while you swap hubs,
 cables, chargers and devices.
 
+![plugii watch replaying a session: a dock on the hinge USB-C port, a device's details, the filter and help](docs/media/ports.gif)
+
+![The Charts tab: power and CPU with plug markers, each socket's link speed, URB/s and the chargers seen](docs/media/charts.png)
+
 **Status: early development.** The report, health verdict, `--json`, the TUI,
 recording and replay, `capture`, `labels` and the `--firmware` checks work.
 

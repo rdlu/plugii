@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Regenerates the docs site's demos (`mise run demos`, from the repo root):
 # the recording from the fixtures, then each tape with VHS, then a poster
-# PNG per video. Needs vhs and ffmpeg on PATH, and the 0xProto Nerd Font.
+# PNG per video, and the README's GIF and still. Needs vhs and ffmpeg on PATH, and the 0xProto Nerd Font.
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -14,4 +14,11 @@ for tape in ports charts; do
   ffmpeg -loglevel error -y -i "$tape.webm" -frames:v 1 "$tape.png"
 done
 
-du -ch daisy-session.jsonl.gz ./*.webm ./*.png | tail -n 1
+# The README's media (GitHub won't autoplay a video there): the Ports demo
+# as a GIF, and a still of the Charts tab once both chargers are in.
+media=../../docs/media
+mkdir -p "$media"
+ffmpeg -loglevel error -y -i ports.webm -vf "fps=8,scale=1000:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=32:stats_mode=diff[p];[b][p]paletteuse=dither=none:diff_mode=rectangle" "$media/ports.gif"
+ffmpeg -loglevel error -y -ss 12 -i charts.webm -frames:v 1 -vf scale=1000:-1:flags=lanczos "$media/charts.png"
+
+du -ch daisy-session.jsonl.gz ./*.webm ./*.png "$media"/* | tail -n 1
