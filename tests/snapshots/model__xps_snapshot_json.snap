@@ -1,0 +1,241 @@
+---
+source: tests/model.rs
+expression: snapshot
+---
+{
+  "taken_at_ms": 1791100000000,
+  "host": "xps",
+  "sockets": [
+    {
+      "key": "0000:00:14.0-1",
+      "label": "USB-C (left)",
+      "usb2": {
+        "bus": 3,
+        "port": 1,
+        "device": {
+          "sysfs_name": "3-1",
+          "vendor_id": 3034,
+          "product_id": 21521,
+          "manufacturer": "Realtek",
+          "product": "4-Port USB 2.0 Hub",
+          "serial": null,
+          "speed": "high",
+          "bcd_usb": 528,
+          "device_class": 9,
+          "max_power_ma": 0,
+          "driver": "hub",
+          "urbnum": 1234,
+          "children": [
+            {
+              "sysfs_name": "3-1.3",
+              "vendor_id": 13364,
+              "product_id": 817,
+              "manufacturer": "Keychron",
+              "product": "Keychron K3",
+              "serial": "K3-0001",
+              "speed": "full",
+              "bcd_usb": 528,
+              "device_class": 0,
+              "max_power_ma": 100,
+              "driver": "usbhid",
+              "urbnum": 1234,
+              "children": []
+            }
+          ]
+        }
+      },
+      "usb3": {
+        "paired": {
+          "bus": 2,
+          "port": 1,
+          "device": {
+            "sysfs_name": "2-1",
+            "vendor_id": 3034,
+            "product_id": 1041,
+            "manufacturer": "Realtek",
+            "product": "4-Port USB 3.0 Hub",
+            "serial": null,
+            "speed": "super_plus",
+            "bcd_usb": 800,
+            "device_class": 9,
+            "max_power_ma": 0,
+            "driver": "hub",
+            "urbnum": 1234,
+            "children": [
+              {
+                "sysfs_name": "2-1.4",
+                "vendor_id": 3034,
+                "product_id": 33107,
+                "manufacturer": "Realtek",
+                "product": "USB 10/100/1000 LAN",
+                "serial": null,
+                "speed": "super",
+                "bcd_usb": 800,
+                "device_class": 0,
+                "max_power_ma": 0,
+                "driver": "r8152",
+                "urbnum": 1234,
+                "children": []
+              }
+            ]
+          }
+        }
+      },
+      "typec_port": "port0"
+    },
+    {
+      "key": "0000:00:14.0-3",
+      "label": "USB-C (right)",
+      "usb2": {
+        "bus": 3,
+        "port": 3,
+        "device": null
+      },
+      "usb3": {
+        "paired": {
+          "bus": 2,
+          "port": 3,
+          "device": null
+        }
+      },
+      "typec_port": "port1"
+    }
+  ],
+  "typec": {
+    "ucsi_present": true,
+    "ports": [
+      {
+        "name": "port0",
+        "label": "USB-C (left)",
+        "partner": {
+          "supports_pd": false,
+          "pd_revision": null,
+          "alt_modes": 0,
+          "source_pdos": [
+            {
+              "fixed": {
+                "mv": 5000,
+                "ma": 3000
+              }
+            },
+            {
+              "fixed": {
+                "mv": 9000,
+                "ma": 3000
+              }
+            },
+            {
+              "fixed": {
+                "mv": 15000,
+                "ma": 3000
+              }
+            },
+            {
+              "fixed": {
+                "mv": 20000,
+                "ma": 3250
+              }
+            }
+          ],
+          "sink_pdos": []
+        },
+        "cable_type": null,
+        "charging": true,
+        "pd_contract": {
+          "voltage_mv": 20000,
+          "current_ma": 3250
+        }
+      },
+      {
+        "name": "port1",
+        "label": "USB-C (right)",
+        "partner": {
+          "supports_pd": true,
+          "pd_revision": "3.0",
+          "alt_modes": 1,
+          "source_pdos": [],
+          "sink_pdos": [
+            {
+              "fixed": {
+                "mv": 5000,
+                "ma": 900
+              }
+            }
+          ]
+        },
+        "cable_type": "passive",
+        "charging": false,
+        "pd_contract": null
+      }
+    ]
+  },
+  "thunderbolt": {
+    "domains": [
+      {
+        "index": 0,
+        "security": "user",
+        "iommu_dma_protection": true,
+        "controller_vendor": "Intel",
+        "controller_device": "Alder Lake",
+        "generation": 4
+      },
+      {
+        "index": 1,
+        "security": "user",
+        "iommu_dma_protection": true,
+        "controller_vendor": "Intel",
+        "controller_device": "Alder Lake",
+        "generation": 4
+      }
+    ],
+    "devices": []
+  },
+  "displays": [
+    {
+      "connector": "DP-2",
+      "kind": "dp",
+      "mode": "2560x1440@59.951",
+      "vrr": "unsupported"
+    }
+  ],
+  "power": {
+    "ac_online": true,
+    "battery": {
+      "capacity_pct": 78,
+      "status": "Charging",
+      "charge_limit_pct": 80,
+      "flow_mw": 12400
+    },
+    "usb_c_sources": [
+      {
+        "typec_port": "port0",
+        "voltage_mv": 20000,
+        "current_ma": 3250
+      }
+    ]
+  },
+  "cpu": {
+    "util_pct": 92,
+    "avg_khz": 1700000,
+    "max_khz": 2400000,
+    "min_khz": 400000,
+    "package_w": 20.5,
+    "package_temp_c": 88.0
+  },
+  "kernel_log": {
+    "errors": [
+      {
+        "secs_since_boot": 14,
+        "message": "usb 3-1.2: device descriptor read/64, error -71",
+        "socket": "USB-C (left)"
+      }
+    ],
+    "benign_count": 0,
+    "link_resets": [
+      {
+        "place": "USB-C (left)",
+        "count": 2
+      }
+    ]
+  }
+}

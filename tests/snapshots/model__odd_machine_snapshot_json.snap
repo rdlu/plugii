@@ -1,0 +1,141 @@
+---
+source: tests/model.rs
+expression: snapshot
+---
+{
+  "taken_at_ms": 1,
+  "host": "odd",
+  "sockets": [
+    {
+      "key": "0000:06:00.4-1",
+      "label": null,
+      "usb2": {
+        "bus": 1,
+        "port": 1,
+        "device": null
+      },
+      "usb3": "unknown",
+      "typec_port": null
+    },
+    {
+      "key": "0000:06:00.4-2",
+      "label": null,
+      "usb2": {
+        "bus": 1,
+        "port": 2,
+        "device": {
+          "sysfs_name": "1-2",
+          "vendor_id": 1133,
+          "product_id": 50475,
+          "manufacturer": "Realtek",
+          "product": "Receiver",
+          "serial": null,
+          "speed": "low",
+          "bcd_usb": 528,
+          "device_class": 0,
+          "max_power_ma": 0,
+          "driver": "usbhid",
+          "urbnum": 1234,
+          "children": []
+        }
+      },
+      "usb3": "usb2_only",
+      "typec_port": null
+    }
+  ],
+  "typec": {
+    "ucsi_present": true,
+    "ports": [
+      {
+        "name": "port0",
+        "label": null,
+        "partner": {
+          "supports_pd": null,
+          "pd_revision": null,
+          "alt_modes": 0,
+          "source_pdos": [
+            {
+              "variable": {
+                "min_mv": 5000,
+                "max_mv": 21000,
+                "ma": 3000
+              }
+            },
+            {
+              "battery": {
+                "min_mv": 5000,
+                "max_mv": 20000,
+                "mw": 45000
+              }
+            },
+            {
+              "pps": {
+                "min_mv": 3300,
+                "max_mv": 11000,
+                "ma": 5000
+              }
+            },
+            {
+              "other": "epr"
+            }
+          ],
+          "sink_pdos": []
+        },
+        "cable_type": null,
+        "charging": false,
+        "pd_contract": null
+      }
+    ]
+  },
+  "thunderbolt": {
+    "domains": [],
+    "devices": [
+      {
+        "route": "0-1",
+        "unique_id": "c4010000-0070-8c18-23a7-1b5d32c1e921",
+        "vendor": "Dell",
+        "name": "WD19TB",
+        "authorized": false,
+        "generation": 3,
+        "link": {
+          "rx_gbps": 20.0,
+          "rx_lanes": 2,
+          "tx_gbps": 20.0,
+          "tx_lanes": 2
+        },
+        "boltd_stored": false
+      }
+    ]
+  },
+  "displays": [
+    {
+      "connector": "HDMI-A-1",
+      "kind": "hdmi",
+      "mode": null,
+      "vrr": "on"
+    },
+    {
+      "connector": "DVI-D-1",
+      "kind": "other",
+      "mode": null,
+      "vrr": "off"
+    }
+  ],
+  "power": {
+    "ac_online": null,
+    "battery": null,
+    "usb_c_sources": []
+  },
+  "cpu": null,
+  "kernel_log": {
+    "errors": [
+      {
+        "secs_since_boot": null,
+        "message": "unparsed",
+        "socket": null
+      }
+    ],
+    "benign_count": 3,
+    "link_resets": []
+  }
+}
