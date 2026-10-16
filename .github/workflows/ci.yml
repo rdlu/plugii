@@ -16,8 +16,8 @@ concurrency:
 env:
   CARGO_TERM_COLOR: always
   # insta: fail on a changed snapshot instead of writing a .snap.new.
-  CI: true
-  INSTA_UPDATE: no
+  CI: 'true'
+  INSTA_UPDATE: 'no'
 
 jobs:
   fmt:
