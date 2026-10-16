@@ -1,0 +1,82 @@
+[    1.196723] cachyos kernel: virt/tdx: TDX not supported by the host platform
+[    1.196801] cachyos kernel: ACPI BIOS Error (bug): Could not resolve symbol [\_SB.PCI0.GPP0], AE_NOT_FOUND (20260408/dswload2-163)
+[    1.196809] cachyos kernel: ACPI Error: AE_NOT_FOUND, During name lookup/catalog (20260408/psobject-220)
+[    1.196822] cachyos kernel: ACPI BIOS Error (bug): Failure creating named object [\_SB.PCI0.GP17.XHC0.PSTA], AE_ALREADY_EXISTS (20260408/dswload2-327)
+[    1.196828] cachyos kernel: ACPI Error: AE_ALREADY_EXISTS, During name lookup/catalog (20260408/psobject-220)
+[    1.196841] cachyos kernel: ACPI BIOS Error (bug): Failure creating named object [\_SB._OSC], AE_ALREADY_EXISTS (20260408/dswload2-327)
+[    1.196848] cachyos kernel: ACPI Error: AE_ALREADY_EXISTS, During name lookup/catalog (20260408/psobject-220)
+[    1.196993] cachyos kernel: ACPI: \_SB_.PCI0.GP11: Overriding _PRW sleep state (S4) by S0 from power resources
+[    1.197016] cachyos kernel: ACPI: \_SB_.PCI0.GP12: Overriding _PRW sleep state (S4) by S0 from power resources
+[    1.197108] cachyos kernel: ACPI: \_SB_.PCI0.GP19.NHI0: Overriding _PRW sleep state (S3) by S0 from power resources
+[    1.197120] cachyos kernel: ACPI: \_SB_.PCI0.GP19.NHI1: Overriding _PRW sleep state (S3) by S0 from power resources
+[    1.234440] cachyos kernel: ACPI: thermal: [Firmware Bug]: No valid trip points!
+[    5.090034] cachyos kernel: workqueue: name exceeds WQ_NAME_LEN. Truncating to: hdmi_frl_status_polling_workque
+[    5.636084] cachyos kernel: amdgpu 0000:05:00.0: [drm] REG_WAIT timeout 1us * 100 tries - dcn31_program_compbuf_size line:141
+[   11.140274] cachyos kernel: amdgpu 0000:05:00.0: [drm] REG_WAIT timeout 1us * 100 tries - dcn31_program_compbuf_size line:141
+[   11.140952] cachyos kernel: !(generic_reg_get(hubbub2->base.ctx, hubbub2->regs->DCHUBBUB_COMPBUF_CTRL, hubbub2->shifts->CONFIG_ERROR, hubbub2->masks->CONFIG_ERROR, (uint32_t *)&compbuf_size_segments) && !compbuf_size_segments)
+[   11.140974] cachyos kernel: WARNING: drivers/gpu/drm/amd/amdgpu/../display/dc/hubbub/dcn31/dcn31_hubbub.c:151 at dcn31_program_compbuf_size+0x204/0x210 [amdgpu], CPU#0: kworker/0:3/265
+[   11.140994] cachyos kernel: Modules linked in: hid_logitech_hidpp hid_logitech_dj amdgpu dm_mod drm_panel_backlight_quirks drm_buddy thinkpad_acpi drm_suballoc_helper i2c_algo_bit rfkill drm_exec snd gpu_sched aesni_intel soundcore gf128mul amdxcp nvme sparse_keymap drm_ttm_helper aead ttm video nvme_core drm_display_helper ccp nvme_keyring cec wmi nvme_auth serio_raw
+[   11.141034] cachyos kernel: CPU: 0 UID: 0 PID: 265 Comm: kworker/0:3 Not tainted 7.2.9-2-cachyos #1 PREEMPT(full)  73865583327a74ff18b44e6b864a636566f79bf7
+[   11.141054] cachyos kernel: Hardware name: LENOVO 21M4000RBO/21M4000RBO, BIOS R2KET40W (1.29 ) 05/19/2026
+[   11.141075] cachyos kernel: Workqueue: events drm_mode_rmfb_work_fn
+[   11.141095] cachyos kernel: RIP: 0010:dcn31_program_compbuf_size+0x204/0x210 [amdgpu]
+[   11.141115] cachyos kernel: Code: 29 83 7c 24 04 00 75 22 65 48 8b 05 6e a6 a6 c7 48 3b 44 24 08 75 17 48 83 c4 10 5b 5d e9 4f 97 3a c4 cc 0f 0b e9 75 ff ff ff <0f> 0b eb da e8 13 9b 89 c5 cc cc cc 90 90 90 90 90 90 90 90 90 90
+[   11.141135] cachyos kernel: RSP: 0018:ffffd102c0a73798 EFLAGS: 00010202
+[   11.141154] cachyos kernel: RAX: 0000000080041619 RBX: ffff8d738f447c00 RCX: 0000000000000001
+[   11.141173] cachyos kernel: RDX: 0000000000000000 RSI: ffff8d738e4f4de0 RDI: ffff8d739be80000
+[   11.141196] cachyos kernel: RBP: 0000000000000019 R08: ffffd102c0a7379c R09: 0000000000000019
+[   11.141215] cachyos kernel: R10: 0000000000002ffd R11: ffffffffc0d32c00 R12: ffff8d73a2884338
+[   11.141234] cachyos kernel: R13: 0000000000000004 R14: ffff8d739c000000 R15: ffff8d738f447c00
+[   11.141253] cachyos kernel: FS:  0000000000000000(0000) GS:ffff8d795d253000(0000) knlGS:0000000000000000
+[   11.141273] cachyos kernel: CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   11.141291] cachyos kernel: CR2: 0000555b279c56c8 CR3: 000000029ba12000 CR4: 0000000000f50ef0
+[   11.141310] cachyos kernel: PKRU: 55555554
+[   11.141328] cachyos kernel: Call Trace:
+[   11.141347] cachyos kernel:  <TASK>
+[   11.141369] cachyos kernel:  dcn20_optimize_bandwidth+0x114/0x210 [amdgpu e10c3956606e9b12a3f5a84b64be5a752476bc5c]
+[   11.141388] cachyos kernel:  dc_commit_state_no_check+0x145f/0x1710 [amdgpu e10c3956606e9b12a3f5a84b64be5a752476bc5c]
+[   11.142241] cachyos kernel:  dc_commit_streams+0x487/0x650 [amdgpu e10c3956606e9b12a3f5a84b64be5a752476bc5c]
+[   11.142286] cachyos kernel:  amdgpu_dm_atomic_commit_tail+0x903/0x44e0 [amdgpu e10c3956606e9b12a3f5a84b64be5a752476bc5c]
+[   11.142310] cachyos kernel:  ? srso_alias_return_thunk+0x5/0xfbef5
+[   11.142330] cachyos kernel:  ? dcn30_internal_validate_bw+0xadc/0xb80 [amdgpu e10c3956606e9b12a3f5a84b64be5a752476bc5c]
+[   11.142349] cachyos kernel:  ? srso_alias_return_thunk+0x5/0xfbef5
+[   11.143077] cachyos kernel:  ? dcn31_validate_bandwidth+0x1ea/0x270 [amdgpu e10c3956606e9b12a3f5a84b64be5a752476bc5c]
+[   11.143102] cachyos kernel:  ? srso_alias_return_thunk+0x5/0xfbef5
+[   11.143113] cachyos kernel:  ? amdgpu_dm_atomic_check+0x1975/0x1b60 [amdgpu e10c3956606e9b12a3f5a84b64be5a752476bc5c]
+[   11.143122] cachyos kernel:  ? srso_alias_return_thunk+0x5/0xfbef5
+[   11.143131] cachyos kernel:  ? srso_alias_return_thunk+0x5/0xfbef5
+[   11.143139] cachyos kernel:  ? __kmalloc_noprof+0x1fa/0x3a0
+[   11.143148] cachyos kernel:  ? srso_alias_return_thunk+0x5/0xfbef5
+[   11.143156] cachyos kernel:  ? wait_for_common+0x189/0x200
+[   11.143165] cachyos kernel:  ? srso_alias_return_thunk+0x5/0xfbef5
+[   11.143173] cachyos kernel:  ? drm_crtc_commit_wait+0x36/0x90
+[   11.143182] cachyos kernel:  commit_tail+0x192/0x220
+[   11.143192] cachyos kernel:  drm_atomic_helper_commit+0x28b/0x2a0
+[   11.143200] cachyos kernel:  drm_atomic_commit+0xc3/0xf0
+[   11.143209] cachyos kernel:  ? __pfx___drm_printfn_info+0x10/0x10
+[   11.143217] cachyos kernel:  drm_framebuffer_remove+0x2ed/0x630
+[   11.143225] cachyos kernel:  drm_mode_rmfb_work_fn+0x73/0xa0
+[   11.143233] cachyos kernel:  process_scheduled_works+0x1fa/0x690
+[   11.143242] cachyos kernel:  worker_thread+0x196/0x340
+[   11.143251] cachyos kernel:  ? __pfx_worker_thread+0x10/0x10
+[   11.143259] cachyos kernel:  kthread+0x119/0x120
+[   11.143270] cachyos kernel:  ? __pfx_kthread+0x10/0x10
+[   11.143278] cachyos kernel:  ret_from_fork+0xee/0x2b0
+[   11.143287] cachyos kernel:  ? __pfx_kthread+0x10/0x10
+[   11.143295] cachyos kernel:  ret_from_fork_asm+0x1a/0x30
+[   11.143303] cachyos kernel:  </TASK>
+[   11.143312] cachyos kernel: ---[ end trace 0000000000000000 ]---
+[   89.828447] daisy kernel: r8169 0000:02:00.0: can't disable ASPM; OS doesn't have ASPM control
+[   91.894036] daisy kernel: sched_ext: Writing directly to p->scx.slice/dsq_vtime is deprecated, use scx_bpf_task_set_slice/dsq_vtime()
+[   91.895039] daisy kernel: sched_ext: Writing directly to p->scx.slice/dsq_vtime is deprecated, use scx_bpf_task_set_slice/dsq_vtime()
+[   91.898029] daisy kernel: sched_ext: Writing directly to p->scx.slice/dsq_vtime is deprecated, use scx_bpf_task_set_slice/dsq_vtime()
+[   91.898066] daisy kernel: sched_ext: Writing directly to p->scx.slice/dsq_vtime is deprecated, use scx_bpf_task_set_slice/dsq_vtime()
+[   92.302115] daisy kernel: Bluetooth: hci0: HCI Enhanced Setup Synchronous Connection command is advertised, but not supported.
+[   93.136316] daisy kernel: sched_ext: Writing directly to p->scx.slice/dsq_vtime is deprecated, use scx_bpf_task_set_slice/dsq_vtime()
+[   93.136357] daisy kernel: sched_ext: Writing directly to p->scx.slice/dsq_vtime is deprecated, use scx_bpf_task_set_slice/dsq_vtime()
+[   93.141031] daisy kernel: sched_ext: Writing directly to p->scx.slice/dsq_vtime is deprecated, use scx_bpf_task_set_slice/dsq_vtime()
+[   93.141073] daisy kernel: sched_ext: Writing directly to p->scx.slice/dsq_vtime is deprecated, use scx_bpf_task_set_slice/dsq_vtime()
+[   93.141091] daisy kernel: sched_ext: Writing directly to p->scx.slice/dsq_vtime is deprecated, use scx_bpf_task_set_slice/dsq_vtime()
+[   93.153041] daisy kernel: sched_ext: Writing directly to p->scx.slice/dsq_vtime is deprecated, use scx_bpf_task_set_slice/dsq_vtime()
+[   96.968020] daisy kernel: block nvme1n1: No UUID available providing old NGUID
+[   98.406056] daisy kernel: warning: `ThreadPoolForeg' uses wireless extensions which will stop working for Wi-Fi 7 hardware; use nl80211

@@ -153,6 +153,34 @@ fn xps_dock_charger_report() {
     insta::assert_snapshot!(text(&snap));
 }
 
+fn daisy(name: &str) -> Snapshot {
+    let labels = labels::read(&fixtures().join("labels/daisy")).unwrap();
+    collect(name, &labels, Some("daisy")).1
+}
+
+/// The ThinkPad (AMD) on its USB-C charger, nothing else plugged in. Its
+/// labels have no `peer:` lines: every socket pairs through the kernel's
+/// `peer` links. Its UCSI reports no partner PDOs, and the amdgpu REG_WAIT
+/// warning (with its stack trace) is benign.
+#[test]
+fn daisy_charger_report() {
+    let snap = daisy("daisy-charger");
+    assert_eq!(snap.sockets.len(), 4);
+    assert!(
+        snap.sockets
+            .iter()
+            .all(|s| matches!(s.usb3, plugii::model::Usb3Side::Paired(_))),
+        "{:#?}",
+        snap.sockets
+    );
+    assert_eq!(charging_ports(&snap), ["port0"]);
+    assert!(snap.kernel_log.errors.is_empty(), "{:#?}", snap.kernel_log);
+    assert!(snap.kernel_log.benign_count > 0);
+    assert!(health::check(&snap).iter().all(|f| f.level == Level::Ok));
+    insta::assert_snapshot!(text(&snap));
+    insta::assert_json_snapshot!(json(&snap));
+}
+
 /// The faults log (resets on `usb 2-1`, `2-1.3`) against the XPS sockets:
 /// bus 2 port 1 is the left socket's USB 3 half.
 #[test]

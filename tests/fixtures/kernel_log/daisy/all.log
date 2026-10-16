@@ -1,0 +1,343 @@
+[    1.196888] cachyos kernel: ACPI: USB4 _OSC: OS supports USB3+ DisplayPort+ PCIe+ XDomain+
+[    1.196894] cachyos kernel: ACPI: USB4 _OSC: OS controls USB3+ DisplayPort+ PCIe+ XDomain+
+[    1.217269] cachyos kernel: usbcore: registered new interface driver usbfs
+[    1.217275] cachyos kernel: usbcore: registered new interface driver hub
+[    1.217281] cachyos kernel: usbcore: registered new device driver usb
+[    1.235181] cachyos kernel: xhci_hcd 0000:05:00.3: xHCI Host Controller
+[    1.235347] cachyos kernel: xhci_hcd 0000:05:00.3: new USB bus registered, assigned bus number 1
+[    1.235512] cachyos kernel: xhci_hcd 0000:05:00.3: hcc params 0x0120ffc5 hci version 0x120 quirks 0x0000000200000010
+[    1.235675] cachyos kernel: xhci_hcd 0000:05:00.3: xHCI Host Controller
+[    1.235843] cachyos kernel: xhci_hcd 0000:05:00.3: new USB bus registered, assigned bus number 2
+[    1.236012] cachyos kernel: xhci_hcd 0000:05:00.3: Host supports USB 3.1 Enhanced SuperSpeed
+[    1.236201] cachyos kernel: usb usb1: New USB device found, idVendor=1d6b, idProduct=0002, bcdDevice= 7.02
+[    1.236354] cachyos kernel: usb usb1: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[    1.236496] cachyos kernel: usb usb1: Product: xHCI Host Controller
+[    1.236637] cachyos kernel: usb usb1: Manufacturer: Linux 7.2.9-2-cachyos xhci-hcd
+[    1.236777] cachyos kernel: usb usb1: SerialNumber: REDACTED
+[    1.236969] cachyos kernel: hub 1-0:1.0: USB hub found
+[    1.237162] cachyos kernel: hub 1-0:1.0: 4 ports detected
+[    1.237342] cachyos kernel: usb usb2: We don't know the algorithms for LPM for this host, disabling LPM.
+[    1.237523] cachyos kernel: usb usb2: New USB device found, idVendor=1d6b, idProduct=0003, bcdDevice= 7.02
+[    1.237667] cachyos kernel: usb usb2: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[    1.237808] cachyos kernel: usb usb2: Product: xHCI Host Controller
+[    1.237947] cachyos kernel: usb usb2: Manufacturer: Linux 7.2.9-2-cachyos xhci-hcd
+[    1.238094] cachyos kernel: usb usb2: SerialNumber: REDACTED
+[    1.238281] cachyos kernel: hub 2-0:1.0: USB hub found
+[    1.238464] cachyos kernel: hub 2-0:1.0: 2 ports detected
+[    1.238630] cachyos kernel: xhci_hcd 0000:05:00.4: xHCI Host Controller
+[    1.238793] cachyos kernel: xhci_hcd 0000:05:00.4: new USB bus registered, assigned bus number 3
+[    1.238957] cachyos kernel: xhci_hcd 0000:05:00.4: hcc params 0x0120ffc5 hci version 0x120 quirks 0x0000000200000010
+[    1.239126] cachyos kernel: xhci_hcd 0000:05:00.4: xHCI Host Controller
+[    1.239294] cachyos kernel: xhci_hcd 0000:05:00.4: new USB bus registered, assigned bus number 4
+[    1.239458] cachyos kernel: xhci_hcd 0000:05:00.4: Host supports USB 3.1 Enhanced SuperSpeed
+[    1.239637] cachyos kernel: usb usb3: New USB device found, idVendor=1d6b, idProduct=0002, bcdDevice= 7.02
+[    1.239785] cachyos kernel: usb usb3: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[    1.239927] cachyos kernel: usb usb3: Product: xHCI Host Controller
+[    1.240075] cachyos kernel: usb usb3: Manufacturer: Linux 7.2.9-2-cachyos xhci-hcd
+[    1.240217] cachyos kernel: usb usb3: SerialNumber: REDACTED
+[    1.240404] cachyos kernel: hub 3-0:1.0: USB hub found
+[    1.240593] cachyos kernel: hub 3-0:1.0: 3 ports detected
+[    1.240773] cachyos kernel: usb usb4: We don't know the algorithms for LPM for this host, disabling LPM.
+[    1.240954] cachyos kernel: usb usb4: New USB device found, idVendor=1d6b, idProduct=0003, bcdDevice= 7.02
+[    1.241103] cachyos kernel: usb usb4: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[    1.241244] cachyos kernel: usb usb4: Product: xHCI Host Controller
+[    1.241383] cachyos kernel: usb usb4: Manufacturer: Linux 7.2.9-2-cachyos xhci-hcd
+[    1.241526] cachyos kernel: usb usb4: SerialNumber: REDACTED
+[    1.241712] cachyos kernel: hub 4-0:1.0: USB hub found
+[    1.241908] cachyos kernel: hub 4-0:1.0: 2 ports detected
+[    1.242079] cachyos kernel: xhci_hcd 0000:06:00.0: xHCI Host Controller
+[    1.242244] cachyos kernel: xhci_hcd 0000:06:00.0: new USB bus registered, assigned bus number 5
+[    1.242407] cachyos kernel: xhci_hcd 0000:06:00.0: USB0 root hub has no ports
+[    1.242575] cachyos kernel: xhci_hcd 0000:06:00.0: hcc params 0x0110ffc5 hci version 0x120 quirks 0x0000000200000010
+[    1.242758] cachyos kernel: usb usb5: New USB device found, idVendor=1d6b, idProduct=0002, bcdDevice= 7.02
+[    1.242906] cachyos kernel: usb usb5: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[    1.243052] cachyos kernel: usb usb5: Product: xHCI Host Controller
+[    1.243192] cachyos kernel: usb usb5: Manufacturer: Linux 7.2.9-2-cachyos xhci-hcd
+[    1.243335] cachyos kernel: usb usb5: SerialNumber: REDACTED
+[    1.243521] cachyos kernel: hub 5-0:1.0: USB hub found
+[    1.243706] cachyos kernel: hub 5-0:1.0: 1 port detected
+[    1.243874] cachyos kernel: xhci_hcd 0000:06:00.3: xHCI Host Controller
+[    1.244047] cachyos kernel: xhci_hcd 0000:06:00.3: new USB bus registered, assigned bus number 6
+[    1.244222] cachyos kernel: xhci_hcd 0000:06:00.3: hcc params 0x0110ffc5 hci version 0x120 quirks 0x0000000200000010
+[    1.244386] cachyos kernel: xhci_hcd 0000:06:00.3: xHCI Host Controller
+[    1.244550] cachyos kernel: xhci_hcd 0000:06:00.3: new USB bus registered, assigned bus number 7
+[    1.244713] cachyos kernel: xhci_hcd 0000:06:00.3: Host supports USB 3.1 Enhanced SuperSpeed
+[    1.244910] cachyos kernel: usb usb6: New USB device found, idVendor=1d6b, idProduct=0002, bcdDevice= 7.02
+[    1.245072] cachyos kernel: usb usb6: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[    1.245223] cachyos kernel: usb usb6: Product: xHCI Host Controller
+[    1.245364] cachyos kernel: usb usb6: Manufacturer: Linux 7.2.9-2-cachyos xhci-hcd
+[    1.245503] cachyos kernel: usb usb6: SerialNumber: REDACTED
+[    1.245692] cachyos kernel: hub 6-0:1.0: USB hub found
+[    1.245877] cachyos kernel: hub 6-0:1.0: 1 port detected
+[    1.246063] cachyos kernel: usb usb7: We don't know the algorithms for LPM for this host, disabling LPM.
+[    1.246248] cachyos kernel: usb usb7: New USB device found, idVendor=1d6b, idProduct=0003, bcdDevice= 7.02
+[    1.246392] cachyos kernel: usb usb7: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[    1.246531] cachyos kernel: usb usb7: Product: xHCI Host Controller
+[    1.246670] cachyos kernel: usb usb7: Manufacturer: Linux 7.2.9-2-cachyos xhci-hcd
+[    1.246809] cachyos kernel: usb usb7: SerialNumber: REDACTED
+[    1.246995] cachyos kernel: hub 7-0:1.0: USB hub found
+[    1.247191] cachyos kernel: hub 7-0:1.0: 1 port detected
+[    1.247356] cachyos kernel: xhci_hcd 0000:06:00.4: xHCI Host Controller
+[    1.247525] cachyos kernel: xhci_hcd 0000:06:00.4: new USB bus registered, assigned bus number 8
+[    1.247688] cachyos kernel: xhci_hcd 0000:06:00.4: hcc params 0x0110ffc5 hci version 0x120 quirks 0x0000000200000010
+[    1.247853] cachyos kernel: xhci_hcd 0000:06:00.4: xHCI Host Controller
+[    1.248026] cachyos kernel: xhci_hcd 0000:06:00.4: new USB bus registered, assigned bus number 9
+[    1.248196] cachyos kernel: xhci_hcd 0000:06:00.4: Host supports USB 3.1 Enhanced SuperSpeed
+[    1.248377] cachyos kernel: usb usb8: New USB device found, idVendor=1d6b, idProduct=0002, bcdDevice= 7.02
+[    1.248522] cachyos kernel: usb usb8: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[    1.248666] cachyos kernel: usb usb8: Product: xHCI Host Controller
+[    1.248806] cachyos kernel: usb usb8: Manufacturer: Linux 7.2.9-2-cachyos xhci-hcd
+[    1.248945] cachyos kernel: usb usb8: SerialNumber: REDACTED
+[    1.249137] cachyos kernel: hub 8-0:1.0: USB hub found
+[    1.249322] cachyos kernel: hub 8-0:1.0: 1 port detected
+[    1.249502] cachyos kernel: usb usb9: We don't know the algorithms for LPM for this host, disabling LPM.
+[    1.249682] cachyos kernel: usb usb9: New USB device found, idVendor=1d6b, idProduct=0003, bcdDevice= 7.02
+[    1.249829] cachyos kernel: usb usb9: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[    1.249974] cachyos kernel: usb usb9: Product: xHCI Host Controller
+[    1.250127] cachyos kernel: usb usb9: Manufacturer: Linux 7.2.9-2-cachyos xhci-hcd
+[    1.250267] cachyos kernel: usb usb9: SerialNumber: REDACTED
+[    1.250453] cachyos kernel: hub 9-0:1.0: USB hub found
+[    1.250638] cachyos kernel: hub 9-0:1.0: 1 port detected
+[    1.250648] cachyos kernel: usbcore: registered new interface driver usbserial_generic
+[    1.250658] cachyos kernel: usbserial: USB Serial support registered for generic
+[    1.251720] cachyos kernel: usbcore: registered new interface driver usbhid
+[    1.251727] cachyos kernel: usbhid: USB HID core driver
+[    1.252494] cachyos kernel: usb 1-4: new high-speed USB device number 2 using xhci_hcd
+[    1.252689] cachyos kernel: usb 5-1: new high-speed USB device number 2 using xhci_hcd
+[    1.252880] cachyos kernel: usb 3-3: new full-speed USB device number 2 using xhci_hcd
+[    1.253077] cachyos kernel: usb 6-1: new high-speed USB device number 2 using xhci_hcd
+[    1.253271] cachyos kernel: usb 1-4: New USB device found, idVendor=0489, idProduct=e0d8, bcdDevice= 1.00
+[    1.253424] cachyos kernel: usb 1-4: New USB device strings: Mfr=5, Product=6, SerialNumber=7
+[    1.253579] cachyos kernel: usb 1-4: Product: Wireless_Device
+[    1.253733] cachyos kernel: usb 1-4: Manufacturer: MediaTek Inc.
+[    1.253882] cachyos kernel: usb 1-4: SerialNumber: REDACTED
+[    1.254081] cachyos kernel: usb 5-1: New USB device found, idVendor=5986, idProduct=1198, bcdDevice=59.14
+[    1.254246] cachyos kernel: usb 5-1: New USB device strings: Mfr=3, Product=1, SerialNumber=2
+[    1.254396] cachyos kernel: usb 5-1: Product: Integrated Camera
+[    1.254546] cachyos kernel: usb 5-1: Manufacturer:  
+[    1.254694] cachyos kernel: usb 5-1: SerialNumber: REDACTED
+[    1.254882] cachyos kernel: usb 6-1: New USB device found, idVendor=05e3, idProduct=0610, bcdDevice= 6.63
+[    1.255092] cachyos kernel: usb 3-3: New USB device found, idVendor=10a5, idProduct=d805, bcdDevice= 0.93
+[    1.255245] cachyos kernel: usb 6-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[    1.255395] cachyos kernel: usb 6-1: Product: USB2.1 Hub
+[    1.255544] cachyos kernel: usb 6-1: Manufacturer: GenesysLogic
+[    1.255697] cachyos kernel: usb 3-3: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[    1.255846] cachyos kernel: usb 3-3: Product: FPC L:0005 FW:2127093
+[    1.255995] cachyos kernel: usb 3-3: Manufacturer: FPC
+[    1.256203] cachyos kernel: hub 6-1:1.0: USB hub found
+[    1.256397] cachyos kernel: hub 6-1:1.0: 4 ports detected
+[    1.256643] cachyos kernel: usb 7-1: new SuperSpeed USB device number 2 using xhci_hcd
+[    1.256923] cachyos kernel: usb 7-1: New USB device found, idVendor=05e3, idProduct=0626, bcdDevice= 6.63
+[    1.257144] cachyos kernel: usb 7-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[    1.257350] cachyos kernel: usb 7-1: Product: USB3.1 Hub
+[    1.257553] cachyos kernel: usb 7-1: Manufacturer: GenesysLogic
+[    1.257884] cachyos kernel: hub 7-1:1.0: USB hub found
+[    1.258133] cachyos kernel: hub 7-1:1.0: 4 ports detected
+[    1.376080] cachyos kernel: usb 6-1.1: new full-speed USB device number 3 using xhci_hcd
+[    1.486014] cachyos kernel: usb 6-1.1: New USB device found, idVendor=1d5c, idProduct=7102, bcdDevice= 1.00
+[    1.500136] cachyos kernel: usb 6-1.1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[    1.500215] cachyos kernel: usb 6-1.1: Product: Generic Billboard Device
+[    1.500262] cachyos kernel: usb 6-1.1: Manufacturer: Fresco Logic, Inc
+[    1.546735] cachyos kernel: usb 7-1.2: new SuperSpeed USB device number 3 using xhci_hcd
+[    1.559014] cachyos kernel: usb 7-1.2: New USB device found, idVendor=05e3, idProduct=0625, bcdDevice=94.05
+[    1.561012] cachyos kernel: usb 7-1.2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[    1.561329] cachyos kernel: usb 7-1.2: Product: USB3.2 Hub
+[    1.561583] cachyos kernel: usb 7-1.2: Manufacturer: GenesysLogic
+[    1.578010] cachyos kernel: hub 7-1.2:1.0: USB hub found
+[    1.578329] cachyos kernel: hub 7-1.2:1.0: 4 ports detected
+[    1.646023] cachyos kernel: usb 6-1.2: new high-speed USB device number 4 using xhci_hcd
+[    1.747040] cachyos kernel: usb 6-1.2: New USB device found, idVendor=05e3, idProduct=0610, bcdDevice=94.05
+[    1.750046] cachyos kernel: usb 6-1.2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[    1.750400] cachyos kernel: usb 6-1.2: Product: USB2.1 Hub
+[    1.750663] cachyos kernel: usb 6-1.2: Manufacturer: GenesysLogic
+[    1.803009] cachyos kernel: hub 6-1.2:1.0: USB hub found
+[    1.803294] cachyos kernel: hub 6-1.2:1.0: 4 ports detected
+[    1.834316] cachyos kernel: usb 7-1.4: new SuperSpeed USB device number 4 using xhci_hcd
+[    1.845201] cachyos kernel: usb 7-1.4: LPM exit latency is zeroed, disabling LPM.
+[    1.845792] cachyos kernel: usb 7-1.4: New USB device found, idVendor=328f, idProduct=009b, bcdDevice= 2.13
+[    1.846101] cachyos kernel: usb 7-1.4: Int endpoint with wBytesPerInterval of 0 in config 1 interface 5 altsetting 0 ep 0x86: setting to 10
+[    1.846308] cachyos kernel: usb 7-1.4: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[    1.846481] cachyos kernel: usb 7-1.4: Product: EMEET SmartCam S800
+[    1.846647] cachyos kernel: usb 7-1.4: Manufacturer: EMEET
+[    1.846813] cachyos kernel: usb 7-1.4: SerialNumber: REDACTED
+[    2.018348] cachyos kernel: usb 6-1.3: new full-speed USB device number 5 using xhci_hcd
+[    2.028034] cachyos kernel: hid-generic 0003:328F:009B.0001: hiddev96,hidraw0: USB HID v1.01 Device [EMEET EMEET SmartCam S800] on usb-0000:06:00.3-1.4/input4
+[    2.131042] cachyos kernel: usb 6-1.3: New USB device found, idVendor=1d50, idProduct=615e, bcdDevice= 3.05
+[    2.148042] cachyos kernel: usb 6-1.3: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[    2.148369] cachyos kernel: usb 6-1.3: Product: Eyelash Sofle
+[    2.148661] cachyos kernel: usb 6-1.3: Manufacturer: sofle
+[    2.148937] cachyos kernel: usb 6-1.3: SerialNumber: REDACTED
+[    2.214036] cachyos kernel: usb 6-1.2.2: new full-speed USB device number 6 using xhci_hcd
+[    2.227043] cachyos kernel: input: sofle Eyelash Sofle Keyboard as /devices/pci0000:00/0000:00:08.3/0000:06:00.3/usb6/6-1/6-1.3/6-1.3:1.2/0003:1D50:615E.0002/input/input8
+[    2.278064] cachyos kernel: input: sofle Eyelash Sofle Mouse as /devices/pci0000:00/0000:00:08.3/0000:06:00.3/usb6/6-1/6-1.3/6-1.3:1.2/0003:1D50:615E.0002/input/input9
+[    2.278101] cachyos kernel: hid-generic 0003:1D50:615E.0002: input,hidraw1: USB HID v1.11 Keyboard [sofle Eyelash Sofle] on usb-0000:06:00.3-1.3/input2
+[    2.324046] cachyos kernel: usb 6-1.2.2: New USB device found, idVendor=1050, idProduct=0407, bcdDevice= 5.43
+[    2.338042] cachyos kernel: usb 6-1.2.2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[    2.338410] cachyos kernel: usb 6-1.2.2: Product: YubiKey OTP+FIDO+CCID
+[    2.338698] cachyos kernel: usb 6-1.2.2: Manufacturer: Yubico
+[    2.480044] cachyos kernel: input: Yubico YubiKey OTP+FIDO+CCID as /devices/pci0000:00/0000:00:08.3/0000:06:00.3/usb6/6-1/6-1.2/6-1.2.2/6-1.2.2:1.0/0003:1050:0407.0003/input/input10
+[    3.112044] cachyos kernel: hid-generic 0003:1050:0407.0003: input,hidraw2: USB HID v1.10 Keyboard [Yubico YubiKey OTP+FIDO+CCID] on usb-0000:06:00.3-1.2.2/input0
+[    3.117047] cachyos kernel: hid-generic 0003:1050:0407.0004: hiddev97,hidraw3: USB HID v1.10 Device [Yubico YubiKey OTP+FIDO+CCID] on usb-0000:06:00.3-1.2.2/input1
+[    3.215072] cachyos kernel: usb 6-1.2.3: new high-speed USB device number 7 using xhci_hcd
+[    3.315062] cachyos kernel: usb 6-1.2.3: New USB device found, idVendor=2109, idProduct=2822, bcdDevice=90.13
+[    3.318061] cachyos kernel: usb 6-1.2.3: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[    3.318483] cachyos kernel: usb 6-1.2.3: Product: USB2.0 Hub             
+[    3.318798] cachyos kernel: usb 6-1.2.3: Manufacturer: VIA Labs, Inc.         
+[    3.319075] cachyos kernel: usb 6-1.2.3: SerialNumber: REDACTED
+[    3.370065] cachyos kernel: hub 6-1.2.3:1.0: USB hub found
+[    3.370543] cachyos kernel: hub 6-1.2.3:1.0: 4 ports detected
+[    4.137039] cachyos kernel: usb 6-1.2.3.1: new full-speed USB device number 8 using xhci_hcd
+[    4.278037] cachyos kernel: usb 6-1.2.3.1: New USB device found, idVendor=046d, idProduct=c52b, bcdDevice=24.11
+[    4.292286] cachyos kernel: usb 6-1.2.3.1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[    4.292789] cachyos kernel: usb 6-1.2.3.1: Product: USB Receiver
+[    4.293222] cachyos kernel: usb 6-1.2.3.1: Manufacturer: Logitech
+[    4.403039] cachyos kernel: input: Logitech USB Receiver as /devices/pci0000:00/0000:00:08.3/0000:06:00.3/usb6/6-1/6-1.2/6-1.2.3/6-1.2.3.1/6-1.2.3.1:1.0/0003:046D:C52B.0005/input/input11
+[    4.853047] cachyos kernel: hid-generic 0003:046D:C52B.0005: input,hidraw4: USB HID v1.11 Keyboard [Logitech USB Receiver] on usb-0000:06:00.3-1.2.3.1/input0
+[    4.857005] cachyos kernel: input: Logitech USB Receiver Mouse as /devices/pci0000:00/0000:00:08.3/0000:06:00.3/usb6/6-1/6-1.2/6-1.2.3/6-1.2.3.1/6-1.2.3.1:1.1/0003:046D:C52B.0006/input/input12
+[    4.857020] cachyos kernel: input: Logitech USB Receiver Consumer Control as /devices/pci0000:00/0000:00:08.3/0000:06:00.3/usb6/6-1/6-1.2/6-1.2.3/6-1.2.3.1/6-1.2.3.1:1.1/0003:046D:C52B.0006/input/input13
+[    4.887031] cachyos kernel: amdgpu: Virtual CRAT table created for CPU
+[    4.887065] cachyos kernel: amdgpu: Topology: Add CPU node
+[    4.887081] cachyos kernel: amdgpu 0000:05:00.0: enabling device (0006 -> 0007)
+[    4.887614] cachyos kernel: amdgpu 0000:05:00.0: initializing kernel modesetting (YELLOW_CARP 0x1002:0x1681 0x17AA:0x50EC 0x0A).
+[    4.887932] cachyos kernel: amdgpu 0000:05:00.0: register mmio base: 0x80600000
+[    4.888161] cachyos kernel: amdgpu 0000:05:00.0: register mmio size: 524288
+[    4.891032] cachyos kernel: amdgpu 0000:05:00.0: detected ip block number 0 <common_v1_0_0> (nv_common)
+[    4.891394] cachyos kernel: amdgpu 0000:05:00.0: detected ip block number 1 <gmc_v10_0_0> (gmc_v10_0)
+[    4.891711] cachyos kernel: amdgpu 0000:05:00.0: detected ip block number 2 <ih_v5_0_0> (navi10_ih)
+[    4.892028] cachyos kernel: amdgpu 0000:05:00.0: detected ip block number 3 <psp_v13_0_0> (psp)
+[    4.892329] cachyos kernel: amdgpu 0000:05:00.0: detected ip block number 4 <smu_v13_0_0> (smu)
+[    4.892620] cachyos kernel: amdgpu 0000:05:00.0: detected ip block number 5 <dce_v1_0_0> (dm)
+[    4.892855] cachyos kernel: amdgpu 0000:05:00.0: detected ip block number 6 <gfx_v10_0_0> (gfx_v10_0)
+[    4.892985] cachyos kernel: amdgpu 0000:05:00.0: detected ip block number 7 <sdma_v5_2_0> (sdma_v5_2)
+[    4.893119] cachyos kernel: amdgpu 0000:05:00.0: detected ip block number 8 <vcn_v3_0_0> (vcn_v3_0)
+[    4.893252] cachyos kernel: amdgpu 0000:05:00.0: detected ip block number 9 <jpeg_v3_0_0> (jpeg_v3_0)
+[    4.893384] cachyos kernel: amdgpu 0000:05:00.0: Fetched VBIOS from VFCT
+[    4.893514] cachyos kernel: amdgpu 0000:05:00.0: [drm] ATOM BIOS: 113-REMBRANDT-X37, build: 606368  , ver: 032.017.000.055.000000, 2022/04/12
+[    4.908071] cachyos kernel: input: Logitech USB Receiver System Control as /devices/pci0000:00/0000:00:08.3/0000:06:00.3/usb6/6-1/6-1.2/6-1.2.3/6-1.2.3.1/6-1.2.3.1:1.1/0003:046D:C52B.0006/input/input14
+[    4.909054] cachyos kernel: hid-generic 0003:046D:C52B.0006: input,hiddev98,hidraw5: USB HID v1.11 Mouse [Logitech USB Receiver] on usb-0000:06:00.3-1.2.3.1/input1
+[    4.911032] cachyos kernel: amdgpu 0000:05:00.0: vgaarb: deactivate vga console
+[    4.911385] cachyos kernel: amdgpu 0000:05:00.0: Trusted Memory Zone (TMZ) feature disabled as experimental (default)
+[    4.911677] cachyos kernel: amdgpu 0000:05:00.0: vm size is 262144 GB, 4 levels, block size is 9-bit, fragment size is 9-bit
+[    4.911965] cachyos kernel: amdgpu 0000:05:00.0: VRAM: 8192M 0x000000F400000000 - 0x000000F5FFFFFFFF (8192M used)
+[    4.912135] cachyos kernel: amdgpu 0000:05:00.0: GART: 1024M 0x0000000000000000 - 0x000000003FFFFFFF
+[    4.912264] cachyos kernel: amdgpu 0000:05:00.0: [drm] Detected VRAM RAM=8192M, BAR=8192M
+[    4.912386] cachyos kernel: amdgpu 0000:05:00.0: [drm] RAM width 128bits DDR5
+[    4.912510] cachyos kernel: amdgpu 0000:05:00.0:  8192M of VRAM memory ready
+[    4.912633] cachyos kernel: amdgpu 0000:05:00.0:  11889M of GTT memory ready.
+[    4.912761] cachyos kernel: amdgpu 0000:05:00.0: [drm] GART: num cpu pages 262144, num gpu pages 262144
+[    4.913189] cachyos kernel: amdgpu 0000:05:00.0: [drm] PCIE GART of 1024M enabled (table at 0x000000F5FFC00000).
+[    4.913517] cachyos kernel: amdgpu 0000:05:00.0: [drm] Loading DMUB firmware via PSP: version=0x0400004C
+[    4.913874] cachyos kernel: amdgpu 0000:05:00.0: [drm] use_doorbell being set to: [true]
+[    4.914180] cachyos kernel: amdgpu 0000:05:00.0: [VCN instance 0] Found VCN firmware Version ENC: 1.33 DEC: 4 VEP: 0 Revision: 14
+[    4.914431] cachyos kernel: hid-generic 0003:046D:C52B.0007: hiddev99,hidraw6: USB HID v1.11 Device [Logitech USB Receiver] on usb-0000:06:00.3-1.2.3.1/input2
+[    4.935022] cachyos kernel: amdgpu 0000:05:00.0: reserve 0xa00000 from 0xf5fe000000 for PSP TMR
+[    5.012021] cachyos kernel: logitech-djreceiver 0003:046D:C52B.0007: hiddev98,hidraw4: USB HID v1.11 Device [Logitech USB Receiver] on usb-0000:06:00.3-1.2.3.1/input2
+[    5.038053] cachyos kernel: usb 6-1.2.3.2: new full-speed USB device number 9 using xhci_hcd
+[    5.074135] cachyos kernel: amdgpu 0000:05:00.0: RAS: optional ras ta ucode is not available
+[    5.084684] cachyos kernel: amdgpu 0000:05:00.0: RAP: optional rap ta ucode is not available
+[    5.085221] cachyos kernel: amdgpu 0000:05:00.0: SECUREDISPLAY: optional securedisplay ta ucode is not available
+[    5.085542] cachyos kernel: amdgpu 0000:05:00.0: smu driver if version = 0x00000004, smu fw if version = 0x00000004, smu fw program = 4, smu fw version = 0x04454700 (69.71.0)
+[    5.087032] cachyos kernel: amdgpu 0000:05:00.0: SMU is initialized successfully!
+[    5.087370] cachyos kernel: amdgpu 0000:05:00.0: [drm] Display Core v3.2.384 initialized on DCN 3.1.2
+[    5.087667] cachyos kernel: amdgpu 0000:05:00.0: [drm] DP-HDMI FRL PCON supported
+[    5.089032] cachyos kernel: amdgpu 0000:05:00.0: [drm] DMUB hardware initialized: version=0x0400004C
+[    5.117027] cachyos kernel: input: Logitech Wireless Device PID:4082 Keyboard as /devices/pci0000:00/0000:00:08.3/0000:06:00.3/usb6/6-1/6-1.2/6-1.2.3/6-1.2.3.1/6-1.2.3.1:1.2/0003:046D:C52B.0007/0003:046D:4082.0008/input/input16
+[    5.158015] cachyos kernel: input: Logitech Wireless Device PID:4082 Mouse as /devices/pci0000:00/0000:00:08.3/0000:06:00.3/usb6/6-1/6-1.2/6-1.2.3/6-1.2.3.1/6-1.2.3.1:1.2/0003:046D:C52B.0007/0003:046D:4082.0008/input/input17
+[    5.158065] cachyos kernel: hid-generic 0003:046D:4082.0008: input,hidraw5: USB HID v1.11 Keyboard [Logitech Wireless Device PID:4082] on usb-0000:06:00.3-1.2.3.1/input2:1
+[    5.165011] cachyos kernel: input: Logitech MX Keys as /devices/pci0000:00/0000:00:08.3/0000:06:00.3/usb6/6-1/6-1.2/6-1.2.3/6-1.2.3.1/6-1.2.3.1:1.2/0003:046D:C52B.0007/0003:046D:408A.0009/input/input21
+[    5.181059] cachyos kernel: usb 6-1.2.3.2: New USB device found, idVendor=046d, idProduct=c548, bcdDevice= 5.01
+[    5.189011] cachyos kernel: amdgpu 0000:05:00.0: [drm] Using ACPI provided EDID for eDP-1
+[    5.190008] cachyos kernel: amdgpu 0000:05:00.0: [drm] eDP-1: PSR support 0, DC PSR ver -1, sink PSR ver 0 DPCD caps 0x0 su_y_granularity 0
+[    5.190285] cachyos kernel: amdgpu 0000:05:00.0: [drm] HDMI-A-1: PSR support 0, DC PSR ver -1, sink PSR ver 0 DPCD caps 0x0 su_y_granularity 0
+[    5.190515] cachyos kernel: amdgpu 0000:05:00.0: [drm] DP-1: PSR support 0, DC PSR ver -1, sink PSR ver 0 DPCD caps 0x0 su_y_granularity 0
+[    5.194010] cachyos kernel: usb 6-1.2.3.2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[    5.194295] cachyos kernel: usb 6-1.2.3.2: Product: USB Receiver
+[    5.194535] cachyos kernel: usb 6-1.2.3.2: Manufacturer: Logitech
+[    5.237049] cachyos kernel: logitech-hidpp-device 0003:046D:408A.0009: input,hidraw6: USB HID v1.11 Keyboard [Logitech MX Keys] on usb-0000:06:00.3-1.2.3.1/input2:2
+[    5.251053] cachyos kernel: input: Logitech MX Master 3 as /devices/pci0000:00/0000:00:08.3/0000:06:00.3/usb6/6-1/6-1.2/6-1.2.3/6-1.2.3.1/6-1.2.3.1:1.2/0003:046D:C52B.0007/0003:046D:4082.0008/input/input22
+[    5.273045] cachyos kernel: logitech-hidpp-device 0003:046D:4082.0008: input,hidraw5: USB HID v1.11 Keyboard [Logitech MX Master 3] on usb-0000:06:00.3-1.2.3.1/input2:1
+[    5.294017] cachyos kernel: amdgpu 0000:05:00.0: [drm] DP-2: PSR support 0, DC PSR ver -1, sink PSR ver 0 DPCD caps 0x0 su_y_granularity 0
+[    5.294202] cachyos kernel: amdgpu 0000:05:00.0: [drm] DP-3: PSR support 0, DC PSR ver -1, sink PSR ver 0 DPCD caps 0x0 su_y_granularity 0
+[    5.294341] cachyos kernel: amdgpu 0000:05:00.0: [drm] DP-4: PSR support 0, DC PSR ver -1, sink PSR ver 0 DPCD caps 0x0 su_y_granularity 0
+[    5.294474] cachyos kernel: amdgpu 0000:05:00.0: [drm] DP-5: PSR support 0, DC PSR ver -1, sink PSR ver 0 DPCD caps 0x0 su_y_granularity 0
+[    5.294607] cachyos kernel: amdgpu 0000:05:00.0: [drm] DP-6: PSR support 0, DC PSR ver -1, sink PSR ver 0 DPCD caps 0x0 su_y_granularity 0
+[    5.294738] cachyos kernel: amdgpu 0000:05:00.0: kiq ring mec 2 pipe 1 q 0
+[    5.300416] cachyos kernel: amdgpu: Virtual CRAT table created for GPU
+[    5.300429] cachyos kernel: amdgpu: Topology: Add GPU node [0x1002:0x1681]
+[    5.300611] cachyos kernel: amdgpu 0000:05:00.0: SE 1, SH per SE 2, CU per SH 6, active_cu_number 12
+[    5.300866] cachyos kernel: amdgpu 0000:05:00.0: ring gfx_0.0.0 uses VM inv eng 0 on hub 0
+[    5.300994] cachyos kernel: amdgpu 0000:05:00.0: ring gfx_0.1.0 uses VM inv eng 1 on hub 0
+[    5.301132] cachyos kernel: amdgpu 0000:05:00.0: ring comp_1.0.0 uses VM inv eng 4 on hub 0
+[    5.301256] cachyos kernel: amdgpu 0000:05:00.0: ring comp_1.1.0 uses VM inv eng 5 on hub 0
+[    5.301377] cachyos kernel: amdgpu 0000:05:00.0: ring comp_1.2.0 uses VM inv eng 6 on hub 0
+[    5.301498] cachyos kernel: amdgpu 0000:05:00.0: ring comp_1.3.0 uses VM inv eng 7 on hub 0
+[    5.301620] cachyos kernel: amdgpu 0000:05:00.0: ring comp_1.0.1 uses VM inv eng 8 on hub 0
+[    5.301742] cachyos kernel: amdgpu 0000:05:00.0: ring comp_1.1.1 uses VM inv eng 9 on hub 0
+[    5.301865] cachyos kernel: amdgpu 0000:05:00.0: ring comp_1.2.1 uses VM inv eng 10 on hub 0
+[    5.302078] cachyos kernel: amdgpu 0000:05:00.0: ring comp_1.3.1 uses VM inv eng 11 on hub 0
+[    5.302358] cachyos kernel: amdgpu 0000:05:00.0: ring kiq_0.2.1.0 uses VM inv eng 12 on hub 0
+[    5.302606] cachyos kernel: amdgpu 0000:05:00.0: ring sdma0 uses VM inv eng 13 on hub 0
+[    5.302851] cachyos kernel: amdgpu 0000:05:00.0: ring vcn_dec_0 uses VM inv eng 0 on hub 8
+[    5.303102] cachyos kernel: amdgpu 0000:05:00.0: ring vcn_enc_0.0 uses VM inv eng 1 on hub 8
+[    5.303315] cachyos kernel: amdgpu 0000:05:00.0: ring vcn_enc_0.1 uses VM inv eng 4 on hub 8
+[    5.303437] cachyos kernel: amdgpu 0000:05:00.0: ring jpeg_dec uses VM inv eng 5 on hub 8
+[    5.303560] cachyos kernel: amdgpu 0000:05:00.0: Runtime PM not available
+[    5.304005] cachyos kernel: amdgpu 0000:05:00.0: [drm] Using custom brightness curve
+[    5.305005] cachyos kernel: amdgpu 0000:05:00.0: [drm] Registered 4 planes with drm panic
+[    5.319019] cachyos kernel: [drm] Initialized amdgpu 3.64.0 for 0000:05:00.0 on minor 1
+[    5.330036] cachyos kernel: fbcon: amdgpudrmfb (fb0) is primary device
+[    5.330103] cachyos kernel: amdgpu 0000:05:00.0: [drm] fb0: amdgpudrmfb frame buffer device
+[    5.331007] cachyos kernel: input: Logitech USB Receiver as /devices/pci0000:00/0000:00:08.3/0000:06:00.3/usb6/6-1/6-1.2/6-1.2.3/6-1.2.3.2/6-1.2.3.2:1.0/0003:046D:C548.000A/input/input23
+[    5.377089] cachyos kernel: hid-generic 0003:046D:C548.000A: input,hidraw7: USB HID v1.11 Keyboard [Logitech USB Receiver] on usb-0000:06:00.3-1.2.3.2/input0
+[    5.380032] cachyos kernel: input: Logitech USB Receiver Mouse as /devices/pci0000:00/0000:00:08.3/0000:06:00.3/usb6/6-1/6-1.2/6-1.2.3/6-1.2.3.2/6-1.2.3.2:1.1/0003:046D:C548.000B/input/input24
+[    5.381042] cachyos kernel: input: Logitech USB Receiver Consumer Control as /devices/pci0000:00/0000:00:08.3/0000:06:00.3/usb6/6-1/6-1.2/6-1.2.3/6-1.2.3.2/6-1.2.3.2:1.1/0003:046D:C548.000B/input/input25
+[    5.381088] cachyos kernel: input: Logitech USB Receiver System Control as /devices/pci0000:00/0000:00:08.3/0000:06:00.3/usb6/6-1/6-1.2/6-1.2.3/6-1.2.3.2/6-1.2.3.2:1.1/0003:046D:C548.000B/input/input26
+[    5.381112] cachyos kernel: hid-generic 0003:046D:C548.000B: input,hidraw8: USB HID v1.11 Mouse [Logitech USB Receiver] on usb-0000:06:00.3-1.2.3.2/input1
+[    5.384042] cachyos kernel: hid-generic 0003:046D:C548.000C: hiddev99,hidraw9: USB HID v1.11 Device [Logitech USB Receiver] on usb-0000:06:00.3-1.2.3.2/input2
+[    5.509045] cachyos kernel: usb 6-1.2.3.3: new full-speed USB device number 10 using xhci_hcd
+[    5.636084] cachyos kernel: amdgpu 0000:05:00.0: [drm] REG_WAIT timeout 1us * 100 tries - dcn31_program_compbuf_size line:141
+[    5.646051] cachyos kernel: usb 6-1.2.3.3: New USB device found, idVendor=2dc8, idProduct=3109, bcdDevice= 2.00
+[    5.672488] cachyos kernel: usb 6-1.2.3.3: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[    5.673061] cachyos kernel: usb 6-1.2.3.3: Product: 8BitDo Pro 3 Receiver
+[    5.673569] cachyos kernel: usb 6-1.2.3.3: Manufacturer: 8BitDo
+[    5.673866] cachyos kernel: usb 6-1.2.3.3: SerialNumber: REDACTED
+[    5.748073] cachyos kernel: hid-generic 0003:2DC8:3109.000D: hiddev100,hidraw10: USB HID v1.11 Device [8BitDo 8BitDo Pro 3 Receiver] on usb-0000:06:00.3-1.2.3.3/input0
+[   11.140274] cachyos kernel: amdgpu 0000:05:00.0: [drm] REG_WAIT timeout 1us * 100 tries - dcn31_program_compbuf_size line:141
+[   11.140974] cachyos kernel: WARNING: drivers/gpu/drm/amd/amdgpu/../display/dc/hubbub/dcn31/dcn31_hubbub.c:151 at dcn31_program_compbuf_size+0x204/0x210 [amdgpu], CPU#0: kworker/0:3/265
+[   11.140994] cachyos kernel: Modules linked in: hid_logitech_hidpp hid_logitech_dj amdgpu dm_mod drm_panel_backlight_quirks drm_buddy thinkpad_acpi drm_suballoc_helper i2c_algo_bit rfkill drm_exec snd gpu_sched aesni_intel soundcore gf128mul amdxcp nvme sparse_keymap drm_ttm_helper aead ttm video nvme_core drm_display_helper ccp nvme_keyring cec wmi nvme_auth serio_raw
+[   11.141095] cachyos kernel: RIP: 0010:dcn31_program_compbuf_size+0x204/0x210 [amdgpu]
+[   11.141369] cachyos kernel:  dcn20_optimize_bandwidth+0x114/0x210 [amdgpu e10c3956606e9b12a3f5a84b64be5a752476bc5c]
+[   11.141388] cachyos kernel:  dc_commit_state_no_check+0x145f/0x1710 [amdgpu e10c3956606e9b12a3f5a84b64be5a752476bc5c]
+[   11.142241] cachyos kernel:  dc_commit_streams+0x487/0x650 [amdgpu e10c3956606e9b12a3f5a84b64be5a752476bc5c]
+[   11.142286] cachyos kernel:  amdgpu_dm_atomic_commit_tail+0x903/0x44e0 [amdgpu e10c3956606e9b12a3f5a84b64be5a752476bc5c]
+[   11.142330] cachyos kernel:  ? dcn30_internal_validate_bw+0xadc/0xb80 [amdgpu e10c3956606e9b12a3f5a84b64be5a752476bc5c]
+[   11.143077] cachyos kernel:  ? dcn31_validate_bandwidth+0x1ea/0x270 [amdgpu e10c3956606e9b12a3f5a84b64be5a752476bc5c]
+[   11.143113] cachyos kernel:  ? amdgpu_dm_atomic_check+0x1975/0x1b60 [amdgpu e10c3956606e9b12a3f5a84b64be5a752476bc5c]
+[   12.016071] cachyos kernel: usb 6-1: USB disconnect, device number 2
+[   12.016946] cachyos kernel: usb 6-1.1: USB disconnect, device number 3
+[   12.016998] cachyos kernel: usb 6-1.2: USB disconnect, device number 4
+[   12.017286] cachyos kernel: usb 6-1.2.2: USB disconnect, device number 6
+[   12.044080] cachyos kernel: usb 7-1: USB disconnect, device number 2
+[   12.044656] cachyos kernel: usb 7-1.2: USB disconnect, device number 3
+[   12.076148] cachyos kernel: usb 7-1.4: USB disconnect, device number 4
+[   12.141056] cachyos kernel: usb 6-1.2.3: USB disconnect, device number 7
+[   12.147409] cachyos kernel: usb 6-1.2.3.1: USB disconnect, device number 8
+[   12.301422] cachyos kernel: usb 6-1.2.3.2: USB disconnect, device number 9
+[   12.426893] cachyos kernel: usb 6-1.2.3.3: USB disconnect, device number 10
+[   12.523093] cachyos kernel: usb 6-1.3: USB disconnect, device number 5
+[   89.691401] daisy kernel: ACPI: bus type thunderbolt registered
+[   89.958026] daisy kernel: snd_hda_intel 0000:05:00.1: bound 0000:05:00.0 (ops amdgpu_dm_audio_component_bind_ops [amdgpu])
+[   89.963452] daisy kernel: usbcore: registered new interface driver btusb
+[   89.974024] daisy kernel: usbcore: registered new interface driver uvcvideo
+[  717.615225] daisy kernel: usb 3-3: reset full-speed USB device number 2 using xhci_hcd
+[  717.883033] daisy kernel: usb 3-3: reset full-speed USB device number 2 using xhci_hcd
+[ 1023.942095] daisy kernel: usb 3-3: reset full-speed USB device number 2 using xhci_hcd
+[24984.997040] daisy kernel: usb 8-1: new full-speed USB device number 2 using xhci_hcd
+[24985.129159] daisy kernel: usb 8-1: New USB device found, idVendor=1050, idProduct=0407, bcdDevice= 5.43
+[24985.144027] daisy kernel: usb 8-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[24985.144746] daisy kernel: usb 8-1: Product: YubiKey OTP+FIDO+CCID
+[24985.145210] daisy kernel: usb 8-1: Manufacturer: Yubico
+[24985.302032] daisy kernel: input: Yubico YubiKey OTP+FIDO+CCID as /devices/pci0000:00/0000:00:08.3/0000:06:00.4/usb8/8-1/8-1:1.0/0003:1050:0407.0012/input/input46
+[24985.388072] daisy kernel: hid-generic 0003:1050:0407.0012: input,hidraw2: USB HID v1.10 Keyboard [Yubico YubiKey OTP+FIDO+CCID] on usb-0000:06:00.4-1/input0
+[24985.392014] daisy kernel: hid-generic 0003:1050:0407.0013: hiddev96,hidraw3: USB HID v1.10 Device [Yubico YubiKey OTP+FIDO+CCID] on usb-0000:06:00.4-1/input1
+[24998.981029] daisy kernel: usb 8-1: USB disconnect, device number 2
