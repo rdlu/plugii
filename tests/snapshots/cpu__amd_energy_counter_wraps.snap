@@ -1,0 +1,12 @@
+---
+source: tests/cpu.rs
+expression: sample
+---
+{
+  "util_pct": 25,
+  "avg_khz": 1950000,
+  "max_khz": 3300000,
+  "min_khz": 400000,
+  "package_w": 15.0,
+  "package_temp_c": 61.25
+}

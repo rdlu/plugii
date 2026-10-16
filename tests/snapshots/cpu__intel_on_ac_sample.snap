@@ -1,0 +1,12 @@
+---
+source: tests/cpu.rs
+expression: "cpu::sample(&root, &before, &after, HALF_SECOND)"
+---
+{
+  "util_pct": 30,
+  "avg_khz": 1922593,
+  "max_khz": 3090372,
+  "min_khz": 400000,
+  "package_w": 20.0,
+  "package_temp_c": 58.0
+}
