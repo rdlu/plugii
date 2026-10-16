@@ -66,7 +66,36 @@ Sysfs facts observed on the dev machine (`xps`, Dell XPS 9320): no `peer`
 links (paired via `peer:` labels), USB 2 on 0000:00:14.0 and USB 3 on
 0000:00:0d.0, two Thunderbolt domains, UCSI port0/port1, partner PDOs at
 `/sys/class/typec/portN-partner/usb_power_delivery/source-capabilities/N:fixed_supply/{voltage,maximum_current}`,
-RAPL `energy_uj` and `urbnum` readable without root.
+RAPL `energy_uj` and `urbnum` readable without root. Also readable: each
+device's `bos_descriptors` (SuperSpeed / SuperSpeedPlus capability → the
+fastest speed it *could* link at), `rx_lanes`/`tx_lanes`, `version` (bcdUSB);
+each root port's `over_current_count`, `state` and ACPI `physical_location`
+(panel / horizontal / vertical position — wrong on the XPS, where both sockets
+say "left", so only a hint for unlabelled sockets, never trusted over labels).
+
+## Machine specifics: one generic core, per-host data, vendor modules
+
+The script grew fixes for two machines: `daisy` (Lenovo ThinkPad, AMD, has
+`peer` links, Lenovo PD firmware) and `xps` (Dell XPS 9320, Intel, no `peer`
+links, Thunderbolt). plugii keeps all of that without host checks:
+
+- **Discovered, not hard-coded:** battery and mains by power_supply `type`
+  (not `BAT0`/`AC`), temperature sensor from a list of known hwmon names
+  (`coretemp`, `k10temp`, `zenpower`, …), RAPL via powercap, `peer` links when
+  firmware has them, else `peer:` labels.
+- **Per-host data stays in the labels file** (stowed per host from dotfiles).
+- **Known-benign kernel log patterns** are a table tagged by driver (amdgpu
+  `LTTPR`/`REG_WAIT` first).
+- **Vendor modules** picked by DMI `sys_vendor`: `vendor/lenovo.rs`,
+  `vendor/dell.rs` — firmware catalogs (milestone 8) and vendor-specific fix
+  advice attached to generic findings (e.g. Lenovo EC reset procedure).
+- **Personal integrations are optional:** niri output mode/VRR only when niri
+  runs; the VRR-over-HDMI warning is worded generically.
+- **No hostnames in code.** `daisy` / `xps` appear only as fixture names. Each
+  past incident (daisy's dead USB-C port 2026-09-27, the XPS dock throttling
+  2026-10-16) becomes a fixture for the health rule it produced.
+- ThinkPad captures and test runs: the user opens a Claude session on daisy;
+  batch those asks into one checklist.
 
 ## TUI
 
@@ -91,15 +120,21 @@ Fixture sysfs trees captured from real machines (`plugii capture`) plus
 hand-made fault fixtures: hub stuck at USB 2, UCSI missing, PROCHOT throttle,
 unauthorized Thunderbolt device. insta snapshots for report and `--json`, a
 unit test per health rule, TUI rendering through `TestBackend`.
-CI (GitHub Actions): fmt, clippy `-D warnings`, test.
+Local gates: fmt, clippy `-D warnings`, test. GitHub Actions come with the
+release milestone.
 
-## Milestones (one branch + PR each, reviewed between)
+## Milestones
 
-1. Scaffold: cargo, MIT LICENSE, README, CI, labels parser, Snapshot + History model.
+Each lands on a local branch, gets reviewed, and fast-forwards local `main`.
+No PRs or pushes until the user calls it reliable enough to release.
+
+1. ✅ Scaffold: cargo, MIT LICENSE, README, labels parser, Snapshot + History model.
 2. Readers: usb, typec/PD, thunderbolt + `capture` + fixtures. *(parallel with 3)*
 3. Readers: drm, power, cpu, kernel log. *(parallel with 2)*
 4. Health rules + text report (parity with script, exit codes), `-H`, `--json`.
 5. TUI core: layout, live updates (udev + tick), Events tab, Charts tab with power/CPU timeline.
 6. TUI extras: detail view, capable-vs-linked, label wizard, help, URB sparklines, speed timeline, charger table.
 7. `--record` / `replay`.
-8. Firmware section (`--firmware`).
+8. Firmware section (`--firmware`), with the vendor modules.
+9. Release: GitHub Actions (CI + release binaries), docs, GitHub Pages site,
+   first tagged release.
