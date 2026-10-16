@@ -286,7 +286,8 @@ fn offers(port: &TypecPort, st: Style) -> Option<String> {
     Some(parts.join(" · "))
 }
 
-fn pdo_text(pdo: &Pdo) -> String {
+/// One PDO: `20V 2.35A`, `PPS 3.3-21V 3A`.
+pub fn pdo_text(pdo: &Pdo) -> String {
     match pdo {
         Pdo::Fixed { mv, ma } => format!("{}V {}A", milli(*mv), milli(*ma)),
         Pdo::Variable { min_mv, max_mv, ma } => {

@@ -1,0 +1,44 @@
+---
+source: tests/tui.rs
+expression: screen
+---
+ Ports │ Charts │ Events   unknown                              updated 12:00:00
+┌ Sockets ─────────────────────────────────────────────────────────────────────┐
+│─ USB-A (right) ───────────────────────────────────────────── 0000:05:00.4-1 ─│
+│ USB 3  idle                                                                  │
+│ USB 2  idle                                                                  │
+│─ USB-A (left) ────────────────────────────────────────────── 0000:05:00.4-2 ─│
+│ USB 3  idle                                                                  │
+│ USB 2  idle                                                                  │
+│─ USB-C (hinge) ───────────────────────────────────────────── 0000:06:00.3-1 ─│
+│ USB 3  linked                                                                │
+│   ▾   5G  05e3:0626  USB3.1 Hub                                              │
+│         5G  0b95:1790  AX88179B                                              │
+│ USB 2  linked                                                                │
+│   ▾ 480M  05e3:0610  USB2.1 Hub                                              │
+│       480M  05e3:0608  USB2.0 Hub                                            │
+│─ USB-C (caps lock) ───────────────────────────────────────── 0000:06:00.4-1 ─│
+│ USB 3  idle                                                                  │
+│ USB 2  idle                                                                  │
+│ USB-C  partner (port0) · charging                                            │
+│   └ no USB data, no DisplayPort (charger only?)                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+┌ USB-C / PD ──────────────────────────────────────────────────────────────────┐
+│port0 · USB-C (caps lock)  partner                                            │
+│  PD · charging · cable passive                                               │
+│  offers not reported                                                         │
+│port1  empty                                                                  │
+└──────────────────────────────────────────────────────────────────────────────┘
+┌ Power ───────────────────────────────────────────────────────────────────────┐
+│AC       online                                                               │
+│USB-C    port0 (USB-C (caps lock)) — power level not reported (drawing 2.75 A)│
+│Battery  80% Not charging  (limit 80%)                                        │
+│CPU      no sample                                                            │
+└──────────────────────────────────────────────────────────────────────────────┘
+┌ Health ──────────────────────────────────────────────────────────────────────┐
+│✓ USB 3 links up (SuperSpeed lanes working)                                   │
+│✓ USB-C status driver (UCSI) up: 2 port(s)                                    │
+│✓ charging power arriving via USB-C port0 (USB-C (caps lock)) — power level   │
+│  not reported (drawing 2.75 A; charger's offers not reported)                │
+│✓ kernel log clean                                                            │
+└──────────────────────────────────────────────────────────────────────────────┘

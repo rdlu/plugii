@@ -1,0 +1,16 @@
+---
+source: tests/tui.rs
+expression: "render(&mut app, 100, 12)"
+---
+ Ports │ Charts │ Events   unknown                                                  updated 12:00:00
+┌ Events ──────────────────────────────────────────────────────────────────────────────────────────┐
+│11:59:20  + charger on USB-C (caps lock)                                                          │
+│11:59:21  ~ AC online, battery Not charging                                                       │
+│11:59:35  + 05e3:0626 hub @5G on USB-C (hinge)                                                    │
+│11:59:48  ! link reset on USB-C (hinge)                                                           │
+│11:59:55  − 046d:c52b Unifying Receiver @12M on USB-A (left)                                      │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+└──────────────────────────────────────────────────────────────────────────────────────────────────┘

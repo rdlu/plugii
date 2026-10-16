@@ -1,0 +1,44 @@
+---
+source: tests/tui.rs
+expression: "render(&mut app, 120, 40)"
+---
+ Ports │ Charts │ Events   unknown                                                                      updated 12:00:00
+┌ Sockets ─────────────────────────────────────────────────┐┌ USB-C / PD ──────────────────────────────────────────────┐
+│─ USB-C (left) ────────────────────────── 0000:00:14.0-1 ─││port0 · USB-C (left)  partner                             │
+│ USB 3  linked                                            ││port1 · USB-C (right)  partner                            │
+│   ▾   5G  05e3:0626  USB3.1 Hub                          ││  PD · charging                                           │
+│         5G  328f:009b  EMEET SmartCam S800               ││    5V 1A              5 W                                │
+│ USB 2  linked                                            ││    9V 1A              9 W                                │
+│   ▾ 480M  05e3:0610  USB2.1 Hub                          ││    12V 1.5A          18 W                                │
+│        12M  1d5c:7102  Generic Billboard Device          ││    15V 1.8A          27 W                                │
+│        12M  1d50:615e  Eyelash Sofle                     ││  ▶ 20V 2.35A         47 W                                │
+│ USB-C  partner (port0)                                   ││  contract 20V 2.35A ≈ 47 W                               │
+│─ USB-C (right) ───────────────────────── 0000:00:14.0-3 ─│└──────────────────────────────────────────────────────────┘
+│ USB 3  idle                                              │┌ Power ───────────────────────────────────────────────────┐
+│ USB 2  idle                                              ││AC       online                                           │
+│ USB-C  partner (port1) · charging                        ││USB-C    port1 (USB-C (right)) 20V 2.35A ≈ 47W            │
+│   └ display in DP alt mode → DP-3                        ││Battery  78% Not charging  (limit 80%)                    │
+│                                                          ││CPU      no sample                                        │
+│                                                          │└──────────────────────────────────────────────────────────┘
+│                                                          │┌ Health ──────────────────────────────────────────────────┐
+│                                                          ││✓ USB 3 links up (SuperSpeed lanes working)               │
+│                                                          ││✓ USB-C status driver (UCSI) up: 2 port(s)                │
+│                                                          ││✓ Thunderbolt/USB4: 2 domain(s), security user, 0         │
+│                                                          ││  device(s) attached                                      │
+│                                                          ││✓ external display on USB-C (DP alt mode working)         │
+│                                                          ││✓ charging power arriving via USB-C port1 (USB-C (right)) │
+│                                                          ││  20V 2.35A ≈ 47W (best offer 47 W)                       │
+│                                                          ││✓ kernel log clean                                        │
+│                                                          ││                                                          │
+│                                                          ││                                                          │
+│                                                          ││                                                          │
+│                                                          ││                                                          │
+│                                                          ││                                                          │
+│                                                          ││                                                          │
+│                                                          ││                                                          │
+│                                                          ││                                                          │
+│                                                          ││                                                          │
+│                                                          ││                                                          │
+│                                                          ││                                                          │
+│                                                          ││                                                          │
+└──────────────────────────────────────────────────────────┘└──────────────────────────────────────────────────────────┘

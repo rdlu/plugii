@@ -20,7 +20,7 @@ fn main() -> Result<ExitCode> {
         Action::Report {
             health_only, json, ..
         } => run_report(health_only, json),
-        Action::Watch { record: None } => not_yet("plugii watch"),
+        Action::Watch { record: None } => watch(),
         Action::Watch { record: Some(_) } => not_yet("plugii watch --record"),
         Action::Capture { dir } => capture(&dir),
         Action::Replay { .. } => not_yet("plugii replay"),
@@ -81,6 +81,13 @@ fn print_labels() -> Result<ExitCode> {
     let labels = labels::read(&path).wrap_err_with(|| format!("reading {}", path.display()))?;
     println!("labels from {}", path.display());
     print!("{}", labels.summary());
+    Ok(ExitCode::SUCCESS)
+}
+
+/// The live TUI.
+fn watch() -> Result<ExitCode> {
+    let labels = load_labels()?;
+    plugii::tui::run(Root::live(), labels)?;
     Ok(ExitCode::SUCCESS)
 }
 

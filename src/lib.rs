@@ -10,4 +10,5 @@ pub mod labels;
 pub mod model;
 pub mod report;
 pub mod sysfs;
+pub mod tui;
 pub mod watch;
