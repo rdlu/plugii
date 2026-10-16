@@ -66,7 +66,7 @@ disableKinds = ["taxonomy", "term", "rss"]
     displayPoweredBy = true
 
   [params.page]
-    width = "normal"
+    width = "wide" # room for 100-column reports and TUI screens
     [params.page.tabs]
       sync = true # the cargo / mise choice is remembered across pages
 
@@ -98,9 +98,9 @@ disableKinds = ["taxonomy", "term", "rss"]
   source = "../src/tui"
   target = "assets/plugii"
   files = ["keys.rs"]
-# insta snapshots: real reports (`snapshot` shortcode) and the CLI's --help
-# text (`cli-help` shortcode), both checked by `cargo test`.
+# insta snapshots, which `cargo test` checks: real reports, TUI screens and
+# the CLI's --help text, shown by the `snapshot` shortcode.
 [[module.mounts]]
   source = "../tests/snapshots"
   target = "assets/snapshots"
-  files = ["report__*.snap", "cli__help_*.snap"]
+  files = ["report__*.snap", "tui__*.snap", "cli__help_*.snap"]

@@ -1,0 +1,38 @@
+{{- /*
+  An insta snapshot from plugii's tests, as a terminal block: a report from a
+  fixture machine, or `--help` text. hugo.toml mounts tests/snapshots into
+  assets/snapshots, so what the page shows is what `cargo test` checks.
+
+  {{< snapshot name="report__xps_report" title="$ plugii" >}}
+  {{< snapshot name="report__xps_report" section="Power" >}}
+
+  name     the snapshot file without .snap
+  title    the block's caption (default: none)
+  section  only the report section with this heading (an unindented line),
+           up to the next one
+*/ -}}
+{{- $name := .Get "name" -}}
+{{- $path := printf "snapshots/%s.snap" $name -}}
+{{- with resources.Get $path -}}
+  {{- /* Drop insta's YAML header: "---", its fields, "---". */ -}}
+  {{- $text := replaceRE `(?s)\A---\n.*?\n---\n` "" .Content -}}
+  {{- with $.Get "section" -}}
+    {{- $want := . -}}
+    {{- $out := slice -}}
+    {{- $in := false -}}
+    {{- range split $text "\n" -}}
+      {{- $heading := and (ne . "") (not (hasPrefix . " ")) -}}
+      {{- if $heading -}}{{- $in = eq . $want -}}{{- end -}}
+      {{- if $in -}}{{- $out = $out | append . -}}{{- end -}}
+    {{- end -}}
+    {{- if not $out -}}{{- errorf "snapshot: no section %q in %s" $want $path -}}{{- end -}}
+    {{- $text = delimit $out "\n" -}}
+  {{- end -}}
+  {{- $text = strings.TrimRight "\n " $text -}}
+  <div class="hextra-code-block terminal hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+    {{- partial "components/codeblock" (dict "filename" ($.Get "title") "lang" "text" "content" $text) -}}
+    {{- partialCached "components/codeblock-copy-button" (dict "filename" ($.Get "title")) ($.Get "title") -}}
+  </div>
+{{- else -}}
+  {{- errorf "snapshot: %s not found; check the tests/snapshots mount in hugo.toml" $path -}}
+{{- end -}}

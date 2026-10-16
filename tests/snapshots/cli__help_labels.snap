@@ -1,0 +1,10 @@
+---
+source: tests/cli.rs
+expression: "help(&[\"labels\"])"
+---
+List the labels file's sockets, peers, USB-C ports and devices
+
+Usage: plugii labels
+
+Options:
+  -h, --help  Print help

@@ -127,3 +127,39 @@ fn invalid_combinations() {
     assert!(rejects(&["-w", "capture", "x"]));
     assert!(rejects(&["bogus"]));
 }
+
+/// `plugii [command] --help` as the user sees it. The docs site mounts these
+/// snapshots for its CLI reference, so the page can't drift from clap.
+fn help(args: &[&str]) -> String {
+    let argv = std::iter::once("plugii")
+        .chain(args.iter().copied())
+        .chain(["--help"]);
+    let err = Cli::try_parse_from(argv).unwrap_err();
+    assert_eq!(err.kind(), clap::error::ErrorKind::DisplayHelp);
+    err.render().to_string()
+}
+
+#[test]
+fn help_plugii() {
+    insta::assert_snapshot!(help(&[]));
+}
+
+#[test]
+fn help_watch() {
+    insta::assert_snapshot!(help(&["watch"]));
+}
+
+#[test]
+fn help_replay() {
+    insta::assert_snapshot!(help(&["replay"]));
+}
+
+#[test]
+fn help_capture() {
+    insta::assert_snapshot!(help(&["capture"]));
+}
+
+#[test]
+fn help_labels() {
+    insta::assert_snapshot!(help(&["labels"]));
+}

@@ -5,8 +5,8 @@ layout: hextra-home
 ---
 
 {{< hextra/hero-badge link="https://github.com/rdlu/plugii" >}}
-  <div class="hx:w-2 hx:h-2 hx:rounded-full hx:bg-primary-400"></div>
-  <span>Linux · Rust · open source</span>
+  <div class="hx:w-2 hx:h-2 hx:bg-primary-400"></div>
+  <span>Linux · Rust · MIT</span>
   {{< icon name="arrow-circle-right" attributes="height=14" >}}
 {{< /hextra/hero-badge >}}
 
@@ -28,12 +28,11 @@ layout: hextra-home
 
 <div class="plugii-actions">
 {{< hextra/hero-button text="Get started" link="/docs/getting-started/" >}}
-{{< hextra/hero-button text="GitHub" link="https://github.com/rdlu/plugii" style="background: transparent; color: inherit; box-shadow: inset 0 0 0 1px currentColor" >}}
+{{< hextra/hero-button text="GitHub" link="https://github.com/rdlu/plugii" >}}
 </div>
 
 
-
-<div class="hx:mt-10"></div>
+<div class="hx:mt-12"></div>
 
 {{< hextra/hero-section >}}What it shows{{< /hextra/hero-section >}}
 
@@ -42,44 +41,59 @@ layout: hextra-home
 {{< hextra/feature-grid >}}
   {{< hextra/feature-card
     title="Every socket, both halves"
-    icon="desktop-computer"
-    subtitle="One card per physical socket, with the USB 2 and USB 3 halves side by side. A hub stuck at USB 2 is red; a device linked below what it can do gets a dim ↓."
+    icon="view-grid"
+    subtitle="One card per physical socket, with its USB 3 and USB 2 halves side by side and the device tree under each. A USB 3 hub that only came up on the USB 2 half shows in red."
   >}}
   {{< hextra/feature-card
-    title="Capable vs. linked speed"
+    title="Capable vs. linked"
     icon="lightning-bolt"
-    subtitle="plugii reads each device's descriptors for the fastest speed it *could* link at: “10G capable, linked at 5G → cable or hub limiting”."
+    subtitle="plugii reads each device's BOS descriptor for the fastest speed it *could* link at: “10G capable, linked at 5G → cable or hub limiting”. In the tree, a dim `↓` marks it."
   >}}
   {{< hextra/feature-card
     title="USB-C and Power Delivery"
     icon="puzzle"
-    subtitle="Partners, cables and alt modes, every offered PDO with the negotiated contract highlighted, lit DisplayPort / HDMI connectors and Thunderbolt / USB4 authorization."
+    subtitle="UCSI partners, cables and alt modes, every source PDO a charger offers with the negotiated one marked, lit DisplayPort / HDMI connectors and Thunderbolt / USB4 authorization."
   >}}
   {{< hextra/feature-card
     title="A health verdict"
     icon="badge-check"
-    subtitle="The one-shot report ends in a verdict and exits 1 if anything is wrong, so it fits in scripts. `-H` prints only the verdict; `--json` gives the whole snapshot."
+    subtitle="The report ends in ✓ / ⚠ / ✗ findings with what to do, and exits 1 if anything needs a look. `-H` prints only the verdict; `--json` gives the whole snapshot."
   >}}
   {{< hextra/feature-card
     title="A live TUI, vim keys first"
     icon="terminal"
-    subtitle="`plugii watch` updates as you swap hubs, cables and chargers: Ports, Charts and Events tabs, power and CPU timelines, URB/s sparklines, and ghosts of unplugged devices."
+    subtitle="`plugii watch`: Ports, Charts and Events tabs, details on `⏎`, a `/` filter, ghosts of unplugged devices, power and CPU timelines, link-speed strips, URB/s and a charger table."
   >}}
   {{< hextra/feature-card
     title="Record and replay"
     icon="clock"
-    subtitle="`--record` writes snapshots as JSON lines (`.gz` and `--redact` too); `plugii replay` plays them back at up to ×60 and jumps between plug events."
+    subtitle="`watch --record` writes the session as JSON lines (`.gz` and `--redact` too); `plugii replay` plays it back in the same TUI at up to ×60 and jumps between plugs."
+  >}}
+  {{< hextra/feature-card
+    title="Firmware checks"
+    icon="chip"
+    subtitle="`--firmware` compares the BIOS and USB-C PD firmware with Lenovo's and Dell's catalogs and asks fwupd for pending and failed updates. Cached for a day; offline is fine."
+  >}}
+  {{< hextra/feature-card
+    title="Names for sockets"
+    icon="tag"
+    subtitle="The kernel knows `0000:06:00.4-1`, not “the port by the caps lock key”. A small labels file, or `L` in the TUI, names sockets, USB-C ports and devices."
+  >}}
+  {{< hextra/feature-card
+    title="No root, no daemon"
+    icon="shield-check"
+    subtitle="It reads sysfs, udev and `journalctl -k` as your user; where RAPL energy is root-only, it leaves the package watts out. One binary; the TUI rescans on udev events and once a second."
   >}}
 {{< /hextra/feature-grid >}}
 
 <div class="hx:mt-16"></div>
 
-{{< hextra/hero-section >}}Next{{< /hextra/hero-section >}}
+{{< hextra/hero-section >}}Start here{{< /hextra/hero-section >}}
 
 <div class="hx:mt-6"></div>
 
 {{< cards >}}
-  {{< card link="/docs/getting-started/" title="Getting started" subtitle="Install plugii and read your first report." icon="arrow-right" >}}
-  {{< card link="/docs/labels/" title="Labels file" subtitle="Name your sockets, USB-C ports, firmware and devices." icon="tag" >}}
-  {{< card link="/docs/reference/keymap/" title="TUI keymap" subtitle="Every key in plugii watch and replay." icon="key" >}}
+  {{< card link="/docs/getting-started/" title="Getting started" subtitle="Install plugii, run the report and the TUI, and read the exit codes." icon="arrow-right" >}}
+  {{< card link="/docs/reading-the-report/" title="Reading the report" subtitle="A real report, section by section." icon="document-text" >}}
+  {{< card link="/docs/health/" title="Health checks" subtitle="Every finding plugii can give, and what to do about it." icon="badge-check" >}}
 {{< /cards >}}

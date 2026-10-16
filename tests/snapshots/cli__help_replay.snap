@@ -1,0 +1,14 @@
+---
+source: tests/cli.rs
+expression: "help(&[\"replay\"])"
+---
+Play back a file written by `watch --record`
+
+Usage: plugii replay [OPTIONS] <FILE>
+
+Arguments:
+  <FILE>  
+
+Options:
+      --speed <SPEED>  Playback speed: 1, 2, 4, 10, 30 or 60 (`+` / `-` change it) [default: 1]
+  -h, --help           Print help

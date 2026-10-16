@@ -1,0 +1,13 @@
+---
+source: tests/cli.rs
+expression: "help(&[\"capture\"])"
+---
+Copy the sysfs files plugii reads into DIR, as a test fixture
+
+Usage: plugii capture <DIR>
+
+Arguments:
+  <DIR>  
+
+Options:
+  -h, --help  Print help

@@ -1,0 +1,24 @@
+---
+source: tests/cli.rs
+expression: "help(&[])"
+---
+Live Linux USB port monitor: which socket, what link speed, USB-C / PD power
+
+Usage: plugii [OPTIONS]
+       plugii <COMMAND>
+
+Commands:
+  watch    Live view: updates as devices, chargers and displays come and go
+  capture  Copy the sysfs files plugii reads into DIR, as a test fixture
+  replay   Play back a file written by `watch --record`
+  labels   List the labels file's sockets, peers, USB-C ports and devices
+  help     Print this message or the help of the given subcommand(s)
+
+Options:
+  -H, --health    Health verdict only
+      --json      Print the snapshot as JSON
+      --firmware  Also check firmware versions (DMI, fwupd, vendor catalogs; uses the network)
+      --refresh   With --firmware: fetch the vendor catalog even if a cached copy is fresh
+  -w, --watch     Same as `plugii watch`
+  -h, --help      Print help
+  -V, --version   Print version

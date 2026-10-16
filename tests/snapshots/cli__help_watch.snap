@@ -1,0 +1,13 @@
+---
+source: tests/cli.rs
+expression: "help(&[\"watch\"])"
+---
+Live view: updates as devices, chargers and displays come and go
+
+Usage: plugii watch [OPTIONS]
+
+Options:
+      --record <FILE>  Also record every snapshot to FILE as JSON lines (gzip-compressed when FILE ends in .gz), for `plugii replay`
+      --redact         Replace device serial numbers and Thunderbolt unique IDs in the recording with REDACTED
+      --force          Overwrite FILE if it exists
+  -h, --help           Print help
