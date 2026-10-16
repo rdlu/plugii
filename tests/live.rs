@@ -140,3 +140,32 @@ fn display_power_cpu_and_kernel_log_readers() {
         println!("  {line:?}");
     }
 }
+
+#[test]
+#[ignore = "runs plugii against the running machine"]
+fn json_report_parses() {
+    let out = std::process::Command::new(env!("CARGO_BIN_EXE_plugii"))
+        .arg("--json")
+        .output()
+        .unwrap();
+    // Exit 1 only means a finding needs a look; anything else is a crash.
+    assert!(
+        matches!(out.status.code(), Some(0 | 1)),
+        "{:?}: {}",
+        out.status,
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let value: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+    let snapshot: plugii::model::Snapshot =
+        serde_json::from_value(value["snapshot"].clone()).unwrap();
+    let findings: Vec<plugii::model::Finding> =
+        serde_json::from_value(value["findings"].clone()).unwrap();
+    let bad = findings.iter().any(|f| f.level != plugii::model::Level::Ok);
+    assert_eq!(out.status.code(), Some(i32::from(bad)));
+    assert!(!snapshot.host.is_empty());
+    println!(
+        "{} findings on {} sockets",
+        findings.len(),
+        snapshot.sockets.len()
+    );
+}
