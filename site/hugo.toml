@@ -1,6 +1,7 @@
-# plugii's docs site: https://rdlu.github.io/plugii/ (a GitHub Pages project
-# site, so every link has to work under /plugii/).
-baseURL = "https://rdlu.github.io/plugii/"
+# plugii's docs site: https://plugii.dlu.one/, served by GitHub Pages with a
+# custom domain (static/CNAME). Links still go through relURL, so the site
+# also works under a subpath like rdlu.github.io/plugii/ if the domain goes.
+baseURL = "https://plugii.dlu.one/"
 title = "plugii"
 locale = "en"
 # Hextra v0.13.0, vendored (trimmed) into themes/hextra: no Go modules, no Node.
@@ -59,6 +60,24 @@ disableKinds = ["taxonomy", "term", "rss"]
   [params.theme]
     default = "dark"
     displayToggle = true
+
+  # The footer's `whoami` block (layouts/_partials/custom/footer.html).
+  [params.author]
+    name = "Rodrigo Dlugokenski"
+    location = "Rio de Janeiro / Porto Alegre, Brazil"
+    since = 2026
+    [[params.author.links]]
+      label = "r.dlu.one"
+      url = "https://r.dlu.one"
+    [[params.author.links]]
+      label = "github.com/rdlu"
+      url = "https://github.com/rdlu"
+    [[params.author.links]]
+      label = "bsky @r.dlu.one"
+      url = "https://bsky.app/profile/r.dlu.one"
+    [[params.author.links]]
+      label = "programming.dev/u/rdlu"
+      url = "https://programming.dev/u/rdlu"
 
   [params.footer]
     enable = true

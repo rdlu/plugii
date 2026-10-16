@@ -626,3 +626,16 @@ main h2.not-prose {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+
+/* Footer: who made plugii, as a `whoami`. */
+.plugii-whoami {
+  font-family: var(--p-mono);
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  padding: 2rem 0 0.5rem;
+}
+.plugii-whoami-prompt { color: var(--p-accent); }
+.plugii-whoami-name { color: var(--p-text); font-weight: 600; }
+.plugii-whoami-dim { color: var(--p-faint); }
+.plugii-whoami a { color: inherit; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.plugii-whoami a:hover { color: var(--p-accent); }
