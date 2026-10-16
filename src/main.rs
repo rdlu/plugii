@@ -2,6 +2,7 @@ use clap::Parser;
 use color_eyre::eyre::{Result, WrapErr, bail};
 use plugii::cli::{Action, Cli};
 use plugii::labels;
+use plugii::sysfs::Root;
 
 fn main() -> Result<()> {
     // User-facing errors: no source location or backtrace hints.
@@ -22,9 +23,24 @@ fn main() -> Result<()> {
         Action::Report { firmware: true, .. } => not_yet("plugii --firmware"),
         Action::Watch { record: None } => not_yet("plugii watch"),
         Action::Watch { record: Some(_) } => not_yet("plugii watch --record"),
-        Action::Capture { .. } => not_yet("plugii capture"),
+        Action::Capture { dir } => capture(&dir),
         Action::Replay { .. } => not_yet("plugii replay"),
     }
+}
+
+fn capture(dir: &std::path::Path) -> Result<()> {
+    let summary = plugii::capture::capture(&Root::live(), dir)
+        .wrap_err_with(|| format!("capturing into {}", dir.display()))?;
+    println!(
+        "captured {} files ({} bytes) and {} symlinks into {}; {} redacted, {} skipped",
+        summary.files,
+        summary.bytes,
+        summary.links,
+        dir.display(),
+        summary.redacted,
+        summary.skipped
+    );
+    Ok(())
 }
 
 fn not_yet(what: &str) -> Result<()> {

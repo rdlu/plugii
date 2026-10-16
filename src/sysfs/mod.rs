@@ -32,6 +32,11 @@ impl Root {
         Self::new("/")
     }
 
+    /// The directory this root stands for.
+    pub fn base(&self) -> &Path {
+        &self.0
+    }
+
     /// `rel` (e.g. `sys/bus/usb/devices`) under this root. A leading `/` is
     /// ignored, so `/sys/...` and `sys/...` mean the same.
     pub fn path(&self, rel: impl AsRef<Path>) -> PathBuf {

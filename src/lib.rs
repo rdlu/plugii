@@ -1,5 +1,6 @@
 //! plugii: a live Linux USB port monitor.
 
+pub mod capture;
 pub mod cli;
 pub mod history;
 pub mod labels;
