@@ -14,7 +14,7 @@ recording and replay, `capture`, `labels` and the `--firmware` checks work.
 
 The full documentation (reading the report, every health check, the TUI,
 the keymap) is the docs site in `site/`, to be published at
-<https://rdlu.github.io/plugii/>; until then, `mise run docs` serves it
+<https://plugii.dlu.one/>; until then, `mise run docs` serves it
 locally. This README is the short version.
 
 ## Commands

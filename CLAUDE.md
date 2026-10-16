@@ -18,7 +18,7 @@ All three of test, fmt --check and clippy must pass before a commit
 (`mise run check`). `mise tasks` lists the rest: `test-live`, `review`,
 `capture <name>`, `outdated`, `update`, `watch`, `install`, `push`, and for
 the docs site in `site/` (Hugo + Hextra): `docs` (dev server on
-http://127.0.0.1:1313/plugii/) and `docs-build` (`site/public/`, gitignored), and `demos` (re-records
+http://127.0.0.1:1313/) and `docs-build` (`site/public/`, gitignored), and `demos` (re-records
 `site/demos/` with VHS).
 
 ## Conventions
