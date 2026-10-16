@@ -1,10 +1,12 @@
-//! Smoke test against the running machine: the readers must not panic on a
-//! real sysfs. Ignored by default since it depends on the hardware;
-//! `cargo test --test live -- --ignored --nocapture` prints what it found.
+//! Smoke tests against the running machine: the readers must not panic on a
+//! real sysfs. Ignored by default since they depend on the hardware;
+//! `cargo test --test live -- --ignored --nocapture` prints what they found.
+
+use std::time::Duration;
 
 use plugii::labels;
 use plugii::model::{Usb3Side, UsbDevice};
-use plugii::sysfs::{Root, thunderbolt, typec, usb};
+use plugii::sysfs::{Root, cpu, drm, kernel_log, power, thunderbolt, typec, usb};
 
 fn print_tree(device: &UsbDevice, depth: usize) {
     println!(
@@ -27,7 +29,7 @@ fn print_tree(device: &UsbDevice, depth: usize) {
 
 #[test]
 #[ignore = "reads the running machine's sysfs"]
-fn readers_run_on_the_live_machine() {
+fn usb_typec_and_thunderbolt_readers() {
     let root = Root::live();
     let labels = labels::config_dir()
         .and_then(|dir| labels::load(&dir).ok())
@@ -71,13 +73,14 @@ fn readers_run_on_the_live_machine() {
     println!("USB-C (UCSI present: {}):", state.ucsi_present);
     for port in &state.ports {
         println!(
-            "  {} {} role={:?} charging={} contract={:?} cable={:?}",
+            "  {} {} role={:?} charging={} contract={:?} cable={:?} pd_inconsistent={}",
             port.name,
             port.label.as_deref().unwrap_or(""),
             port.power_role,
             port.charging,
             port.pd_contract,
-            port.cable_type
+            port.cable_type,
+            port.pd_inconsistent
         );
         if let Some(p) = &port.partner {
             println!(
@@ -86,6 +89,9 @@ fn readers_run_on_the_live_machine() {
             );
         }
     }
+
+    // Must name the same ports as the typec reader's charging ones.
+    println!("power from USB-C: {:?}", power::read(&root).usb_c_sources);
 
     match thunderbolt::read(&root) {
         None => println!("Thunderbolt: none"),
@@ -98,5 +104,39 @@ fn readers_run_on_the_live_machine() {
                 println!("  {d:?}");
             }
         }
+    }
+}
+
+#[test]
+#[ignore = "reads the running machine's sysfs and kernel log"]
+fn display_power_cpu_and_kernel_log_readers() {
+    let root = Root::live();
+
+    let mut displays = drm::read(&root);
+    if let Some(json) = drm::query_niri() {
+        drm::apply_niri(&mut displays, &drm::niri_outputs(&json));
+    }
+    println!("displays: {displays:#?}");
+
+    println!("power: {:#?}", power::read(&root));
+
+    println!("cpu counters: {:?}", cpu::read_counters(&root));
+    println!(
+        "cpu: {:#?}",
+        cpu::measure(&root, Duration::from_millis(500))
+    );
+
+    let (warnings, all) = kernel_log::query();
+    let log = kernel_log::parse(&warnings, &all, |_| None);
+    println!(
+        "kernel log: {} warning lines, {} lines in all; {} errors, {} benign, resets {:?}",
+        warnings.lines().count(),
+        all.lines().count(),
+        log.errors.len(),
+        log.benign_count,
+        log.link_resets,
+    );
+    for line in log.errors.iter().rev().take(5).rev() {
+        println!("  {line:?}");
     }
 }
