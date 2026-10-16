@@ -31,6 +31,7 @@ USB-C (UCSI)
   port0 (USB-C (left)): partner  pd=yes  alt-modes=1  power-in=no
     offers: 5V 1.5A · 9V 2.17A · 15V 2.6A · 20V 2.88A
   port1 (USB-C (right)): partner  pd=yes  alt-modes=1  power-in=charging
+    offers: not reported
 
 Thunderbolt / USB4
   domain0  security user, IOMMU DMA protection  INTEL Gen12, gen 4
@@ -50,10 +51,8 @@ Health
   ✓ USB 3 links up (SuperSpeed lanes working)
   ✓ USB-C status driver (UCSI) up: 2 port(s)
   ⚠ USB-C status for USB-C (left) looks stale (charging state and advertised power disagree); replug the cable to refresh
-  ⚠ USB-C status for USB-C (right) looks stale (charging state and advertised power disagree); replug the cable to refresh
-  ✓ charging on USB-C (right) at 20 V × 2.35 A ≈ 47 W
   ✓ Thunderbolt/USB4: 2 domain(s), security user, 0 device(s) attached
   ✓ external display on USB-C (DP alt mode working)
-  ✓ charging power arriving via USB-C port1 (USB-C (right)) 20V 2.35A ≈ 47W
+  ✓ charging power arriving via USB-C port1 (USB-C (right)) 20V 2.35A ≈ 47W (charger's offers not reported)
   ✓ kernel log clean
   → something needs a look

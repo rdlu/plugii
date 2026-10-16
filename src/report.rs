@@ -257,6 +257,9 @@ fn usb_c(s: &Snapshot, st: Style) -> String {
 /// `5V 1A · 9V 1A · ▶20V 2.35A (47 W)`.
 fn offers(port: &TypecPort, st: Style) -> Option<String> {
     let pdos = &port.partner.as_ref()?.source_pdos;
+    if health::offers_unreported(port) {
+        return Some(st.dim("not reported"));
+    }
     if pdos.is_empty() {
         return None;
     }

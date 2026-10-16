@@ -6,8 +6,7 @@
 //! displays, power, CPU throttling, kernel log.
 
 use crate::model::{
-    DisplayKind, Finding, Level, PdContract, Pdo, Snapshot, Socket, TypecPort, Usb3Side,
-    UsbCSource, Vrr,
+    DisplayKind, Finding, Level, Pdo, Snapshot, Socket, TypecPort, Usb3Side, UsbCSource, Vrr,
 };
 
 /// Link resets this boot at which the cable or link is called flaky.
@@ -132,7 +131,7 @@ fn usb_c(s: &Snapshot, out: &mut Findings) {
         s.typec.ports.len()
     ));
     for port in &s.typec.ports {
-        if port.pd_inconsistent {
+        if usb_c_status_stale(port) {
             out.warn(format!(
                 "USB-C status for {} looks stale (charging state and advertised power \
                  disagree); replug the cable to refresh",
@@ -140,29 +139,25 @@ fn usb_c(s: &Snapshot, out: &mut Findings) {
             ));
         }
     }
-    for port in &s.typec.ports {
-        if !port.charging {
-            continue;
-        }
-        let at = port
-            .pd_contract
-            .map(|c| format!(" at {}", contract_text(&c)))
-            .unwrap_or_default();
-        let best = best_offer_w(port)
-            .map(|w| format!(" (best offer {w:.0} W)"))
-            .unwrap_or_default();
-        out.ok(format!("charging on {}{at}{best}", port_name(port)));
-    }
 }
 
-/// `20 V × 2.35 A ≈ 47 W`.
-pub fn contract_text(c: &PdContract) -> String {
-    format!(
-        "{} V × {} A ≈ {:.0} W",
-        milli(c.voltage_mv),
-        milli(c.current_ma),
-        c.watts()
-    )
+/// The partner still advertises source PDOs, but the port's supply is
+/// offline and UCSI calls it a sink: PDOs left over from an earlier partner
+/// state (the XPS dock incident, 2026-10-16).
+pub fn usb_c_status_stale(port: &TypecPort) -> bool {
+    port.pd_inconsistent && !port.charging && has_source_pdos(port)
+}
+
+/// Power comes in through the port, but the partner never reported its
+/// source PDOs. Some chargers and docks don't; that's not stale data.
+pub fn offers_unreported(port: &TypecPort) -> bool {
+    port.charging && !has_source_pdos(port)
+}
+
+fn has_source_pdos(port: &TypecPort) -> bool {
+    port.partner
+        .as_ref()
+        .is_some_and(|p| !p.source_pdos.is_empty())
 }
 
 /// The most the partner's source PDOs offer, in W.
@@ -279,6 +274,18 @@ fn source_text(s: &Snapshot, src: &UsbCSource) -> String {
     text
 }
 
+/// ` (best offer 47 W)`, or ` (charger's offers not reported)` when the
+/// partner on that port lists no source PDOs.
+fn offer_note(s: &Snapshot, src: &UsbCSource) -> String {
+    let Some(port) = s.typec.ports.iter().find(|p| p.name == src.typec_port) else {
+        return String::new();
+    };
+    match best_offer_w(port) {
+        Some(w) => format!(" (best offer {w:.0} W)"),
+        None => " (charger's offers not reported)".to_owned(),
+    }
+}
+
 fn power(s: &Snapshot, out: &mut Findings) {
     if s.power.ac_online != Some(true) {
         return;
@@ -286,9 +293,15 @@ fn power(s: &Snapshot, out: &mut Findings) {
     if s.power.usb_c_sources.is_empty() {
         out.ok("on AC power (via a port UCSI doesn't report, e.g. a hub's charging pass-through)");
     } else {
+        let sources: Vec<String> = s
+            .power
+            .usb_c_sources
+            .iter()
+            .map(|src| format!("{}{}", source_text(s, src), offer_note(s, src)))
+            .collect();
         out.ok(format!(
             "charging power arriving via USB-C {}",
-            usb_c_sources_text(s)
+            sources.join(", ")
         ));
     }
 }
@@ -592,10 +605,19 @@ mod tests {
 
     #[test]
     fn stale_usb_c_status_warns() {
+        // Case A: the partner still lists source PDOs, the supply is offline.
         let mut s = snap();
-        let mut p = port("port0", Some(partner(Vec::new())), false);
+        let mut p = port(
+            "port0",
+            Some(partner(vec![Pdo::Fixed {
+                mv: 20_000,
+                ma: 2880,
+            }])),
+            false,
+        );
         p.pd_inconsistent = true;
         s.typec.ports.push(p);
+        assert!(usb_c_status_stale(&s.typec.ports[0]));
         let f = check(&s);
         let stale = f
             .iter()
@@ -610,45 +632,64 @@ mod tests {
     }
 
     #[test]
-    fn charging_reports_contract_and_best_offer() {
+    fn charging_without_reported_offers_is_not_stale() {
+        // Case B: power comes in, the partner never listed source PDOs.
         let mut s = snap();
-        let mut p = port(
-            "port1",
-            Some(partner(vec![
-                Pdo::Fixed { mv: 5000, ma: 1000 },
-                Pdo::Fixed {
-                    mv: 20_000,
-                    ma: 2350,
-                },
-            ])),
-            true,
-        );
-        p.label = Some("USB-C (right)".into());
-        p.pd_contract = Some(PdContract {
-            voltage_mv: 20_000,
-            current_ma: 2350,
-            source_pdo: Some(2),
-        });
+        let mut p = port("port0", Some(partner(Vec::new())), true);
+        p.pd_inconsistent = true;
         s.typec.ports.push(p);
-        let f = check(&s);
-        assert!(f.contains(&Finding {
-            level: Level::Ok,
-            message: "charging on USB-C (right) at 20 V × 2.35 A ≈ 47 W (best offer 47 W)".into()
-        }));
+        assert!(!usb_c_status_stale(&s.typec.ports[0]));
+        assert!(offers_unreported(&s.typec.ports[0]));
+        assert!(levels_with(&s, "stale").is_empty());
+        assert!(!is_bad(&check(&s)));
+    }
 
-        // Not charging: nothing to say.
-        s.typec.ports[0].charging = false;
-        assert!(levels_with(&s, "charging on").is_empty());
+    fn usb_c_charger(pdos: Vec<Pdo>) -> Snapshot {
+        let mut s = snap();
+        s.power.ac_online = Some(true);
+        let mut p = port("port1", Some(partner(pdos)), true);
+        p.label = Some("USB-C (right)".into());
+        s.typec.ports.push(p);
+        s.power.usb_c_sources.push(UsbCSource {
+            typec_port: "port1".into(),
+            voltage_mv: Some(20_000),
+            current_ma: Some(2350),
+        });
+        s
     }
 
     #[test]
-    fn charging_without_contract_or_pdos() {
-        let mut s = snap();
-        s.typec.ports.push(port("port0", None, true));
+    fn charging_finding_names_the_best_offer() {
+        let s = usb_c_charger(vec![
+            Pdo::Fixed { mv: 5000, ma: 3000 },
+            Pdo::Fixed {
+                mv: 20_000,
+                ma: 3250,
+            },
+        ]);
+        let f = check(&s);
         assert!(
-            check(&s)
-                .iter()
-                .any(|f| f.message == "charging on USB-C (port0)")
+            f.contains(&Finding {
+                level: Level::Ok,
+                message: "charging power arriving via USB-C port1 (USB-C (right)) 20V 2.35A ≈ 47W \
+                      (best offer 65 W)"
+                    .into()
+            })
+        );
+        // One charging finding, not two.
+        assert_eq!(levels_with(&s, "charging").len(), 1);
+    }
+
+    #[test]
+    fn charging_finding_when_offers_are_not_reported() {
+        let s = usb_c_charger(Vec::new());
+        assert!(
+            check(&s).contains(&Finding {
+                level: Level::Ok,
+                message: "charging power arriving via USB-C port1 (USB-C (right)) 20V 2.35A ≈ 47W \
+                      (charger's offers not reported)"
+                    .into()
+            })
         );
     }
 
@@ -767,19 +808,9 @@ mod tests {
         s.power.ac_online = Some(true);
         assert!(has(&s, Level::Ok, "via a port UCSI doesn't report"));
 
-        let mut p = port("port1", None, true);
-        p.label = Some("USB-C (right)".into());
-        s.typec.ports.push(p);
-        s.power.usb_c_sources.push(UsbCSource {
-            typec_port: "port1".into(),
-            voltage_mv: Some(20_000),
-            current_ma: Some(2350),
-        });
-        assert!(check(&s).contains(&Finding {
-            level: Level::Ok,
-            message:
-                "charging power arriving via USB-C port1 (USB-C (right)) 20V 2.35A ≈ 47W".into()
-        }));
+        let mut s = usb_c_charger(Vec::new());
+        assert!(has(&s, Level::Ok, "arriving via USB-C port1"));
+        assert!(levels_with(&s, "UCSI doesn't report").is_empty());
 
         s.power.ac_online = Some(false);
         assert!(levels_with(&s, "AC power").is_empty());

@@ -17,14 +17,6 @@ expression: json(&snap)
       "message": "USB-C status for USB-C (left) looks stale (charging state and advertised power disagree); replug the cable to refresh"
     },
     {
-      "level": "warn",
-      "message": "USB-C status for USB-C (right) looks stale (charging state and advertised power disagree); replug the cable to refresh"
-    },
-    {
-      "level": "ok",
-      "message": "charging on USB-C (right) at 20 V × 2.35 A ≈ 47 W"
-    },
-    {
       "level": "ok",
       "message": "Thunderbolt/USB4: 2 domain(s), security user, 0 device(s) attached"
     },
@@ -34,7 +26,7 @@ expression: json(&snap)
     },
     {
       "level": "ok",
-      "message": "charging power arriving via USB-C port1 (USB-C (right)) 20V 2.35A ≈ 47W"
+      "message": "charging power arriving via USB-C port1 (USB-C (right)) 20V 2.35A ≈ 47W (charger's offers not reported)"
     },
     {
       "level": "ok",

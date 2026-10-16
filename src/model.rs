@@ -198,7 +198,8 @@ pub struct TypecPort {
     /// registered, and they go stale: on the XPS 9320 (2026-10-16) port0 kept
     /// the dock's old 5-20 V PDOs and a sink role while power came in on
     /// port1, whose partner listed no source PDOs and whose role said source.
-    /// `charging` and `pd_contract` follow the supply regardless.
+    /// `charging` and `pd_contract` follow the supply regardless. Only the
+    /// first case is stale data; some chargers never report their PDOs.
     #[serde(default)]
     pub pd_inconsistent: bool,
     pub pd_contract: Option<PdContract>,

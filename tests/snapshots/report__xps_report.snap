@@ -42,9 +42,8 @@ Kernel log (this boot)
 Health
   ✓ USB 3 links up (SuperSpeed lanes working)
   ✓ USB-C status driver (UCSI) up: 2 port(s)
-  ✓ charging on USB-C (right) at 20 V × 2.35 A ≈ 47 W (best offer 47 W)
   ✓ Thunderbolt/USB4: 2 domain(s), security user, 0 device(s) attached
   ✓ external display on USB-C (DP alt mode working)
-  ✓ charging power arriving via USB-C port1 (USB-C (right)) 20V 2.35A ≈ 47W
+  ✓ charging power arriving via USB-C port1 (USB-C (right)) 20V 2.35A ≈ 47W (best offer 47 W)
   ✓ kernel log clean
   → all good
