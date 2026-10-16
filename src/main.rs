@@ -31,6 +31,15 @@ fn main() -> Result<ExitCode> {
         Action::Capture { dir } => capture(&dir),
         Action::Replay { file, speed } => replay(&file, speed),
         Action::Labels => print_labels(),
+        Action::Completions { shell } => {
+            cli::completions(shell, &mut std::io::stdout().lock());
+            Ok(ExitCode::SUCCESS)
+        }
+        Action::Manpages { dir } => {
+            cli::manpages(&dir)
+                .wrap_err_with(|| format!("writing man pages into {}", dir.display()))?;
+            Ok(ExitCode::SUCCESS)
+        }
     }
 }
 

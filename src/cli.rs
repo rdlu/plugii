@@ -1,10 +1,13 @@
 //! Command line: `plugii [-H] [--json] [--firmware [--refresh]]`, `plugii watch` / `-w`,
 //! `plugii watch --record <file> [--redact] [--force]`, `plugii capture <dir>`,
-//! `plugii replay <file> [--speed N]`, `plugii labels`.
+//! `plugii replay <file> [--speed N]`, `plugii labels`. Hidden, for packagers:
+//! `plugii completions <shell>` and `plugii manpages <dir>`.
 
-use std::path::PathBuf;
+use std::io::{self, Write};
+use std::path::{Path, PathBuf};
 
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand};
+use clap_complete::Shell;
 
 use crate::tui::replay::SPEEDS;
 
@@ -66,6 +69,15 @@ pub enum Command {
     },
     /// List the labels file's sockets, peers, USB-C ports and devices.
     Labels,
+    /// Print a shell completion script, for packagers.
+    #[command(hide = true)]
+    Completions {
+        #[arg(value_enum)]
+        shell: Shell,
+    },
+    /// Write the man pages (plugii.1, plugii-watch.1, ...) into DIR, for packagers.
+    #[command(hide = true)]
+    Manpages { dir: PathBuf },
 }
 
 /// What to do, with flag aliases resolved.
@@ -88,6 +100,12 @@ pub enum Action {
         speed: u32,
     },
     Labels,
+    Completions {
+        shell: Shell,
+    },
+    Manpages {
+        dir: PathBuf,
+    },
 }
 
 /// `watch --record FILE [--redact] [--force]`.
@@ -123,6 +141,8 @@ impl Cli {
             Some(Command::Capture { dir }) => Action::Capture { dir },
             Some(Command::Replay { file, speed }) => Action::Replay { file, speed },
             Some(Command::Labels) => Action::Labels,
+            Some(Command::Completions { shell }) => Action::Completions { shell },
+            Some(Command::Manpages { dir }) => Action::Manpages { dir },
             None if self.watch => Action::Watch { record: None },
             None => Action::Report {
                 health_only: self.health,
@@ -132,4 +152,15 @@ impl Cli {
             },
         }
     }
+}
+
+/// Writes the completion script for `shell`.
+pub fn completions(shell: Shell, out: &mut dyn Write) {
+    clap_complete::generate(shell, &mut Cli::command(), "plugii", out);
+}
+
+/// Writes plugii(1) and a page per visible subcommand (plugii-watch(1), ...)
+/// into `dir`, which must exist.
+pub fn manpages(dir: &Path) -> io::Result<()> {
+    clap_mangen::generate_to(Cli::command(), dir)
 }

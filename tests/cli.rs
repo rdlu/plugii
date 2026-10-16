@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use clap::{CommandFactory, Parser};
+use clap_complete::Shell;
 use plugii::cli::{Action, Cli, Record};
 
 fn action(args: &[&str]) -> Action {
@@ -162,4 +163,53 @@ fn help_capture() {
 #[test]
 fn help_labels() {
     insta::assert_snapshot!(help(&["labels"]));
+}
+
+#[test]
+fn packaging_subcommands() {
+    assert_eq!(
+        action(&["completions", "fish"]),
+        Action::Completions { shell: Shell::Fish }
+    );
+    assert_eq!(
+        action(&["manpages", "man"]),
+        Action::Manpages { dir: "man".into() }
+    );
+    assert!(rejects(&["manpages"]));
+    assert!(rejects(&["completions"]));
+    assert!(rejects(&["completions", "tcsh"]));
+    // Hidden: they're for packagers, not in --help.
+    assert!(!help(&[]).contains("completions"));
+    assert!(!help(&[]).contains("manpages"));
+}
+
+#[test]
+fn completions_and_manpage_render() {
+    for shell in [Shell::Bash, Shell::Zsh, Shell::Fish] {
+        let mut out = Vec::new();
+        plugii::cli::completions(shell, &mut out);
+        let text = String::from_utf8(out).unwrap();
+        assert!(text.contains("replay"), "{shell}: {text}");
+    }
+    let dir = tempfile::tempdir().unwrap();
+    plugii::cli::manpages(dir.path()).unwrap();
+    let mut pages: Vec<String> = std::fs::read_dir(dir.path())
+        .unwrap()
+        .map(|e| e.unwrap().file_name().into_string().unwrap())
+        .collect();
+    pages.sort();
+    // The hidden packaging subcommands get no page.
+    assert_eq!(
+        pages,
+        [
+            "plugii-capture.1",
+            "plugii-labels.1",
+            "plugii-replay.1",
+            "plugii-watch.1",
+            "plugii.1"
+        ]
+    );
+    let man = std::fs::read_to_string(dir.path().join("plugii.1")).unwrap();
+    assert!(man.contains(".TH plugii 1"), "{man}");
+    assert!(man.contains("plugii\\-watch(1)"), "{man}");
 }
