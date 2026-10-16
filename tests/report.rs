@@ -194,6 +194,23 @@ fn daisy_empty_report() {
     insta::assert_snapshot!(text(&snap));
 }
 
+/// A USB-C hub with gigabit ethernet (Genesys hubs, ASIX AX88179B) on the
+/// hinge socket, which never reports to UCSI, and the charger on caps lock.
+#[test]
+fn daisy_dock_report() {
+    let snap = daisy("daisy-dock");
+    let hinge = socket(&snap, "USB-C (hinge)");
+    assert!(hinge.usb2.device.is_some());
+    assert!(
+        matches!(&hinge.usb3, plugii::model::Usb3Side::Paired(h) if h.device.is_some()),
+        "{hinge:#?}"
+    );
+    assert_eq!(hinge.typec_port, None);
+    assert_eq!(charging_ports(&snap), ["port0"]);
+    assert!(health::check(&snap).iter().all(|f| f.level == Level::Ok));
+    insta::assert_snapshot!(text(&snap));
+}
+
 /// The faults log (resets on `usb 2-1`, `2-1.3`) against the XPS sockets:
 /// bus 2 port 1 is the left socket's USB 3 half.
 #[test]
