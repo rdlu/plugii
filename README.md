@@ -9,20 +9,26 @@ authorization, and what the power source lets the CPU do. A one-shot CLI report
 ends in a health verdict; a ratatui TUI updates live while you swap hubs,
 cables, chargers and devices.
 
-**Status: early development.** Only the labels file is read so far; `plugii`
-prints a summary of it.
+**Status: early development.** The report, health verdict, `--json`,
+`capture` and `labels` work; the TUI, recording and firmware checks don't yet.
 
-## Planned commands
+## Commands
 
 ```text
 plugii                        full report + health; exit 1 if anything is wrong
 plugii -H                     health verdict only
-plugii --json                 the snapshot as JSON
+plugii --json                 the snapshot and findings as JSON
+plugii capture <dir>          copy the sysfs files plugii reads, as a test fixture
+plugii labels                 list what the labels file names
+```
+
+Planned:
+
+```text
 plugii --firmware             also check BIOS / PD firmware versions (network)
 plugii watch                  live TUI (also: plugii -w)
 plugii watch --record f.jsonl record snapshots while watching
 plugii replay f.jsonl         play a recording back
-plugii capture <dir>          copy the sysfs files plugii reads, as a test fixture
 ```
 
 ## Labels
