@@ -1,0 +1,69 @@
+{{- /*
+  Renders plugii's TUI keymap straight from src/tui/keys.rs: the BINDINGS
+  table (grouped by section, like the `?` help overlay) and PROMPT_KEYS.
+  No generator: Hugo reads the Rust source with resources.Get and parses it
+  with findRESubmatch (Go RE2). Call it with {{% keymap %}} so the headings
+  it emits are Markdown and land in the "On this page" TOC.
+
+  Source: assets/plugii/keys.rs, which hugo.toml mounts from plugii's
+  src/tui/keys.rs (Hugo can't follow a symlink there, and readFile can't
+  read outside the project, so a mount is the way in).
+*/ -}}
+{{- $src := "" -}}
+{{- with resources.Get "plugii/keys.rs" -}}{{- $src = .Content -}}{{- end -}}
+{{- if not (strings.Contains $src "pub const BINDINGS") -}}
+  {{- errorf "keymap: no BINDINGS table in assets/plugii/keys.rs; check the keys.rs mount in hugo.toml" -}}
+{{- else -}}
+
+{{- /* const MOVE: &str = "Move"; */ -}}
+{{- $sections := dict -}}
+{{- range findRESubmatch `const (\w+): &str = "([^"]*)";` $src -}}
+  {{- $sections = merge $sections (dict (index . 1) (index . 2)) -}}
+{{- end -}}
+
+{{- $table := index (findRE `(?s)pub const BINDINGS.*?pub const PROMPT_KEYS` $src 1) 0 -}}
+{{- $promptBlock := index (index (findRESubmatch `(?s)pub const PROMPT_KEYS[^=]*= &\[(.*?)\n\];` $src 1) 0) 1 -}}
+{{- $keyRE := `\("((?:[^"\\]|\\.)*)",\s*([^)]*\)?)\)` -}}
+
+{{- $bindings := slice -}}
+{{- range findRESubmatch `(?s)bind\(\s*(\w+),\s*&\[(.*?)\],\s*"((?:[^"\\]|\\.)*)",?\s*\)` $table -}}
+  {{- $keys := slice -}}
+  {{- $actions := slice -}}
+  {{- range findRESubmatch $keyRE (index . 2) -}}
+    {{- $keys = $keys | append (index . 1) -}}
+    {{- $actions = $actions | append (index . 2 | strings.TrimSpace) -}}
+  {{- end -}}
+  {{- $bindings = $bindings | append (dict "section" (index $sections (index . 1)) "keys" $keys "actions" $actions "help" (index . 3)) -}}
+{{- end -}}
+{{- if not $bindings -}}{{- errorf "keymap: no bind(...) entries found in keys.rs; did the table's shape change?" -}}{{- end -}}
+
+{{- $out := "" -}}
+{{- $current := "" -}}
+{{- range $i, $b := $bindings -}}
+  {{- if ne $b.section $current -}}
+    {{- if $current -}}{{- $out = print $out "\n</div>\n" -}}{{- end -}}
+    {{- $current = $b.section -}}
+    {{- $out = print $out "\n## " $current "\n\n<div class=\"keymap\">\n\n| Keys | Action |\n| --- | --- |\n" -}}
+  {{- end -}}
+  {{- $out = print $out "| " (partial "keymap/keys-cell" $b) " | " (partial "keymap/help" $b.help) " |\n" -}}
+{{- end -}}
+{{- $out = print $out "\n</div>\n" -}}
+
+{{- /* The / and L prompts. "Esc  Ctrl-c": two spaces separate alternatives. */ -}}
+{{- $out = print $out "\n## In the / and L prompts\n\nThe prompts take every key, so <kbd>j</kbd> or <kbd>q</kbd> type text.\n\n<div class=\"keymap\">\n\n| Keys | Action |\n| --- | --- |\n" -}}
+{{- range findRESubmatch `\("((?:[^"\\]|\\.)*)",\s*"((?:[^"\\]|\\.)*)"\)` $promptBlock -}}
+  {{- $keys := index . 1 -}}
+  {{- $cell := "<em>text</em>" -}}
+  {{- if ne $keys "text" -}}
+    {{- $alts := slice -}}
+    {{- range split (replaceRE `\s{2,}` "\t" $keys) "\t" -}}
+      {{- $alts = $alts | append (partial "keymap/seq" .) -}}
+    {{- end -}}
+    {{- $cell = delimit $alts ` <span class="alt">or</span> ` -}}
+  {{- end -}}
+  {{- $out = print $out "| " $cell " | " (partial "keymap/help" (index . 2)) " |\n" -}}
+{{- end -}}
+{{- $out = print $out "\n</div>\n" -}}
+
+{{- $out | safeHTML -}}
+{{- end -}}

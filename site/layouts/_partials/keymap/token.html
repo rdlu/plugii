@@ -1,0 +1,12 @@
+{{- /* One token of a key sequence: a named key (Home, Ctrl-d, Esc, ...) is one
+  <kbd>; anything else is one key per character, as keys.rs reads it. */ -}}
+{{- $named := slice "Home" "End" "PgDn" "PgUp" "Tab" "Shift-Tab" "Esc" "Backspace" -}}
+{{- $out := "" -}}
+{{- if or (hasPrefix . "Ctrl-") (in $named .) -}}
+  {{- $out = printf "<kbd>%s</kbd>" (partial "keymap/esc" .) -}}
+{{- else -}}
+  {{- range split . "" -}}
+    {{- $out = printf "%s<kbd>%s</kbd>" $out (partial "keymap/esc" .) -}}
+  {{- end -}}
+{{- end -}}
+{{- return $out -}}

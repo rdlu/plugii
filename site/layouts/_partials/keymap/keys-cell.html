@@ -1,0 +1,42 @@
+{{- /* The Keys cell of one binding. Sequences sharing a first key (Ctrl-w h,
+  Ctrl-w j, ...) show it once, as the help overlay does. Same action:
+  alternatives ("j or ↓"); different actions: a pair ("n / N"). */ -}}
+{{- $or := ` <span class="alt">or</span> ` -}}
+{{- $slash := ` <span class="alt">/</span> ` -}}
+{{- $sep := $or -}}
+{{- if gt (len (uniq .actions)) 1 -}}{{- $sep = $slash -}}{{- end -}}
+
+{{- $groups := slice -}}
+{{- range .keys -}}
+  {{- $parts := split . " " -}}
+  {{- $first := index $parts 0 -}}
+  {{- $rest := delimit (after 1 $parts) " " -}}
+  {{- $n := len $groups -}}
+  {{- $merged := false -}}
+  {{- if and $rest (gt $n 0) -}}
+    {{- $last := index $groups (sub $n 1) -}}
+    {{- if eq $last.first $first -}}
+      {{- $groups = first (sub $n 1) $groups | append (dict "first" $first "whole" "" "rests" ($last.rests | append $rest)) -}}
+      {{- $merged = true -}}
+    {{- end -}}
+  {{- end -}}
+  {{- if not $merged -}}
+    {{- if $rest -}}
+      {{- $groups = $groups | append (dict "first" $first "whole" "" "rests" (slice $rest)) -}}
+    {{- else -}}
+      {{- $groups = $groups | append (dict "first" "" "whole" . "rests" slice) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $cells := slice -}}
+{{- range $groups -}}
+  {{- if .whole -}}
+    {{- $cells = $cells | append (partial "keymap/seq" .whole) -}}
+  {{- else -}}
+    {{- $rests := slice -}}
+    {{- range .rests -}}{{- $rests = $rests | append (partial "keymap/seq" .) -}}{{- end -}}
+    {{- $cells = $cells | append (printf "%s %s" (partial "keymap/token" .first) (delimit $rests $sep)) -}}
+  {{- end -}}
+{{- end -}}
+{{- return (delimit $cells $sep) -}}

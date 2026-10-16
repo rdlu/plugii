@@ -1,0 +1,4 @@
+{{- /* A key sequence: tokens separated by a space ("Ctrl-w h"). */ -}}
+{{- $tokens := slice -}}
+{{- range split . " " -}}{{- $tokens = $tokens | append (partial "keymap/token" .) -}}{{- end -}}
+{{- return (delimit $tokens " ") -}}

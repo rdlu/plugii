@@ -1,5 +1,7 @@
 [tools]
 "cargo:cargo-insta" = "latest"
+# The docs site (site/): plain hugo, since Hextra ships precompiled CSS.
+hugo = "0.168.0"
 
 [tasks.fmt]
 description = "Format the code"
@@ -71,3 +73,13 @@ for i in 1 2 3; do
 done
 exit 1
 '''
+
+[tasks.docs]
+description = "Docs site dev server on http://127.0.0.1:1313/plugii/ (live reload)"
+dir = "site"
+run = "hugo server --bind 127.0.0.1 --port 1313"
+
+[tasks.docs-build]
+description = "Minified docs site build into site/public/"
+dir = "site"
+run = "hugo --minify --cleanDestinationDir"

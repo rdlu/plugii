@@ -1,0 +1,2 @@
+{{- /* HTML-escape, and keep | from splitting a Markdown table cell. */ -}}
+{{- return (replace (htmlEscape .) "|" "&#124;") -}}

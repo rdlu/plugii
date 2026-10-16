@@ -1,0 +1,74 @@
+/* Teal accent, close to the Starlight spike's #1aa391 / #0f7f71.
+   Hextra derives its whole primary scale from these three. */
+:root {
+  --primary-hue: 172deg;
+  --primary-saturation: 72%;
+  --primary-lightness: 36%;
+}
+
+/* Keycaps: Hextra's prose <kbd> is a flat chip; give it a key bottom edge. */
+.content kbd {
+  display: inline;
+  padding: 0.1em 0.45em;
+  font-size: 0.85em;
+  line-height: 1;
+  border-bottom-width: 3px;
+  border-radius: 0.3rem;
+  white-space: nowrap;
+}
+.content kbd + kbd {
+  margin-inline-start: 0.15em;
+}
+.content .alt {
+  opacity: 0.6;
+  font-size: 0.85em;
+  padding-inline: 0.35em;
+}
+/* One width for every keymap table, so the columns line up across sections. */
+.content .keymap table {
+  display: table;
+  width: 100%;
+}
+@media (min-width: 50rem) {
+  .content .keymap :is(th, td):first-child {
+    width: 18rem;
+    white-space: nowrap;
+  }
+}
+
+/* Landing: buttons side by side. */
+.plugii-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* The demo GIF in a terminal window frame. */
+.plugii-demo {
+  width: 100%;
+  margin: 3rem 0 1rem;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: #1e1e2e;
+  border: 1px solid rgb(127 127 127 / 0.25);
+  box-shadow: 0 1.5rem 3rem -1rem rgb(0 0 0 / 0.45);
+}
+.plugii-demo .bar {
+  display: flex;
+  gap: 0.45rem;
+  padding: 0.65rem 0.9rem;
+  background: #181825;
+}
+.plugii-demo .bar span {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+}
+.plugii-demo .bar span:nth-child(1) { background: #f38ba8; }
+.plugii-demo .bar span:nth-child(2) { background: #f9e2af; }
+.plugii-demo .bar span:nth-child(3) { background: #a6e3a1; }
+.plugii-demo img {
+  display: block;
+  width: 100%;
+  height: auto;
+}

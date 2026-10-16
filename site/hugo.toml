@@ -1,0 +1,106 @@
+# plugii's docs site: https://rdlu.github.io/plugii/ (a GitHub Pages project
+# site, so every link has to work under /plugii/).
+baseURL = "https://rdlu.github.io/plugii/"
+title = "plugii"
+locale = "en"
+# Hextra v0.13.0, vendored (trimmed) into themes/hextra: no Go modules, no Node.
+theme = "hextra"
+enableRobotsTXT = true
+disableKinds = ["taxonomy", "term", "rss"]
+
+[outputs]
+  home = ["html"]
+  section = ["html"]
+  page = ["html"]
+
+[markup.goldmark.renderer]
+  unsafe = true # <kbd>, <video> and small layout wrappers in Markdown
+[markup.highlight]
+  noClasses = false
+[markup.tableOfContents]
+  startLevel = 2
+  endLevel = 3
+
+[[menu.main]]
+  name = "Docs"
+  pageRef = "/docs"
+  weight = 1
+[[menu.main]]
+  name = "Search"
+  weight = 2
+  [menu.main.params]
+    type = "search"
+[[menu.main]]
+  name = "Theme"
+  weight = 3
+  [menu.main.params]
+    type = "theme-toggle"
+[[menu.main]]
+  name = "GitHub"
+  url = "https://github.com/rdlu/plugii"
+  weight = 4
+  [menu.main.params]
+    icon = "github"
+
+[params]
+  description = "A live USB port monitor for Linux: which socket, what link speed, USB-C / PD power, a health verdict, and a vim-key TUI."
+  displayUpdatedDate = false
+
+  [params.navbar]
+    displayTitle = true
+    displayLogo = true
+    width = "wide"
+    [params.navbar.logo]
+      path = "favicon.svg"
+      dark = "favicon.svg"
+      width = 26
+      height = 26
+
+  [params.theme]
+    default = "dark"
+    displayToggle = true
+
+  [params.footer]
+    enable = true
+    displayCopyright = false
+    displayPoweredBy = true
+
+  [params.page]
+    width = "normal"
+    [params.page.tabs]
+      sync = true # the cargo / mise choice is remembered across pages
+
+  [params.search]
+    enable = true
+    type = "flexsearch"
+    [params.search.flexsearch]
+      index = "content"
+      tokenize = "forward"
+      # Vendored (assets/lib/flexsearch, Apache-2.0), so the build needs no
+      # network: without this Hextra fetches it from jsDelivr.
+      js = "lib/flexsearch/flexsearch.bundle.min.js"
+
+  [params.highlight.copy]
+    enable = true
+    display = "hover"
+
+  [params.editURL]
+    enable = false
+
+# Source-of-truth files from the crate, mounted into assets/ so templates
+# read them on every build: no copies, no generator. Declaring an assets
+# mount replaces the default one, so assets/ itself is mounted first.
+[[module.mounts]]
+  source = "assets"
+  target = "assets"
+# The TUI keymap: the `keymap` shortcode parses BINDINGS and PROMPT_KEYS.
+[[module.mounts]]
+  source = "../src/tui"
+  target = "assets/plugii"
+  files = ["keys.rs"]
+# insta snapshots: real reports (`snapshot` shortcode) and the CLI's --help
+# text (`cli-help` shortcode), both checked by `cargo test`.
+[[module.mounts]]
+  source = "../tests/snapshots"
+  target = "assets/snapshots"
+  files = ["report__*.snap", "cli__help_*.snap"]
