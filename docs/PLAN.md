@@ -143,7 +143,7 @@ No PRs or pushes until the user calls it reliable enough to release.
 3. ✅ Readers: drm, power, cpu, kernel log. *(parallel with 2)*
 4. ✅ Health rules + text report (parity with script, exit codes), `-H`, `--json`.
 5. ✅ TUI core: layout, live updates (udev + tick), Events tab, Charts tab with power/CPU timeline.
-6. TUI extras: detail view, capable-vs-linked, label wizard, help, URB sparklines, speed timeline, charger table,
+6. ✅ TUI extras: detail view, capable-vs-linked, label wizard, help, URB sparklines, speed timeline, charger table,
    **device labels** (`device:<vid>:<pid>  <name>` in the labels file; tree, details and events use the name;
    a labelled hub leaving collapses to one event, e.g. "− USB switch (desk): 6 devices left").
 7. `--record` / `replay`.
