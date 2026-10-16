@@ -26,3 +26,5 @@ All three of test, fmt --check and clippy must pass before a commit.
 - The model (`src/model.rs`) is plain serde data: no behaviour beyond small
   derived values, all types `Debug, Clone, PartialEq, Serialize, Deserialize`.
 - Labels file semantics match the script's `read -r key text` parsing.
+
+Moving machines? Read `docs/HANDOVER.md` first if it exists.
