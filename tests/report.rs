@@ -94,6 +94,65 @@ fn xps_stale_ucsi_report() {
     insta::assert_json_snapshot!(json(&snap));
 }
 
+fn charging_ports(snap: &Snapshot) -> Vec<&str> {
+    snap.typec
+        .ports
+        .iter()
+        .filter(|p| p.charging)
+        .map(|p| p.name.as_str())
+        .collect()
+}
+
+fn socket<'a>(snap: &'a Snapshot, label: &str) -> &'a plugii::model::Socket {
+    snap.sockets
+        .iter()
+        .find(|s| s.label.as_deref() == Some(label))
+        .unwrap()
+}
+
+/// Both sockets empty, on battery.
+#[test]
+fn xps_empty_report() {
+    let snap = xps("xps-empty");
+    assert!(snap.typec.ports.iter().all(|p| p.partner.is_none()));
+    assert_eq!(snap.power.ac_online, Some(false));
+    assert!(snap.sockets.iter().all(|s| s.usb2.device.is_none()));
+    insta::assert_snapshot!(text(&snap));
+}
+
+/// Monitor moved to the left socket (charging the laptop), dock to the right:
+/// labels follow the socket, not the device.
+#[test]
+fn xps_swapped_report() {
+    let snap = xps("xps-swapped");
+    assert_eq!(charging_ports(&snap), ["port0"]);
+    let left = snap.typec.ports.iter().find(|p| p.name == "port0").unwrap();
+    assert_eq!(left.partner.as_ref().unwrap().source_pdos.len(), 5);
+    assert!(socket(&snap, "USB-C (right)").usb2.device.is_some());
+    assert!(socket(&snap, "USB-C (left)").usb2.device.is_none());
+    insta::assert_snapshot!(text(&snap));
+}
+
+/// The 60 W charger behind the dock on the left: power arrives (~53 W) but
+/// the dock reports no PDOs, which must not read as stale.
+#[test]
+fn xps_dock_charger_report() {
+    let snap = xps("xps-dock-charger");
+    assert_eq!(charging_ports(&snap), ["port0"]);
+    let findings = health::check(&snap);
+    assert!(
+        !findings.iter().any(|f| f.message.contains("looks stale")),
+        "{findings:#?}"
+    );
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.message.contains("offers not reported")),
+        "{findings:#?}"
+    );
+    insta::assert_snapshot!(text(&snap));
+}
+
 /// The faults log (resets on `usb 2-1`, `2-1.3`) against the XPS sockets:
 /// bus 2 port 1 is the left socket's USB 3 half.
 #[test]

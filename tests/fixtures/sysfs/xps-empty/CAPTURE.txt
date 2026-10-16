@@ -1,0 +1,6 @@
+plugii capture
+date: 2026-10-16
+kernel: 7.2.9-2-cachyos
+machine: Dell Inc. XPS 9320
+plugii: 0.1.0
+files: 912, symlinks: 80, bytes: 11848; 9 redacted (serials, unique IDs), 2 skipped

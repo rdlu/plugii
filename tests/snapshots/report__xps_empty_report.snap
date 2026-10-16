@@ -1,0 +1,37 @@
+---
+source: tests/report.rs
+expression: text(&snap)
+---
+USB ports
+
+  USB-C (left)         0000:00:14.0-1
+    USB 3 half: idle
+    USB 2 half: idle
+
+  USB-C (right)        0000:00:14.0-3
+    USB 3 half: idle
+    USB 2 half: idle
+
+USB-C (UCSI)
+  port0 (USB-C (left)): empty
+  port1 (USB-C (right)): empty
+
+Thunderbolt / USB4
+  domain0  security user, IOMMU DMA protection  INTEL Gen12, gen 4
+  domain1  security user, IOMMU DMA protection  INTEL Gen12, gen 4
+  no Thunderbolt/USB4 devices attached
+
+Display connectors
+  no external display connected
+
+Power
+  AC: offline  battery: 77% Discharging  (charge limit 80%)
+
+Kernel log (this boot)
+  no USB, USB-C or link-training errors
+
+Health
+  ✓ USB-C status driver (UCSI) up: 2 port(s)
+  ✓ Thunderbolt/USB4: 2 domain(s), security user, 0 device(s) attached
+  ✓ kernel log clean
+  → all good
