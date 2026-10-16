@@ -29,7 +29,14 @@
     {{- $text = delimit $out "\n" -}}
   {{- end -}}
   {{- $text = strings.TrimRight "\n " $text -}}
-  <div class="hextra-code-block terminal hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+  {{- /* The longest line, in columns: custom.css sizes the font to fit it, and
+         blocks wider than the prose column at full size (`wide`) also take
+         the main column's side padding. */ -}}
+  {{- $cols := 1 -}}
+  {{- range split $text "\n" -}}
+    {{- $cols = math.Max $cols (strings.RuneCount (strings.TrimRight " " .)) -}}
+  {{- end -}}
+  <div class="hextra-code-block terminal{{ if gt $cols 98 }} wide{{ end }} hx:relative hx:mt-6 hx:first:mt-0 hx:group/code" style="--cols: {{ int $cols }}">
     {{- partial "components/codeblock" (dict "filename" ($.Get "title") "lang" "text" "content" $text) -}}
     {{- partialCached "components/codeblock-copy-button" (dict "filename" ($.Get "title")) ($.Get "title") -}}
   </div>

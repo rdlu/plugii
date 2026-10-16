@@ -466,10 +466,79 @@ nav[aria-label="breadcrumb"],
   }
 }
 
-/* Plain-text terminal output (reports, help): no prompt, a bit tighter. */
+/* Plain-text terminal output (reports, help, TUI screens): no prompt, a bit
+   tighter. The `snapshot` shortcode sets --cols to the longest line, and the
+   font shrinks so that line fits the block: 100cqi is the block's width, less
+   the pre's padding and border (34px), over --cols cells of 0xProto's 0.62em
+   advance (0.625 for a little slack with fallback glyphs). It never goes
+   under 11px or over the 0.82rem of other blocks. Phones keep 0.82rem: the
+   block scrolls there anyway, so a smaller font would only be harder to read. */
+.content .terminal {
+  container-type: inline-size;
+}
 .content .terminal pre {
   font-size: 0.82rem;
   line-height: 1.35;
+}
+@media (min-width: 768px) {
+  .content .terminal pre {
+    font-size: clamp(11px, calc((100cqi - 34px) / (var(--cols, 80) * 0.625)), 0.82rem);
+  }
+}
+/* Wide blocks (120-column TUI screens, 108-column reports) also take most of
+   the main column's 3rem side padding: empty space, so nothing is covered,
+   not even the sticky TOC. At 1440px and up the block is then 912px, so a
+   120-column screen fits at about 11.8px and a 108-column report at 13px. */
+@media (min-width: 768px) {
+  .content .terminal.wide {
+    margin-inline: -2.5rem;
+  }
+}
+/* What still doesn't fit at 11px is a sentence on one line (a health finding,
+   a download URL, a kernel message, 126+ columns), never a grid, so from
+   1440px it wraps, as in a terminal that narrow, with a hanging indent. */
+@media (min-width: 90rem) {
+  .content .terminal.wide pre {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .content .terminal.wide .line {
+    display: block;
+    padding-inline-start: 4ch;
+    text-indent: -4ch;
+  }
+}
+/* Narrower screens (phones) scroll inside the block. Show that: a scrollbar
+   that stays visible, and a fade on the right edge while there is more to
+   the right. The fade is a scroll-driven animation, so it is only there
+   when the block actually scrolls, and gone once scrolled to the end;
+   browsers without scroll timelines get the scrollbar alone. */
+.content .terminal pre {
+  scrollbar-width: thin;
+  scrollbar-color: var(--p-faint) transparent;
+}
+.content .terminal pre::-webkit-scrollbar {
+  height: 6px;
+}
+.content .terminal pre::-webkit-scrollbar-thumb {
+  background: var(--p-faint);
+}
+@supports (animation-timeline: scroll(x)) {
+  .content .terminal pre {
+    animation: plugii-edge-fade linear both;
+    animation-timeline: scroll(self x);
+  }
+}
+@keyframes plugii-edge-fade {
+  0%,
+  97% {
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 3rem), rgb(0 0 0 / 0.15));
+    mask-image: linear-gradient(to right, #000 calc(100% - 3rem), rgb(0 0 0 / 0.15));
+  }
+  100% {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
 }
 
 /* ── Search ───────────────────────────────────────────────────────────── */
