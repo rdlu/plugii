@@ -46,6 +46,10 @@ fn machine() -> Sysfs {
     let port0 = format!("{ucsi}/typec/port0");
     fs.file(format!("{port0}/power_role"), "source [sink]");
     fs.link("sys/class/typec/port0", &port0);
+    let acpi = "sys/devices/LNXSYSTM:00/LNXSYBUS:00/USBC000:00/device:a2";
+    fs.file(format!("{acpi}/path"), "\\_SB_.UBTC.CR01");
+    fs.file(format!("{acpi}/adr"), "0x00000000");
+    fs.link(format!("{port0}/firmware_node"), acpi);
     let partner = format!("{port0}/port0-partner");
     fs.file(format!("{partner}/supports_usb_power_delivery"), "yes");
     fs.link("sys/class/typec/port0-partner", &partner);
@@ -187,6 +191,10 @@ fn capture_layout_links_and_privacy() {
     assert_eq!(read(o.join("sys/class/drm/card1-DP-1/status")), "connected");
     assert_eq!(read(o.join("proc/stat")), "cpu  1 2 3 4 5 6 7 8 0 0");
     assert_eq!(read(o.join("sys/class/dmi/id/product_name")), "XPS 9320");
+    // A typec port's ACPI node: its path only.
+    let node = o.join("sys/class/typec/port0/firmware_node");
+    assert_eq!(read(node.join("path")), "\\_SB_.UBTC.CR01");
+    assert!(!node.join("adr").exists());
 
     // Identifiers replaced.
     for f in [

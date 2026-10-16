@@ -76,6 +76,15 @@ pub fn capture(from: &Root, to: &Path) -> io::Result<Summary> {
             });
         }
     }
+    // A typec port's ACPI node names its UCSI connector (`…UBTC.CR01`).
+    for port in c.list("sys/class/typec", |n| {
+        n.strip_prefix("port")
+            .is_some_and(|i| !i.is_empty() && i.bytes().all(|b| b.is_ascii_digit()))
+    }) {
+        if let Some(real) = c.resolve(&port.join("firmware_node/path")) {
+            c.file(&real);
+        }
+    }
     for dev in c.list("sys/class/power_supply", |_| true) {
         c.dir(&dev, &|_: &[&str]| false);
     }
@@ -146,8 +155,10 @@ const KEEP_LINKS: &[&str] = &["peer", "driver", "usb_power_delivery"];
 /// Never descended into.
 const SKIP_DIRS: &[&str] = &["power", "subsystem", "firmware_node", "device"];
 
+/// Per-unit identifiers: serial numbers, Thunderbolt and DMI UUIDs, and the
+/// battery's Dell electronic PPID (`eppid`).
 fn redact(name: &str) -> bool {
-    name.contains("serial") || matches!(name, "unique_id" | "product_uuid")
+    name.contains("serial") || matches!(name, "unique_id" | "product_uuid" | "eppid")
 }
 
 struct Copier {
@@ -475,6 +486,7 @@ mod tests {
             "board_serial",
             "unique_id",
             "product_uuid",
+            "eppid",
         ] {
             assert!(redact(name), "{name}");
         }
