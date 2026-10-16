@@ -2,12 +2,27 @@
 name = "plugii"
 version = "0.1.0"
 edition = "2024"
+# let-chains are stable from 1.88, and ratatui 0.30 and time 0.3.55 need it
+# too; CI's msrv job builds with exactly this version.
+rust-version = "1.88"
 description = "Live Linux USB port monitor: which socket, what link speed, USB-C / PD power"
 license = "MIT"
 repository = "https://github.com/rdlu/plugii"
+homepage = "https://plugii.dlu.one"
+documentation = "https://plugii.dlu.one/docs/"
 readme = "README.md"
 keywords = ["usb", "usb-c", "linux", "sysfs", "tui"]
 categories = ["command-line-utilities", "hardware-support"]
+# The crate ships the code and its docs only. The integration tests with their
+# sysfs fixtures (~47 MB), the docs site, the demos and the examples stay in
+# the repository. The two kernel log files are a unit test's include_str!.
+include = [
+  "/src/**/*.rs",
+  "/tests/fixtures/kernel_log/xps/*.log",
+  "/README.md",
+  "/CHANGELOG.md",
+  "/LICENSE",
+]
 
 [dependencies]
 cab = "0.6.0"
