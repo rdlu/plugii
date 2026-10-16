@@ -84,3 +84,12 @@ impl Timed for Sample {
         self.t_ms
     }
 }
+
+impl Sample {
+    /// The chart values in one snapshot: PD contract (or USB-C supply)
+    /// watts, battery flow, and the CPU's package watts, clock and temperature.
+    pub fn from_snapshot(snap: &crate::model::Snapshot) -> Self {
+        let _ = snap;
+        todo!("milestone 5: engine")
+    }
+}
