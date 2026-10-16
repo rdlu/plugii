@@ -682,6 +682,56 @@ main h2.not-prose {
   width: 100%;
   height: auto;
 }
+/* The play button, over the poster, until the video plays: the demo
+   shortcode's script autoplays it (and marks the figure .playing) only from
+   640px up without reduced motion, so the button stays on phones, with
+   reduced motion, and without JavaScript. "full screen" only on phones,
+   where that's what it does. */
+.plugii-demo .screen {
+  position: relative;
+}
+.plugii-demo .play {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: max-content;
+  height: max-content;
+  padding: 0.55rem 1.1rem;
+  font-family: var(--p-mono);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #003547;
+  background: #6dd2ff;
+  border: 1px solid #003547;
+  box-shadow: 0 0 0 1px #6dd2ff, 0 0.4rem 1.5rem rgb(0 0 0 / 0.6);
+  text-decoration: none;
+}
+.plugii-demo .play::before {
+  content: "[ ";
+}
+.plugii-demo .play::after {
+  content: " ]";
+}
+.plugii-demo .play:hover,
+.plugii-demo .play:focus-visible {
+  background: #e2e2e2;
+  outline: none;
+}
+.plugii-demo .play .full {
+  display: none;
+}
+.plugii-demo.playing .play {
+  display: none;
+}
+/* Dim the poster a little so the button reads as the thing to tap. */
+.plugii-demo:not(.playing) video {
+  opacity: 0.7;
+}
+@media (max-width: 639.98px) {
+  .plugii-demo .play .full {
+    display: inline;
+  }
+}
 .plugii-demo figcaption {
   padding: 0.4rem 0.75rem;
   font-size: 0.85rem;

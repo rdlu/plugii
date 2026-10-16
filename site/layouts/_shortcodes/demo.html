@@ -1,8 +1,13 @@
 {{- /*
   A terminal recording from site/demos (mounted at assets/demos), in a pane:
   {{< demo name="ports" title="…" alt="…" caption="…" >}}
-  Plays muted on a loop; the poster is the video's first frame, and also
-  what shows without video support.
+
+  On a desktop it plays muted on a loop. Below 640px, where a 1280-wide
+  terminal is unreadable, and wherever prefers-reduced-motion is set, it
+  stays on its poster (the first frame) with a play button: on a phone the
+  button plays it full screen, on a desktop inline with controls. The
+  button is a link to the .webm, so it still works without JavaScript, and
+  the poster is also what shows without video support.
 */ -}}
 {{- $name := .Get "name" -}}
 {{- $video := resources.Get (printf "demos/%s.webm" $name) -}}
@@ -13,12 +18,58 @@
 {{- $alt := .Get "alt" -}}
 <figure class="plugii-demo">
   <div class="bar"><span><b>$</b> {{ .Get "title" }}</span><span aria-hidden="true">{{ .Get "speed" | default "×1" }}</span></div>
-  <video autoplay muted loop playsinline preload="metadata" width="1280" height="760"
-    poster="{{ $poster.RelPermalink }}" aria-label="{{ $alt }}">
-    <source src="{{ $video.RelPermalink }}" type="video/webm">
-    <img src="{{ $poster.RelPermalink }}" alt="{{ $alt }}" width="1280" height="760">
-  </video>
+  <div class="screen">
+    <video muted loop playsinline preload="none" width="1280" height="760"
+      poster="{{ $poster.RelPermalink }}" aria-label="{{ $alt }}">
+      <source src="{{ $video.RelPermalink }}" type="video/webm">
+      <img src="{{ $poster.RelPermalink }}" alt="{{ $alt }}" width="1280" height="760">
+    </video>
+    <a class="play" href="{{ $video.RelPermalink }}"><span aria-hidden="true">▶</span> play<span class="full"> full screen</span></a>
+  </div>
   {{- with .Get "caption" }}
   <figcaption>{{ . | markdownify }}</figcaption>
   {{- end }}
 </figure>
+{{- if not (.Page.Store.Get "plugii-demo-js") -}}
+{{- .Page.Store.Set "plugii-demo-js" true }}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  // Autoplay only on a wide screen without reduced motion. custom.css hides
+  // the play button and the poster's dimming on a figure marked .playing.
+  const auto = matchMedia("(min-width: 640px) and (prefers-reduced-motion: no-preference)");
+  const narrow = matchMedia("(max-width: 639.98px)");
+  const demos = [...document.querySelectorAll(".plugii-demo")];
+  const sync = () => demos.forEach((f) => {
+    const v = f.querySelector("video");
+    if (auto.matches) { v.preload = "auto"; v.play().catch(() => {}); f.classList.add("playing"); }
+    else if (!f.classList.contains("chosen")) { v.pause(); f.classList.remove("playing"); }
+  });
+  demos.forEach((f) => {
+    const v = f.querySelector("video");
+    f.querySelector(".play").addEventListener("click", (e) => {
+      e.preventDefault();
+      f.classList.add("playing", "chosen");
+      v.controls = true;
+      v.play().catch(() => { location.href = f.querySelector(".play").href; });
+      if (narrow.matches) {
+        // iPhone Safari only has webkitEnterFullscreen, which throws before
+        // the video has loaded; it then plays inline, with its own button.
+        try {
+          const fs = v.requestFullscreen ? v.requestFullscreen() : v.webkitEnterFullscreen();
+          Promise.resolve(fs).then(() => screen.orientation?.lock?.("landscape")).catch(() => {});
+        } catch {}
+      }
+    });
+  });
+  // Leaving full screen on a phone goes back to the poster.
+  const back = () => {
+    if (document.fullscreenElement || !narrow.matches) return;
+    demos.forEach((f) => { const v = f.querySelector("video"); v.pause(); v.controls = false; f.classList.remove("playing", "chosen"); });
+  };
+  document.addEventListener("fullscreenchange", back);
+  demos.forEach((f) => f.querySelector("video").addEventListener("webkitendfullscreen", back));
+  auto.addEventListener("change", sync);
+  sync();
+});
+</script>
+{{- end -}}
