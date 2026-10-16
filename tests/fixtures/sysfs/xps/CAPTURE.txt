@@ -3,4 +3,4 @@ date: 2026-10-16
 kernel: 7.2.9-2-cachyos
 machine: Dell Inc. XPS 9320
 plugii: 0.1.0
-files: 1795, symlinks: 161, bytes: 19377; 12 redacted (serials, unique IDs), 2 skipped
+files: 1373, symlinks: 123, bytes: 16170; 11 redacted (serials, unique IDs), 2 skipped

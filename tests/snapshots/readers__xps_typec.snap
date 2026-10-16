@@ -1,0 +1,90 @@
+---
+source: tests/readers.rs
+expression: state
+---
+{
+  "ucsi_present": true,
+  "ports": [
+    {
+      "name": "port0",
+      "label": "USB-C (left)",
+      "partner": {
+        "supports_pd": false,
+        "pd_revision": null,
+        "alt_modes": 1,
+        "source_pdos": [],
+        "sink_pdos": [
+          {
+            "fixed": {
+              "mv": 5000,
+              "ma": 3000
+            }
+          }
+        ]
+      },
+      "cable_type": null,
+      "power_role": "source",
+      "charging": false,
+      "pd_inconsistent": false,
+      "pd_contract": null
+    },
+    {
+      "name": "port1",
+      "label": "USB-C (right)",
+      "partner": {
+        "supports_pd": true,
+        "pd_revision": null,
+        "alt_modes": 1,
+        "source_pdos": [
+          {
+            "fixed": {
+              "mv": 5000,
+              "ma": 1000
+            }
+          },
+          {
+            "fixed": {
+              "mv": 9000,
+              "ma": 1000
+            }
+          },
+          {
+            "fixed": {
+              "mv": 12000,
+              "ma": 1500
+            }
+          },
+          {
+            "fixed": {
+              "mv": 15000,
+              "ma": 1800
+            }
+          },
+          {
+            "fixed": {
+              "mv": 20000,
+              "ma": 2350
+            }
+          }
+        ],
+        "sink_pdos": [
+          {
+            "fixed": {
+              "mv": 5000,
+              "ma": 3000
+            }
+          }
+        ]
+      },
+      "cable_type": null,
+      "power_role": "source",
+      "charging": true,
+      "pd_inconsistent": false,
+      "pd_contract": {
+        "voltage_mv": 20000,
+        "current_ma": 2350,
+        "source_pdo": 5
+      }
+    }
+  ]
+}

@@ -1,5 +1,10 @@
-//! The USB, USB-C and Thunderbolt readers against the captured XPS 9320 and
-//! hand-built trees for what that machine can't show.
+//! The USB, USB-C and Thunderbolt readers against captures of the XPS 9320
+//! and hand-built trees for what that machine can't show.
+//!
+//! Both XPS captures have the dock on the left socket and a monitor in DP alt
+//! mode on the right, charging the laptop at 20 V. `xps` was taken right
+//! after replugging both; `xps-stale-ucsi` earlier, with UCSI showing stale
+//! partner PDOs and power roles (see `TypecPort::pd_inconsistent`).
 
 mod common;
 
@@ -10,10 +15,14 @@ use plugii::labels::{self, Labels};
 use plugii::model::{Pdo, Speed, Usb3Side};
 use plugii::sysfs::{Root, power, thunderbolt, typec, usb};
 
-fn xps() -> (Root, Labels) {
+fn capture(name: &str) -> (Root, Labels) {
     let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures");
     let labels = labels::read(&dir.join("labels/xps")).unwrap();
-    (Root::new(dir.join("sysfs/xps")), labels)
+    (Root::new(dir.join("sysfs").join(name)), labels)
+}
+
+fn xps() -> (Root, Labels) {
+    capture("xps")
 }
 
 #[test]
@@ -49,45 +58,75 @@ fn xps_sockets() {
 fn xps_typec() {
     let (root, labels) = xps();
     let state = typec::read(&root, &labels);
+    insta::assert_json_snapshot!(state);
 
     assert!(state.ucsi_present);
     let [left, right] = &state.ports[..] else {
         panic!("{:?}", state.ports)
     };
-    assert_eq!(left.label.as_deref(), Some("USB-C (left)"));
+    // The monitor on the right offers 5/9/12/15/20 V and charges the laptop
+    // at 20 V, its fifth PDO (UCSI still calls the port a source).
     assert_eq!(right.label.as_deref(), Some("USB-C (right)"));
-    // The dock's partner offers 5/9/15/20 V.
-    assert_eq!(left.partner.as_ref().unwrap().source_pdos.len(), 4);
-    // The monitor: DP alt mode, no source PDOs.
+    assert!(right.charging);
+    let contract = right.pd_contract.unwrap();
+    assert_eq!((contract.voltage_mv, contract.current_ma), (20_000, 2_350));
+    assert_eq!(contract.source_pdo, Some(5));
     let monitor = right.partner.as_ref().unwrap();
     assert_eq!(monitor.alt_modes, 1);
-    assert!(monitor.source_pdos.is_empty());
-    // One port takes 20 V at 2.35 A.
-    let charging: Vec<_> = state.ports.iter().filter(|p| p.charging).collect();
-    let [port] = &charging[..] else {
-        panic!("{charging:?}")
-    };
-    let contract = port.pd_contract.unwrap();
-    assert_eq!((contract.voltage_mv, contract.current_ma), (20_000, 2_350));
+    assert_eq!(monitor.source_pdos.len(), 5);
+    assert!(!right.pd_inconsistent);
+    // The dock on the left offers no power.
+    assert_eq!(left.label.as_deref(), Some("USB-C (left)"));
+    assert!(!left.charging);
+    assert_eq!(left.pd_contract, None);
+    assert!(left.partner.as_ref().unwrap().source_pdos.is_empty());
+    assert!(!left.pd_inconsistent);
 }
 
-/// The typec and power readers pair UCSI supplies with ports the same way.
+/// The same machine and cables before a replug: port0 still lists the dock's
+/// old 5-20 V PDOs and a sink role while its supply is off, and port1 sinks
+/// 20 V with a partner that lists no source PDOs and a source role.
+#[test]
+fn xps_stale_ucsi_typec() {
+    let (root, labels) = capture("xps-stale-ucsi");
+    let state = typec::read(&root, &labels);
+    insta::assert_json_snapshot!(state);
+
+    let [left, right] = &state.ports[..] else {
+        panic!("{:?}", state.ports)
+    };
+    assert!(right.charging);
+    let contract = right.pd_contract.unwrap();
+    assert_eq!(contract.voltage_mv, 20_000);
+    // No PDO of its own partner matches, so none is named.
+    assert_eq!(contract.source_pdo, None);
+    assert!(right.pd_inconsistent);
+    assert!(!left.charging);
+    assert_eq!(left.power_role.as_deref(), Some("sink"));
+    assert_eq!(left.partner.as_ref().unwrap().source_pdos.len(), 4);
+    assert!(left.pd_inconsistent);
+}
+
+/// The typec and power readers pair UCSI supplies with ports the same way:
+/// supply `:002` is ACPI connector CR02 is port1, the right socket.
 #[test]
 fn xps_typec_and_power_agree_on_the_charging_port() {
-    let (root, labels) = xps();
-    let typec_side: Vec<String> = typec::read(&root, &labels)
-        .ports
-        .into_iter()
-        .filter(|p| p.charging)
-        .map(|p| p.name)
-        .collect();
-    let power_side: Vec<String> = power::read(&root)
-        .usb_c_sources
-        .into_iter()
-        .map(|s| s.typec_port)
-        .collect();
-    assert_eq!(typec_side.len(), 1);
-    assert_eq!(typec_side, power_side);
+    for name in ["xps", "xps-stale-ucsi"] {
+        let (root, labels) = capture(name);
+        let typec_side: Vec<String> = typec::read(&root, &labels)
+            .ports
+            .into_iter()
+            .filter(|p| p.charging)
+            .map(|p| p.name)
+            .collect();
+        let power_side: Vec<String> = power::read(&root)
+            .usb_c_sources
+            .into_iter()
+            .map(|s| s.typec_port)
+            .collect();
+        assert_eq!(typec_side, ["port1"], "{name}");
+        assert_eq!(power_side, typec_side, "{name}");
+    }
 }
 
 /// ACPI names each port's UCSI connector; here firmware registered them in
