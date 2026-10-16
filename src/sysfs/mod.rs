@@ -9,6 +9,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
+mod command;
 pub mod cpu;
 pub mod drm;
 pub mod kernel_log;
