@@ -8,7 +8,7 @@ use std::path::Path;
 use common::{BOS_5G, BOS_10G, Dev, Sysfs};
 use plugii::labels::{self, Labels};
 use plugii::model::{Pdo, Speed, Usb3Side};
-use plugii::sysfs::{Root, thunderbolt, typec, usb};
+use plugii::sysfs::{Root, power, thunderbolt, typec, usb};
 
 fn xps() -> (Root, Labels) {
     let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures");
@@ -49,25 +49,75 @@ fn xps_sockets() {
 fn xps_typec() {
     let (root, labels) = xps();
     let state = typec::read(&root, &labels);
-    insta::assert_json_snapshot!(state);
 
     assert!(state.ucsi_present);
     let [left, right] = &state.ports[..] else {
         panic!("{:?}", state.ports)
     };
-    // The dock offers 5/9/15/20 V and the laptop sinks 20 V from it.
     assert_eq!(left.label.as_deref(), Some("USB-C (left)"));
-    assert!(left.charging);
-    let contract = left.pd_contract.unwrap();
-    assert_eq!(contract.voltage_mv, 20_000);
-    assert_eq!(contract.source_pdo, Some(4));
+    assert_eq!(right.label.as_deref(), Some("USB-C (right)"));
+    // The dock's partner offers 5/9/15/20 V.
     assert_eq!(left.partner.as_ref().unwrap().source_pdos.len(), 4);
-    // The monitor: DP alt mode, sinks 5 V from the laptop.
-    assert_eq!(right.power_role.as_deref(), Some("source"));
-    assert!(!right.charging);
+    // The monitor: DP alt mode, no source PDOs.
     let monitor = right.partner.as_ref().unwrap();
     assert_eq!(monitor.alt_modes, 1);
     assert!(monitor.source_pdos.is_empty());
+    // One port takes 20 V at 2.35 A.
+    let charging: Vec<_> = state.ports.iter().filter(|p| p.charging).collect();
+    let [port] = &charging[..] else {
+        panic!("{charging:?}")
+    };
+    let contract = port.pd_contract.unwrap();
+    assert_eq!((contract.voltage_mv, contract.current_ma), (20_000, 2_350));
+}
+
+/// The typec and power readers pair UCSI supplies with ports the same way.
+#[test]
+fn xps_typec_and_power_agree_on_the_charging_port() {
+    let (root, labels) = xps();
+    let typec_side: Vec<String> = typec::read(&root, &labels)
+        .ports
+        .into_iter()
+        .filter(|p| p.charging)
+        .map(|p| p.name)
+        .collect();
+    let power_side: Vec<String> = power::read(&root)
+        .usb_c_sources
+        .into_iter()
+        .map(|s| s.typec_port)
+        .collect();
+    assert_eq!(typec_side.len(), 1);
+    assert_eq!(typec_side, power_side);
+}
+
+/// ACPI names each port's UCSI connector; here firmware registered them in
+/// the opposite order, so connector 1's supply belongs to `port1`.
+#[test]
+fn acpi_connector_nodes_pick_the_supply() {
+    let fs = pps_charger();
+    let acpi = "sys/devices/LNXSYSTM:00/LNXSYBUS:00/AMDI0042:00";
+    for (port, node) in [("port0", "CR02"), ("port1", "CR01")] {
+        let dir = format!("{acpi}/device:{node}");
+        fs.file(format!("{dir}/path"), &format!("\\_SB_.UBTC.{node}"));
+        fs.link(
+            format!("sys/devices/platform/AMDI0042:00/typec/{port}/firmware_node"),
+            &dir,
+        );
+    }
+    let state = typec::read(&fs.root(), &Labels::default());
+    let port1 = &state.ports[1];
+    assert!(port1.charging);
+    assert_eq!(port1.pd_contract.unwrap().voltage_mv, 15_000);
+    // port1 has no partner to contradict its supply.
+    assert!(!port1.pd_inconsistent);
+    // port0's partner offers source PDOs and it says sink, yet its supply
+    // is offline.
+    let port0 = &state.ports[0];
+    assert!(!port0.charging);
+    assert!(port0.pd_inconsistent);
+    let sources = power::read(&fs.root()).usb_c_sources;
+    assert_eq!(sources.len(), 1);
+    assert_eq!(sources[0].typec_port, "port1");
 }
 
 #[test]

@@ -14,22 +14,25 @@ use crate::labels::Labels;
 use crate::model::{Partner, PdContract, Pdo, TypecPort, TypecState};
 
 pub fn read(root: &Root, labels: &Labels) -> TypecState {
-    let mut ports: Vec<(u32, PathBuf)> =
-        entries(root.path("sys/class/typec"), |n| port_index(n).is_some())
-            .into_iter()
-            .filter_map(|dir| Some((port_index(dir.file_name()?.to_str()?)?, dir)))
-            .collect();
-    ports.sort_by_key(|(i, _)| *i);
-
-    let supplies = supplies(root);
-    let mut out: Vec<TypecPort> = ports
+    let supplies = ucsi_supplies(root);
+    let mut ports: Vec<TypecPort> = typec_ports(root)
         .iter()
         .map(|(_, dir)| read_port(dir, labels))
         .collect();
-    let assigned = assign_supplies(&ports, &out, &supplies);
-    for (port, psy) in out.iter_mut().zip(assigned) {
-        let Some(psy) = psy else { continue };
+    for port in &mut ports {
+        let Some(psy) = supplies.iter().find(|s| s.port == port.name) else {
+            continue;
+        };
         port.charging = psy.online;
+        port.pd_inconsistent = port.partner.as_ref().is_some_and(|p| {
+            let offers = !p.source_pdos.is_empty();
+            let says_sink = port.power_role.as_deref() == Some("sink");
+            if psy.online {
+                !offers
+            } else {
+                offers && says_sink
+            }
+        });
         port.pd_contract = psy.contract().map(|mut c| {
             c.source_pdo = port
                 .partner
@@ -39,9 +42,20 @@ pub fn read(root: &Root, labels: &Labels) -> TypecState {
         });
     }
     TypecState {
-        ucsi_present: !out.is_empty(),
-        ports: out,
+        ucsi_present: !ports.is_empty(),
+        ports,
     }
+}
+
+/// `sys/class/typec/portN` directories, by N.
+fn typec_ports(root: &Root) -> Vec<(u32, PathBuf)> {
+    let mut ports: Vec<(u32, PathBuf)> =
+        entries(root.path("sys/class/typec"), |n| port_index(n).is_some())
+            .into_iter()
+            .filter_map(|dir| Some((port_index(dir.file_name()?.to_str()?)?, dir)))
+            .collect();
+    ports.sort_by_key(|(i, _)| *i);
+    ports
 }
 
 /// `port3` → 3; `port0-partner`, `port0.1` → `None`.
@@ -68,6 +82,7 @@ fn read_port(dir: &Path, labels: &Labels) -> TypecPort {
             .flatten(),
         power_role: attr(dir.join("power_role")).and_then(|r| selected(&r)),
         charging: false,
+        pd_inconsistent: false,
         pd_contract: None,
         name,
     }
@@ -176,25 +191,31 @@ fn active_pdo(source: &[Pdo], voltage_mv: u32) -> Option<u8> {
     u8::try_from(i + 1).ok()
 }
 
-/// A `ucsi-source-psy-*` power supply.
-#[derive(Debug, Clone)]
-struct Supply {
-    /// The UCSI device it belongs to (`USBC000:00`) when it can be told.
-    ucsi: Option<String>,
-    /// The 1-based UCSI connector number.
-    connector: u32,
-    online: bool,
-    voltage_uv: Option<u64>,
-    current_max_ua: Option<u64>,
+/// A UCSI connector's power supply, `ucsi-source-psy-*`, and the typec port
+/// it belongs to. [`read`] and the power reader both pair supplies with
+/// ports through [`ucsi_supplies`], so they always agree on which port is
+/// charging.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct UcsiSupply {
+    /// The typec port name, `port0`, ...
+    pub port: String,
+    /// The supply's directory, `sys/class/power_supply/ucsi-source-psy-...`.
+    pub dir: PathBuf,
+    /// The 1-based UCSI connector number from the supply's name.
+    pub connector: u32,
+    /// The connector is sinking power: it is charging the machine.
+    pub online: bool,
 }
 
-impl Supply {
+impl UcsiSupply {
+    /// The negotiated contract: `voltage_now` (uV) and `current_max` (uA)
+    /// while online.
     fn contract(&self) -> Option<PdContract> {
         if !self.online {
             return None;
         }
-        let mv = u32::try_from(self.voltage_uv? / 1000).ok()?;
-        let ma = u32::try_from(self.current_max_ua? / 1000).ok()?;
+        let mv = u32::try_from(read_parse::<u64>(self.dir.join("voltage_now"))? / 1000).ok()?;
+        let ma = u32::try_from(read_parse::<u64>(self.dir.join("current_max"))? / 1000).ok()?;
         (mv > 0 && ma > 0).then_some(PdContract {
             voltage_mv: mv,
             current_ma: ma,
@@ -205,6 +226,16 @@ impl Supply {
 
 const PSY_PREFIX: &str = "ucsi-source-psy-";
 
+/// A supply before it is paired with a port.
+#[derive(Debug, Clone)]
+struct Supply {
+    dir: PathBuf,
+    /// The UCSI device it belongs to (`USBC000:00`) when it can be told.
+    ucsi: Option<String>,
+    connector: u32,
+    online: bool,
+}
+
 fn supplies(root: &Root) -> Vec<Supply> {
     let mut out: Vec<Supply> = entries(root.path("sys/class/power_supply"), |n| {
         n.starts_with(PSY_PREFIX)
@@ -212,13 +243,12 @@ fn supplies(root: &Root) -> Vec<Supply> {
     .into_iter()
     .filter_map(|dir| {
         let name = dir.file_name()?.to_str()?.to_owned();
-        let ucsi = parent_device(&dir);
+        let ucsi = parent_device(&dir, "power_supply");
         Some(Supply {
             connector: connector_number(&name, ucsi.as_deref())?,
             ucsi,
             online: attr(dir.join("online")).as_deref() == Some("1"),
-            voltage_uv: read_parse(dir.join("voltage_now")),
-            current_max_ua: read_parse(dir.join("current_max")),
+            dir,
         })
     })
     .collect();
@@ -238,61 +268,71 @@ fn connector_number(name: &str, ucsi: Option<&str>) -> Option<u32> {
     tail.get(2..)?.parse().ok()
 }
 
-/// The device a class device hangs off: `…/USBC000:00/power_supply/<psy>` and
-/// `…/USBC000:00/typec/port0` both give `USBC000:00`.
-fn parent_device(class_dev: &Path) -> Option<String> {
+/// The device a class device hangs off: `.../USBC000:00/power_supply/<psy>`
+/// and `.../USBC000:00/typec/port0` both give `USBC000:00`. `None` unless the
+/// class device really sits in a `class` directory under a device.
+fn parent_device(class_dev: &Path, class: &str) -> Option<String> {
     let real = fs::canonicalize(class_dev).ok()?;
-    Some(real.parent()?.parent()?.file_name()?.to_str()?.to_owned())
+    let class_dir = real.parent()?;
+    if class_dir.file_name()? != class {
+        return None;
+    }
+    Some(class_dir.parent()?.file_name()?.to_str()?.to_owned())
 }
 
-/// Which supply belongs to which port.
+/// The UCSI connector number of a typec port: its ACPI node (`firmware_node`
+/// `path` ending in `CRnn`, e.g. `\\_SB_.UBTC.CR02` is connector 2) when
+/// firmware names it that way, else N+1 for `portN`.
+fn port_connector(index: u32, dir: &Path) -> u32 {
+    attr(dir.join("firmware_node/path"))
+        .and_then(|p| acpi_connector(&p))
+        .unwrap_or(index + 1)
+}
+
+/// `\\_SB_.UBTC.CR01` → 1; other node names → `None`.
+fn acpi_connector(path: &str) -> Option<u32> {
+    let node = path.trim().rsplit(['.', '\\']).next()?;
+    let digits = node.strip_prefix("CR")?;
+    (!digits.is_empty() && digits.bytes().all(|b| b.is_ascii_digit()))
+        .then(|| digits.parse().ok())?
+}
+
+/// Every UCSI supply with the typec port it belongs to, by connector.
 ///
-/// UCSI numbers connectors from 1 and typec ports from 0, so `portN` should be
-/// connector N+1 of the same UCSI device. That numbering isn't guaranteed (the
-/// port index comes from a global allocator), and it has been seen to be wrong
-/// after UCSI re-registered its ports: the XPS 9320 had `port0` sinking from
-/// the dock while connector 2's supply was the online one. A supply is online
-/// exactly when its connector sinks power, so when the numbering contradicts
-/// the ports' own power roles and the sinking ports and online supplies pair
-/// up one to one, they are paired instead.
-fn assign_supplies<'a>(
-    ports: &[(u32, PathBuf)],
-    read: &[TypecPort],
-    supplies: &'a [Supply],
-) -> Vec<Option<&'a Supply>> {
-    let numbered: Vec<Option<&Supply>> = ports
-        .iter()
+/// A supply is named after its 1-based UCSI connector; a port is that
+/// connector's when its ACPI node says so, else `portN` is connector N+1.
+/// A supply no registered port claims keeps the `port<connector - 1>` name.
+/// Power roles are not used: on the XPS 9320 UCSI reported port1 as source
+/// while it sank 20 V through the supply ACPI names its own; [`read`] flags
+/// such ports with `pd_inconsistent`.
+pub fn ucsi_supplies(root: &Root) -> Vec<UcsiSupply> {
+    let ports: Vec<(u32, u32, Option<String>)> = typec_ports(root)
+        .into_iter()
         .map(|(index, dir)| {
-            let ucsi = parent_device(dir);
-            supplies.iter().find(|s| {
-                s.connector == index + 1 && (s.ucsi.is_none() || ucsi.is_none() || s.ucsi == ucsi)
-            })
+            (
+                index,
+                port_connector(index, &dir),
+                parent_device(&dir, "typec"),
+            )
         })
         .collect();
-    let sinking: Vec<bool> = read
-        .iter()
-        .map(|p| p.partner.is_some() && p.power_role.as_deref() == Some("sink"))
-        .collect();
-    let roles_known = read
-        .iter()
-        .all(|p| p.partner.is_none() || p.power_role.is_some());
-    let consistent = numbered
-        .iter()
-        .zip(&sinking)
-        .all(|(s, sink)| s.is_none_or(|s| s.online == *sink));
-    if consistent || !roles_known {
-        return numbered;
-    }
-    let online: Vec<&Supply> = supplies.iter().filter(|s| s.online).collect();
-    if online.len() != sinking.iter().filter(|s| **s).count() {
-        return numbered;
-    }
-    let mut online = online.into_iter();
-    let offline: Vec<&Supply> = supplies.iter().filter(|s| !s.online).collect();
-    let mut offline = offline.into_iter();
-    sinking
-        .iter()
-        .map(|sink| if *sink { online.next() } else { offline.next() })
+    supplies(root)
+        .into_iter()
+        .map(|s| {
+            let index = ports
+                .iter()
+                .find(|(_, connector, ucsi)| {
+                    *connector == s.connector
+                        && (s.ucsi.is_none() || ucsi.is_none() || s.ucsi == *ucsi)
+                })
+                .map_or(s.connector.saturating_sub(1), |(index, _, _)| *index);
+            UcsiSupply {
+                port: format!("port{index}"),
+                dir: s.dir,
+                connector: s.connector,
+                online: s.online,
+            }
+        })
         .collect()
 }
 
@@ -340,6 +380,15 @@ mod tests {
         );
         assert_eq!(n("ucsi-source-psy-USBC000:00", None), None);
         assert_eq!(n("BAT0", None), None);
+    }
+
+    #[test]
+    fn acpi_connector_nodes() {
+        assert_eq!(acpi_connector("\\_SB_.UBTC.CR01"), Some(1));
+        assert_eq!(acpi_connector("\\_SB_.UBTC.CR12\n"), Some(12));
+        assert_eq!(acpi_connector("\\_SB_.PCI0.LPCB.EC0.CON0"), None);
+        assert_eq!(acpi_connector("\\_SB_.UBTC.CR"), None);
+        assert_eq!(acpi_connector("CRX1"), None);
     }
 
     #[test]

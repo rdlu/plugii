@@ -184,11 +184,23 @@ pub struct TypecPort {
     pub partner: Option<Partner>,
     /// The cable's `type` (`passive`, `active`) when UCSI reports a cable.
     pub cable_type: Option<String>,
-    /// The port's current power role, `source` or `sink`.
+    /// The port's power role as UCSI reports it, `source` or `sink`. Recorded
+    /// only: it can be wrong (see `pd_inconsistent`), so `charging` doesn't
+    /// use it.
     #[serde(default)]
     pub power_role: Option<String>,
     /// Power is flowing in through this port (its ucsi-source-psy is online).
     pub charging: bool,
+    /// The partner's PDOs and the port's power role disagree with its supply:
+    /// the partner advertises source PDOs and the port says sink while the
+    /// supply is offline, or the supply is online while the partner
+    /// advertises no source PDOs. UCSI keeps the PDOs from when the partner
+    /// registered, and they go stale: on the XPS 9320 (2026-10-16) port0 kept
+    /// the dock's old 5-20 V PDOs and a sink role while power came in on
+    /// port1, whose partner listed no source PDOs and whose role said source.
+    /// `charging` and `pd_contract` follow the supply regardless.
+    #[serde(default)]
+    pub pd_inconsistent: bool,
     pub pd_contract: Option<PdContract>,
 }
 

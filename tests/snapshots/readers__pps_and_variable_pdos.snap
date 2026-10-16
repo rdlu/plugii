@@ -74,6 +74,7 @@ expression: state
       "cable_type": "passive",
       "power_role": "sink",
       "charging": true,
+      "pd_inconsistent": false,
       "pd_contract": {
         "voltage_mv": 15000,
         "current_ma": 3000,
@@ -87,6 +88,7 @@ expression: state
       "cable_type": null,
       "power_role": "source",
       "charging": false,
+      "pd_inconsistent": false,
       "pd_contract": null
     }
   ]

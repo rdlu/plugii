@@ -99,6 +99,7 @@ expression: snapshot
         "cable_type": null,
         "power_role": null,
         "charging": false,
+        "pd_inconsistent": false,
         "pd_contract": null
       }
     ]

@@ -244,6 +244,7 @@ fn xps() -> Snapshot {
                     cable_type: None,
                     power_role: Some("sink".into()),
                     charging: true,
+                    pd_inconsistent: false,
                     pd_contract: Some(PdContract {
                         voltage_mv: 20_000,
                         current_ma: 3_250,
@@ -263,6 +264,7 @@ fn xps() -> Snapshot {
                     cable_type: Some("passive".into()),
                     power_role: Some("source".into()),
                     charging: false,
+                    pd_inconsistent: false,
                     pd_contract: None,
                 },
             ],
@@ -403,6 +405,7 @@ fn odd_machine() -> Snapshot {
                 cable_type: None,
                 power_role: None,
                 charging: false,
+                pd_inconsistent: false,
                 pd_contract: None,
             }],
         },

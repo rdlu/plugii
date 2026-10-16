@@ -5,6 +5,7 @@
 
 use std::path::{Path, PathBuf};
 
+use super::typec::{self, UcsiSupply};
 use super::{Root, entries, read as attr, read_parse};
 use crate::model::{Battery, Power, UsbCSource};
 
@@ -30,9 +31,10 @@ pub fn read(root: &Root) -> Power {
         .find(|dir| attr(dir.join("scope")).as_deref() != Some("Device"))
         .map(|dir| battery(dir));
 
-    let usb_c_sources = supplies
+    let usb_c_sources = typec::ucsi_supplies(root)
         .iter()
-        .filter_map(|dir| usb_c_source(dir))
+        .filter(|s| s.online)
+        .map(usb_c_source)
         .collect();
 
     Power {
@@ -73,22 +75,13 @@ fn flow_mw(dir: &Path, status: Option<&str>) -> Option<i64> {
     }
 }
 
-/// An online `ucsi-source-psy-<acpi-dev>:<connector>` supply. UCSI numbers
-/// connectors from 1, so `USBC000:002` is typec `port1`.
-fn usb_c_source(dir: &Path) -> Option<UsbCSource> {
-    let name = dir.file_name()?.to_str()?;
-    let connector: u32 = name
-        .strip_prefix("ucsi-source-psy-")?
-        .rsplit_once(':')?
-        .1
-        .parse()
-        .ok()?;
-    if attr(dir.join("online")).as_deref() != Some("1") {
-        return None;
-    }
-    Some(UsbCSource {
-        typec_port: format!("port{}", connector.checked_sub(1)?),
+/// An online UCSI supply, under the typec port [`typec::ucsi_supplies`]
+/// pairs it with: the same pairing the typec reader uses.
+fn usb_c_source(supply: &UcsiSupply) -> UsbCSource {
+    let dir = &supply.dir;
+    UsbCSource {
+        typec_port: supply.port.clone(),
         voltage_mv: read_parse::<u32>(dir.join("voltage_now")).map(|uv| uv / 1000),
         current_ma: read_parse::<u32>(dir.join("current_max")).map(|ua| ua / 1000),
-    })
+    }
 }
