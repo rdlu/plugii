@@ -1,0 +1,37 @@
+[    1.360587] cachyos kernel:   #1  #3  #5  #7
+[    1.360702] cachyos kernel: virt/tdx: TDX not supported by the host platform
+[    1.371631] cachyos kernel: hpet_acpi_probe: no address or irqs in _CRS
+[    1.373910] cachyos kernel: i8042: Warning: Keylock active
+[    1.374326] cachyos kernel: ENERGY_PERF_BIAS: Set to 'normal', was 'performance'
+[    1.472134] cachyos kernel: wmi_bus wmi_bus-PNP0C14:02: [Firmware Bug]: WQBC data block query control method not found
+[   33.891135] xps kernel: resource: resource sanity check: requesting [mem 0x00000000fedc0000-0x00000000feddffff], which spans more than PNP0C02:01 [mem 0xfedc0000-0xfedc7fff]
+[   33.891207] xps kernel: caller igen6_probe+0xc5/0xfa0 [igen6_edac] mapping multiple BARs
+[   33.891238] xps kernel: resource: resource sanity check: requesting [mem 0x00000000fedc0000-0x00000000fedcffff], which spans more than PNP0C02:01 [mem 0xfedc0000-0xfedc7fff]
+[   33.891329] xps kernel: caller igen6_probe+0x246/0xfa0 [igen6_edac] mapping multiple BARs
+[   33.912005] xps kernel: int3472-discrete INT3472:01: INT3472 seems to have no dependents.
+[   34.251010] xps kernel: spi-nor spi0.0: supply vcc not found, using dummy regulator
+[   45.756030] xps kernel: ov01a10 i2c-OVTI01A0:00: supply dovdd not found, using dummy regulator
+[   45.756178] xps kernel: ov01a10 i2c-OVTI01A0:00: supply avdd not found, using dummy regulator
+[   45.756260] xps kernel: ov01a10 i2c-OVTI01A0:00: supply dvdd not found, using dummy regulator
+[   45.963273] xps kernel: sof_sdw sof_sdw: ASoC: Parent card not yet available, widget card binding deferred
+[   45.976013] xps kernel: sof_sdw sof_sdw: hda_dsp_hdmi_build_controls: no PCM in topology for HDMI converter 3
+[   52.203012] xps kernel: block nvme0n1: No UUID available providing old NGUID
+[  353.920016] xps kernel: warning: `ThreadPoolForeg' uses wireless extensions which will stop working for Wi-Fi 7 hardware; use nl80211
+[ 8855.779014] xps kernel: overlayfs: upper fs does not support file handles, falling back to index=off.
+[ 8855.779125] xps kernel: overlayfs: fs on '/home/user/REDACTED does not support file handles, falling back to xino=off.
+[ 8855.791011] xps kernel: overlayfs: upper fs does not support file handles, falling back to index=off.
+[ 8855.791078] xps kernel: overlayfs: fs on '/home/user/REDACTED does not support file handles, falling back to xino=off.
+[ 8855.792009] xps kernel: overlayfs: upper fs does not support file handles, falling back to index=off.
+[ 8855.792207] xps kernel: overlayfs: fs on '/home/user/REDACTED does not support file handles, falling back to xino=off.
+[ 8856.013054] xps kernel: overlayfs: upper fs does not support file handles, falling back to index=off.
+[ 8856.013101] xps kernel: overlayfs: fs on '/home/user/REDACTED does not support file handles, falling back to xino=off.
+[ 8856.023013] xps kernel: overlayfs: upper fs does not support file handles, falling back to index=off.
+[ 8856.023074] xps kernel: overlayfs: fs on '/home/user/REDACTED does not support file handles, falling back to xino=off.
+[ 8856.023090] xps kernel: overlayfs: upper fs does not support file handles, falling back to index=off.
+[ 8856.023103] xps kernel: overlayfs: fs on '/home/user/REDACTED does not support file handles, falling back to xino=off.
+[ 8856.644040] xps kernel: overlayfs: upper fs does not support file handles, falling back to index=off.
+[ 8856.644138] xps kernel: overlayfs: fs on '/home/user/REDACTED does not support file handles, falling back to xino=off.
+[12676.674026] xps kernel: dell-privacy REDACTED: Unknown key with type 0x0012 and code 0x0037 pressed
+[13448.933048] xps kernel: dell-privacy REDACTED: Unknown key with type 0x0012 and code 0x0037 pressed
+[13581.868037] xps kernel: dell-privacy REDACTED: Unknown key with type 0x0012 and code 0x0028 pressed
+[13663.949106] xps kernel: dell-privacy REDACTED: Unknown key with type 0x0012 and code 0x002d pressed

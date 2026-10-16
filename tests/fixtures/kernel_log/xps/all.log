@@ -1,0 +1,100 @@
+[    1.359713] cachyos kernel: ACPI: SSDT 0x000000005D762000 00107C (v02 DELL   UsbCTabl 00001000 INTL 20200717)
+[    1.360752] cachyos kernel: ACPI: USB4 _OSC: OS supports USB3+ DisplayPort+ PCIe+ XDomain+
+[    1.360761] cachyos kernel: ACPI: USB4 _OSC: OS controls USB3+ DisplayPort+ PCIe+ XDomain+
+[    1.360860] cachyos kernel: ACPI: \_SB_.PC00.XHCI.RHUB.HS10.BTRT: New power resource
+[    1.365985] cachyos kernel: ACPI: bus type USB registered
+[    1.365989] cachyos kernel: usbcore: registered new interface driver usbfs
+[    1.365992] cachyos kernel: usbcore: registered new interface driver hub
+[    1.365995] cachyos kernel: usbcore: registered new device driver usb
+[    1.371753] cachyos kernel: xhci_hcd 0000:00:0d.0: xHCI Host Controller
+[    1.371805] cachyos kernel: xhci_hcd 0000:00:0d.0: new USB bus registered, assigned bus number 1
+[    1.371858] cachyos kernel: xhci_hcd 0000:00:0d.0: hcc params 0x20007fc1 hci version 0x120 quirks 0x0000000200009810
+[    1.371910] cachyos kernel: xhci_hcd 0000:00:0d.0: xHCI Host Controller
+[    1.371963] cachyos kernel: xhci_hcd 0000:00:0d.0: new USB bus registered, assigned bus number 2
+[    1.372018] cachyos kernel: xhci_hcd 0000:00:0d.0: Host supports USB 3.2 Enhanced SuperSpeed
+[    1.372112] cachyos kernel: usb usb1: New USB device found, idVendor=1d6b, idProduct=0002, bcdDevice= 7.02
+[    1.372170] cachyos kernel: usb usb1: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[    1.372220] cachyos kernel: usb usb1: Product: xHCI Host Controller
+[    1.372270] cachyos kernel: usb usb1: Manufacturer: Linux 7.2.9-2-cachyos xhci-hcd
+[    1.372319] cachyos kernel: usb usb1: SerialNumber: REDACTED
+[    1.372384] cachyos kernel: hub 1-0:1.0: USB hub found
+[    1.372506] cachyos kernel: usb usb2: New USB device found, idVendor=1d6b, idProduct=0003, bcdDevice= 7.02
+[    1.372555] cachyos kernel: usb usb2: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[    1.372602] cachyos kernel: usb usb2: Product: xHCI Host Controller
+[    1.372647] cachyos kernel: usb usb2: Manufacturer: Linux 7.2.9-2-cachyos xhci-hcd
+[    1.372692] cachyos kernel: usb usb2: SerialNumber: REDACTED
+[    1.372752] cachyos kernel: hub 2-0:1.0: USB hub found
+[    1.372867] cachyos kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+[    1.372920] cachyos kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 3
+[    1.372974] cachyos kernel: xhci_hcd 0000:00:14.0: hcc params 0x20007fc1 hci version 0x120 quirks 0x0000100200009810
+[    1.373032] cachyos kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+[    1.373096] cachyos kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 4
+[    1.373154] cachyos kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+[    1.373217] cachyos kernel: usb usb3: New USB device found, idVendor=1d6b, idProduct=0002, bcdDevice= 7.02
+[    1.373268] cachyos kernel: usb usb3: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[    1.373318] cachyos kernel: usb usb3: Product: xHCI Host Controller
+[    1.373363] cachyos kernel: usb usb3: Manufacturer: Linux 7.2.9-2-cachyos xhci-hcd
+[    1.373409] cachyos kernel: usb usb3: SerialNumber: REDACTED
+[    1.373467] cachyos kernel: hub 3-0:1.0: USB hub found
+[    1.373586] cachyos kernel: usb usb4: New USB device found, idVendor=1d6b, idProduct=0003, bcdDevice= 7.02
+[    1.373635] cachyos kernel: usb usb4: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[    1.373682] cachyos kernel: usb usb4: Product: xHCI Host Controller
+[    1.373727] cachyos kernel: usb usb4: Manufacturer: Linux 7.2.9-2-cachyos xhci-hcd
+[    1.373773] cachyos kernel: usb usb4: SerialNumber: REDACTED
+[    1.373833] cachyos kernel: hub 4-0:1.0: USB hub found
+[    1.373898] cachyos kernel: usbcore: registered new interface driver usbserial_generic
+[    1.373902] cachyos kernel: usbserial: USB Serial support registered for generic
+[    1.374297] cachyos kernel: usbcore: registered new interface driver usbhid
+[    1.374301] cachyos kernel: usbhid: USB HID core driver
+[    1.374558] cachyos kernel: usb 3-1: new high-speed USB device number 2 using xhci_hcd
+[    1.374624] cachyos kernel: usb 3-1: New USB device found, idVendor=05e3, idProduct=0610, bcdDevice= 6.63
+[    1.374677] cachyos kernel: usb 3-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[    1.374726] cachyos kernel: usb 3-1: Product: USB2.1 Hub
+[    1.374776] cachyos kernel: usb 3-1: Manufacturer: GenesysLogic
+[    1.374841] cachyos kernel: hub 3-1:1.0: USB hub found
+[    1.375034] cachyos kernel: usb 2-1: new SuperSpeed USB device number 2 using xhci_hcd
+[    1.375252] cachyos kernel: usb 2-1: New USB device found, idVendor=05e3, idProduct=0626, bcdDevice= 6.63
+[    1.375344] cachyos kernel: usb 2-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[    1.375432] cachyos kernel: usb 2-1: Product: USB3.1 Hub
+[    1.375521] cachyos kernel: usb 2-1: Manufacturer: GenesysLogic
+[    1.375596] cachyos kernel: hub 2-1:1.0: USB hub found
+[    1.382131] cachyos kernel: usb 3-8: new full-speed USB device number 3 using xhci_hcd
+[    1.510008] cachyos kernel: usb 3-8: New USB device found, idVendor=8086, idProduct=0b63, bcdDevice=10.01
+[    1.510644] cachyos kernel: usb 3-8: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[    1.510765] cachyos kernel: usb 3-8: Product: USB Bridge
+[    1.510879] cachyos kernel: usb 3-8: Manufacturer: MCHP
+[    1.596044] cachyos kernel: usb 3-1.1: new full-speed USB device number 4 using xhci_hcd
+[    1.642199] cachyos kernel: usb 2-1.2: new SuperSpeed USB device number 3 using xhci_hcd
+[    1.654144] cachyos kernel: usb 2-1.2: New USB device found, idVendor=05e3, idProduct=0625, bcdDevice=94.05
+[    1.656144] cachyos kernel: usb 2-1.2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[    1.656287] cachyos kernel: usb 2-1.2: Product: USB3.2 Hub
+[    1.656346] cachyos kernel: usb 2-1.2: Manufacturer: GenesysLogic
+[    1.659052] cachyos kernel: hub 2-1.2:1.0: USB hub found
+[    1.695012] cachyos kernel: usb 3-1.1: New USB device found, idVendor=1d5c, idProduct=7102, bcdDevice= 1.00
+[    1.696083] cachyos kernel: usb 3-1.1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[    1.696213] cachyos kernel: usb 3-1.1: Product: Generic Billboard Device
+[    1.696317] cachyos kernel: usb 3-1.1: Manufacturer: Fresco Logic, Inc
+[    1.724159] cachyos kernel: usb 2-1.4: new SuperSpeed USB device number 4 using xhci_hcd
+[    1.735009] cachyos kernel: usb 2-1.4: LPM exit latency is zeroed, disabling LPM.
+[    1.735187] cachyos kernel: usb 2-1.4: New USB device found, idVendor=328f, idProduct=009b, bcdDevice= 2.13
+[    1.735312] cachyos kernel: usb 2-1.4: Int endpoint with wBytesPerInterval of 0 in config 1 interface 5 altsetting 0 ep 0x86: setting to 10
+[    1.735428] cachyos kernel: usb 2-1.4: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[    1.735526] cachyos kernel: usb 2-1.4: Product: EMEET SmartCam S800
+[    1.735618] cachyos kernel: usb 2-1.4: Manufacturer: EMEET
+[    1.735710] cachyos kernel: usb 2-1.4: SerialNumber: REDACTED
+[    1.737007] cachyos kernel: hid-generic 0003:328F:009B.0001: hiddev96,hidraw0: USB HID v1.01 Device [EMEET EMEET SmartCam S800] on usb-0000:00:0d.0-1.4/input4
+[    1.807102] cachyos kernel: usb 3-9: new full-speed USB device number 5 using xhci_hcd
+[    1.930029] cachyos kernel: usb 3-9: New USB device found, idVendor=27c6, idProduct=63bc, bcdDevice= 1.00
+[    1.931007] cachyos kernel: usb 3-9: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[    1.931183] cachyos kernel: usb 3-9: Product: Goodix USB2.0 MISC
+[    1.931290] cachyos kernel: usb 3-9: Manufacturer: Goodix Technology Co., Ltd.
+[    1.931389] cachyos kernel: usb 3-9: SerialNumber: REDACTED
+[    2.016108] cachyos kernel: usb 3-1.2: new high-speed USB device number 6 using xhci_hcd
+[    2.116009] cachyos kernel: usb 3-1.2: New USB device found, idVendor=05e3, idProduct=0610, bcdDevice=94.05
+[    2.118030] cachyos kernel: usb 3-1.2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[    2.118202] cachyos kernel: usb 3-1.2: Product: USB2.1 Hub
+[    2.118320] cachyos kernel: usb 3-1.2: Manufacturer: GenesysLogic
+[    2.119032] cachyos kernel: hub 3-1.2:1.0: USB hub found
+[    2.228187] cachyos kernel: usb 3-10: new full-speed USB device number 7 using xhci_hcd
+[    2.352088] cachyos kernel: usb 3-10: New USB device found, idVendor=8087, idProduct=0033, bcdDevice= 0.00
+[    2.353044] cachyos kernel: usb 3-10: New USB device strings: Mfr=0, Product=0, SerialNumber=0

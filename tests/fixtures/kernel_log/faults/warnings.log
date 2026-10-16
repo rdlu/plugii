@@ -1,0 +1,17 @@
+[    1.360702] cachyos kernel: virt/tdx: TDX not supported by the host platform
+[    2.512345] daisy kernel: ucsi_acpi USBC000:00: ucsi_handle_connector_change: GET_CONNECTOR_STATUS failed (-110)
+[    2.600001] daisy kernel: ucsi_acpi USBC000:00: error -ETIMEDOUT: PPM init failed
+[    5.000000] daisy kernel: amdgpu 0000:c4:00.0: [drm] LTTPR count is 0, falling back to transparent mode
+[    5.000100] daisy kernel: amdgpu 0000:c4:00.0: [drm] REG_WAIT timeout 1us * 100 tries - optc35_disable_crtc line:162
+[    5.000200] daisy kernel: amdgpu 0000:c4:00.0: [drm] REG_WAIT timeout 1us * 100 tries - optc35_disable_crtc line:162
+[   15.100000] daisy kernel: usb usb1-port2: over-current condition
+[   20.200000] daisy kernel: usb 1-2: device descriptor read/64, error -71
+[   21.300000] daisy kernel: usb 1-2: device not accepting address 5, error -71
+[   22.400000] daisy kernel: usb usb1-port2: unable to enumerate USB device
+[   23.500000] daisy kernel: usb usb2-port1: Cannot enable. Maybe the USB cable is bad?
+[  130.000001] daisy kernel: i915 0000:00:02.0: [drm] *ERROR* [ENCODER:265:DDI TC1/PHY TC1] Link Training failed at link rate = 270000, lane count = 2
+[  200.123456] daisy kernel: xhci_hcd 0000:06:00.4: xHCI host controller not responding, assume dead
+[  200.123500] daisy kernel: xhci_hcd 0000:06:00.4: HC died; cleaning up
+[  300.000000] daisy kernel: xhci_hcd 0000:00:14.0: ERROR unknown event type 37
+[  301.000000] daisy kernel: block nvme0n1: No UUID available providing old NGUID
+kernel: usb 3-1: device descriptor read/64, error -110

@@ -1,0 +1,82 @@
+---
+source: tests/kernel_log.rs
+expression: log
+---
+{
+  "errors": [
+    {
+      "secs_since_boot": 2,
+      "message": "ucsi_acpi USBC000:00: ucsi_handle_connector_change: GET_CONNECTOR_STATUS failed (-110)",
+      "socket": null
+    },
+    {
+      "secs_since_boot": 2,
+      "message": "ucsi_acpi USBC000:00: error -ETIMEDOUT: PPM init failed",
+      "socket": null
+    },
+    {
+      "secs_since_boot": 15,
+      "message": "usb usb1-port2: over-current condition",
+      "socket": "USB-A (right)"
+    },
+    {
+      "secs_since_boot": 20,
+      "message": "usb 1-2: device descriptor read/64, error -71",
+      "socket": "USB-A (right)"
+    },
+    {
+      "secs_since_boot": 21,
+      "message": "usb 1-2: device not accepting address 5, error -71",
+      "socket": "USB-A (right)"
+    },
+    {
+      "secs_since_boot": 22,
+      "message": "usb usb1-port2: unable to enumerate USB device",
+      "socket": "USB-A (right)"
+    },
+    {
+      "secs_since_boot": 23,
+      "message": "usb usb2-port1: Cannot enable. Maybe the USB cable is bad?",
+      "socket": "USB-C (left)"
+    },
+    {
+      "secs_since_boot": 130,
+      "message": "i915 0000:00:02.0: [drm] *ERROR* [ENCODER:265:DDI TC1/PHY TC1] Link Training failed at link rate = 270000, lane count = 2",
+      "socket": null
+    },
+    {
+      "secs_since_boot": 200,
+      "message": "xhci_hcd 0000:06:00.4: HC died; cleaning up",
+      "socket": null
+    },
+    {
+      "secs_since_boot": 300,
+      "message": "xhci_hcd 0000:00:14.0: ERROR unknown event type 37",
+      "socket": null
+    },
+    {
+      "secs_since_boot": null,
+      "message": "kernel: usb 3-1: device descriptor read/64, error -110",
+      "socket": null
+    }
+  ],
+  "benign_count": 3,
+  "link_resets": [
+    {
+      "place": "USB-A (right)",
+      "count": 1
+    },
+    {
+      "place": "USB-C (left)",
+      "count": 5
+    },
+    {
+      "place": "port 4-2",
+      "count": 1
+    },
+    {
+      "place": "unknown port",
+      "count": 1
+    }
+  ]
+}
