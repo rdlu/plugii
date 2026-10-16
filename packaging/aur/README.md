@@ -9,7 +9,7 @@ Two packages, each its own AUR git repository:
 
 Both install the binary, the man pages, bash/zsh/fish completions, README,
 CHANGELOG and the MIT license (`/usr/share/licenses/<pkgname>/`).
-Dependencies: `glibc`, `gcc-libs` and `systemd-libs` (libudev) at runtime;
+Dependencies: `glibc`, `libgcc` and `systemd-libs` (libudev) at runtime;
 `plugii` also needs `cargo` to build (`systemd-libs` carries libudev's
 headers and `libudev.pc`, and `pkgconf` is in base-devel). `fwupd` is
 optional, for `--firmware`.

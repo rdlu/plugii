@@ -8,7 +8,7 @@ arch=('x86_64' 'aarch64')
 url='https://plugii.dlu.one'
 license=('MIT')
 # systemd-libs: libudev at runtime, and its headers and libudev.pc at build time.
-depends=('gcc-libs' 'glibc' 'systemd-libs')
+depends=('glibc' 'libgcc' 'systemd-libs')
 makedepends=('cargo')
 optdepends=('fwupd: firmware versions and pending updates with --firmware')
 # makepkg's LTO flags reach the C code ring (rustls) builds, which then fails to link.

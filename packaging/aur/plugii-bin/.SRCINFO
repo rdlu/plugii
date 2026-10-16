@@ -6,8 +6,8 @@ pkgbase = plugii-bin
 	arch = x86_64
 	arch = aarch64
 	license = MIT
-	depends = gcc-libs
 	depends = glibc
+	depends = libgcc
 	depends = systemd-libs
 	optdepends = fwupd: firmware versions and pending updates with --firmware
 	provides = plugii=0.1.0

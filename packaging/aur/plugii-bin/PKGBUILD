@@ -8,7 +8,7 @@ pkgdesc='Live Linux USB port monitor: which socket, what link speed, USB-C / PD 
 arch=('x86_64' 'aarch64')
 url='https://plugii.dlu.one'
 license=('MIT')
-depends=('gcc-libs' 'glibc' 'systemd-libs')
+depends=('glibc' 'libgcc' 'systemd-libs')
 optdepends=('fwupd: firmware versions and pending updates with --firmware')
 provides=("$_pkgname=$pkgver")
 conflicts=("$_pkgname")
