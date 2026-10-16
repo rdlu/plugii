@@ -157,5 +157,6 @@ No PRs or pushes until the user calls it reliable enough to release.
 7. ✅ `--record` / `replay` (JSONL keyframes + ticks, `.gz`, `--redact`; replay keys `p`, `+`/`-`, `]`/`[`).
 8. ✅ Firmware section (`--firmware`, `--refresh`), with the vendor modules (Lenovo and Dell catalogs,
    Lenovo EC reset advice) and fwupd.
-9. Release: GitHub Actions (CI + release binaries), docs, GitHub Pages site,
-   first tagged release.
+9. Release: GitHub Actions (CI + release binaries), docs, GitHub Pages site
+   (Hugo + Hextra, Hugo pinned via mise; keymap page parsed from `keys.rs`;
+   demos recorded with VHS from `plugii replay`), first tagged release.
