@@ -76,12 +76,18 @@ fn flow_mw(dir: &Path, status: Option<&str>) -> Option<i64> {
 }
 
 /// An online UCSI supply, under the typec port [`typec::ucsi_supplies`]
-/// pairs it with: the same pairing the typec reader uses.
+/// pairs it with: the same pairing the typec reader uses. A 0 means "not
+/// reported": Lenovo's UCSI (daisy) leaves `voltage_now` and `current_max`
+/// at 0 while online and only fills in `current_now`, which is signed.
 fn usb_c_source(supply: &UcsiSupply) -> UsbCSource {
     let dir = &supply.dir;
+    let milli = |micro: u64| u32::try_from(micro / 1000).ok().filter(|&m| m > 0);
+    let current_max = read_parse::<u64>(dir.join("current_max")).and_then(milli);
     UsbCSource {
         typec_port: supply.port.clone(),
-        voltage_mv: read_parse::<u32>(dir.join("voltage_now")).map(|uv| uv / 1000),
-        current_ma: read_parse::<u32>(dir.join("current_max")).map(|ua| ua / 1000),
+        voltage_mv: read_parse::<u64>(dir.join("voltage_now")).and_then(milli),
+        current_ma: current_max.or_else(|| {
+            read_parse::<i64>(dir.join("current_now")).and_then(|ua| milli(ua.unsigned_abs()))
+        }),
     }
 }

@@ -100,6 +100,10 @@ pub fn parse(warnings: &str, all: &str, socket_of: impl Fn(&str) -> Option<Strin
 }
 
 fn is_error(line: &str) -> bool {
+    let message = split_line(line).map_or(line, |(_, message)| message);
+    if is_trace_line(message) {
+        return false;
+    }
     let line = line.to_lowercase();
     ERROR_PATTERNS.iter().any(|fragments| {
         let mut rest = line.as_str();
@@ -110,6 +114,49 @@ fn is_error(line: &str) -> bool {
             }
             None => false,
         })
+    })
+}
+
+/// Lines of a `WARNING:` / `BUG:` report after its header: module list,
+/// registers, `Call Trace:` and its indented frames, `---[ end trace ]---`.
+/// Function and module names in them (`xhci_handle_error`, `failover`) say
+/// nothing about this boot's ports, so they never count as errors. The
+/// header itself is still matched.
+const TRACE_PREFIXES: &[&str] = &[
+    "Modules linked in:",
+    "CPU:",
+    "Hardware name:",
+    "Workqueue:",
+    "RIP:",
+    "Code:",
+    "Call Trace:",
+    "<TASK>",
+    "</TASK>",
+    "<IRQ>",
+    "</IRQ>",
+    "---[ end trace",
+    "------------[ cut here ]",
+];
+
+fn is_trace_line(message: &str) -> bool {
+    // Stack frames are indented: ` dcn20_optimize_bandwidth+0x114/0x210`.
+    if message.starts_with(' ') || TRACE_PREFIXES.iter().any(|p| message.starts_with(p)) {
+        return true;
+    }
+    // Register dumps: `RSP: 0018:...`, `R10: ...`, `CR2: ...`, `PKRU: ...`.
+    // The value must be hex, so `ACPI: ...`, `DMAR: ...` and `CPU1: Core
+    // temperature ...` still count.
+    message.split_once(": ").is_some_and(|(reg, value)| {
+        let hex = value
+            .bytes()
+            .take_while(|b| !matches!(b, b' ' | b':'))
+            .collect::<Vec<_>>();
+        (2..=4).contains(&reg.len())
+            && reg
+                .bytes()
+                .all(|b| b.is_ascii_uppercase() || b.is_ascii_digit())
+            && hex.len() >= 4
+            && hex.iter().all(u8::is_ascii_hexdigit)
     })
 }
 
@@ -201,6 +248,40 @@ mod tests {
         assert!(!is_error("failed to load ucsi firmware"));
         assert!(is_error("xhci_hcd 0000:00:14.0: ERROR unknown event"));
         assert!(!is_error("usb 2-1: new SuperSpeed USB device"));
+    }
+
+    #[test]
+    fn stack_trace_lines_are_never_errors() {
+        let h = "[   11.1] host kernel: ";
+        for message in [
+            "Modules linked in: xhci_pci ucsi_acpi typec_ucsi net_failover failover",
+            "RIP: 0010:xhci_handle_cmd_error+0x204/0x210 [xhci_hcd]",
+            "RSP: 0018:ffffd102c0a73798 EFLAGS: 00010202",
+            "Call Trace:",
+            " xhci_handle_command_error+0x114/0x210 [xhci_hcd]",
+            " ? ucsi_init_failed+0x1a/0x30 [typec_ucsi]",
+            "---[ end trace 0000000000000000 ]---",
+        ] {
+            assert!(!is_error(&format!("{h}{message}")), "{message}");
+            assert!(!is_error(message), "{message}");
+        }
+        // Short uppercase prefixes that aren't registers aren't trace lines.
+        for message in [
+            "ACPI: \\_SB_.PCI0: Overriding _PRW",
+            "DMAR: DRHD: handling fault status reg 3",
+            "CPU1: Core temperature above threshold, cpu clock throttled",
+        ] {
+            assert!(!is_trace_line(message), "{message}");
+        }
+        assert!(is_trace_line("PKRU: 55555554"));
+        assert!(is_trace_line("CR2: 0000555b279c56c8 CR3: 000000029ba12000"));
+        // The report's header, and ordinary lines, still count.
+        assert!(is_error(&format!(
+            "{h}WARNING: at xhci_ring.c:12 xhci_error+0x1"
+        )));
+        assert!(is_error(&format!(
+            "{h}usb usb2-port3: over-current condition"
+        )));
     }
 
     #[test]

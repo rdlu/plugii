@@ -61,6 +61,23 @@ fn not_charging_has_no_flow() {
     assert_eq!(power.usb_c_sources[0].watts(), Some(65.0));
 }
 
+/// Lenovo's UCSI (daisy) leaves `voltage_now` and `current_max` at 0 while
+/// online: 0 is "not reported", the current falls back to `current_now`, and
+/// no watts are made up.
+#[test]
+fn lenovo_ucsi_zeros_are_not_reported() {
+    let power = power::read(&fixture("daisy-charger"));
+    assert_eq!(
+        power.usb_c_sources,
+        vec![UsbCSource {
+            typec_port: "port0".into(),
+            voltage_mv: None,
+            current_ma: Some(3_250),
+        }]
+    );
+    assert_eq!(power.usb_c_sources[0].watts(), None);
+}
+
 #[test]
 fn desktop_has_no_supplies() {
     assert_eq!(

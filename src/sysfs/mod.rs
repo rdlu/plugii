@@ -46,10 +46,16 @@ impl Root {
 }
 
 /// A file's contents with trailing whitespace trimmed; `None` when it can't be
-/// read or is empty.
+/// read or is empty. Invalid UTF-8 is replaced rather than failing the whole
+/// attribute, and trailing replacement and control characters are trimmed
+/// too: daisy's BAT0 `model_name` ends in bytes `c0 c0`, and cheap USB
+/// devices put junk at the end of their strings.
 pub fn read(path: impl AsRef<Path>) -> Option<String> {
-    let text = fs::read_to_string(path).ok()?;
-    let text = text.trim_end();
+    let bytes = fs::read(path).ok()?;
+    let text = String::from_utf8_lossy(&bytes);
+    let text = text.trim_end_matches(|c: char| {
+        c == char::REPLACEMENT_CHARACTER || c.is_control() || c.is_whitespace()
+    });
     (!text.is_empty()).then(|| text.to_owned())
 }
 
@@ -119,6 +125,13 @@ mod tests {
         assert_eq!(read(f("a", "hub\n")).as_deref(), Some("hub"));
         assert_eq!(read(f("empty", "\n")), None);
         assert_eq!(read(dir.path().join("missing")), None);
+        let p = dir.path().join("junk");
+        fs::write(&p, b"LNV-5B11N45961\xc0\xc0\n").unwrap();
+        assert_eq!(read(&p).as_deref(), Some("LNV-5B11N45961"));
+        fs::write(&p, b"Hub\xff 2.0\n").unwrap();
+        assert_eq!(read(&p).as_deref(), Some("Hub\u{fffd} 2.0"));
+        fs::write(&p, b"\xc0\x00\n").unwrap();
+        assert_eq!(read(&p), None);
         assert_eq!(read_parse::<u32>(f("n", "480\n")), Some(480));
         assert_eq!(read_parse::<u32>(f("bad", "x\n")), None);
         assert_eq!(read_hex::<u16>(f("vid", "0bda\n")), Some(0x0bda));

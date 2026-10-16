@@ -367,14 +367,19 @@ pub struct Battery {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct UsbCSource {
     pub typec_port: String,
+    /// `voltage_now`; `None` when unreadable or 0 (not reported).
     pub voltage_mv: Option<u32>,
+    /// `current_max`, else the magnitude of `current_now`; `None` when
+    /// neither is readable and non-zero.
     pub current_ma: Option<u32>,
 }
 
 impl UsbCSource {
-    /// `None` unless both voltage and current are known.
+    /// `None` unless both voltage and current are known and non-zero.
     pub fn watts(&self) -> Option<f32> {
-        Some(watts(self.voltage_mv?, self.current_ma?))
+        let mv = self.voltage_mv.filter(|&v| v > 0)?;
+        let ma = self.current_ma.filter(|&a| a > 0)?;
+        Some(watts(mv, ma))
     }
 }
 

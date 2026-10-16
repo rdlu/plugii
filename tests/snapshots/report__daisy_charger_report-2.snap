@@ -10,7 +10,7 @@ expression: json(&snap)
     },
     {
       "level": "ok",
-      "message": "charging power arriving via USB-C port0 (USB-C (caps lock)) (charger's offers not reported)"
+      "message": "charging power arriving via USB-C port0 (USB-C (caps lock)) — power level not reported (drawing 3.25 A; charger's offers not reported)"
     },
     {
       "level": "ok",
@@ -36,9 +36,9 @@ expression: json(&snap)
       },
       "usb_c_sources": [
         {
-          "current_ma": 0,
+          "current_ma": 3250,
           "typec_port": "port0",
-          "voltage_mv": 0
+          "voltage_mv": null
         }
       ]
     },

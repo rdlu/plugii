@@ -255,6 +255,14 @@ pub fn usb_c_sources_text(s: &Snapshot) -> String {
 }
 
 fn source_text(s: &Snapshot, src: &UsbCSource) -> String {
+    source_with_notes(s, src, Vec::new())
+}
+
+/// The port and its label, then `20V 2.35A ≈ 47W`; or, when the supply
+/// reports no voltage (Lenovo's UCSI), ` — power level not reported` with
+/// the current it does report, since watts can't be told without a
+/// voltage. `notes` go in the same parentheses as that current.
+fn source_with_notes(s: &Snapshot, src: &UsbCSource, mut notes: Vec<String>) -> String {
     let mut text = src.typec_port.clone();
     let label = s
         .typec
@@ -265,25 +273,29 @@ fn source_text(s: &Snapshot, src: &UsbCSource) -> String {
     if let Some(label) = label {
         text.push_str(&format!(" ({label})"));
     }
-    if let (Some(v), Some(a), Some(w)) = (src.voltage_mv, src.current_ma, src.watts())
-        && v > 0
-        && a > 0
-    {
+    let current = src.current_ma.filter(|&a| a > 0);
+    if let (Some(v), Some(a), Some(w)) = (src.voltage_mv, current, src.watts()) {
         text.push_str(&format!(" {}V {}A ≈ {w:.0}W", milli(v), milli(a)));
+    } else {
+        text.push_str(" — power level not reported");
+        if let Some(a) = current {
+            notes.insert(0, format!("drawing {} A", milli(a)));
+        }
+    }
+    if !notes.is_empty() {
+        text.push_str(&format!(" ({})", notes.join("; ")));
     }
     text
 }
 
-/// ` (best offer 47 W)`, or ` (charger's offers not reported)` when the
-/// partner on that port lists no source PDOs.
-fn offer_note(s: &Snapshot, src: &UsbCSource) -> String {
-    let Some(port) = s.typec.ports.iter().find(|p| p.name == src.typec_port) else {
-        return String::new();
-    };
-    match best_offer_w(port) {
-        Some(w) => format!(" (best offer {w:.0} W)"),
-        None => " (charger's offers not reported)".to_owned(),
-    }
+/// `best offer 47 W`, or `charger's offers not reported` when the partner
+/// on that port lists no source PDOs.
+fn offer_note(s: &Snapshot, src: &UsbCSource) -> Option<String> {
+    let port = s.typec.ports.iter().find(|p| p.name == src.typec_port)?;
+    Some(match best_offer_w(port) {
+        Some(w) => format!("best offer {w:.0} W"),
+        None => "charger's offers not reported".to_owned(),
+    })
 }
 
 fn power(s: &Snapshot, out: &mut Findings) {
@@ -297,7 +309,7 @@ fn power(s: &Snapshot, out: &mut Findings) {
             .power
             .usb_c_sources
             .iter()
-            .map(|src| format!("{}{}", source_text(s, src), offer_note(s, src)))
+            .map(|src| source_with_notes(s, src, offer_note(s, src).into_iter().collect()))
             .collect();
         out.ok(format!(
             "charging power arriving via USB-C {}",
@@ -691,6 +703,30 @@ mod tests {
                     .into()
             })
         );
+    }
+
+    #[test]
+    fn charging_finding_when_power_level_is_not_reported() {
+        let mut s = usb_c_charger(Vec::new());
+        s.power.usb_c_sources[0].voltage_mv = None;
+        s.power.usb_c_sources[0].current_ma = Some(3250);
+        let ok = |message: &str| Finding {
+            level: Level::Ok,
+            message: message.into(),
+        };
+        assert!(check(&s).contains(&ok(
+            "charging power arriving via USB-C port1 (USB-C (right)) — power level not reported \
+             (drawing 3.25 A; charger's offers not reported)"
+        )));
+        assert_eq!(
+            usb_c_sources_text(&s),
+            "port1 (USB-C (right)) — power level not reported (drawing 3.25 A)"
+        );
+        s.power.usb_c_sources[0].current_ma = None;
+        assert!(check(&s).contains(&ok(
+            "charging power arriving via USB-C port1 (USB-C (right)) — power level not reported \
+             (charger's offers not reported)"
+        )));
     }
 
     fn tb(authorized: bool) -> Thunderbolt {

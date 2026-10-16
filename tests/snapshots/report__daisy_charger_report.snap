@@ -31,13 +31,13 @@ Display connectors
   no external display connected
 
 Power
-  AC: online  via USB-C port0 (USB-C (caps lock))  battery: 80% Not charging  (charge limit 80%)
+  AC: online  via USB-C port0 (USB-C (caps lock)) — power level not reported (drawing 3.25 A)  battery: 80% Not charging  (charge limit 80%)
 
 Kernel log (this boot)
   no USB, USB-C or link-training errors (2 known-benign warning lines)
 
 Health
   ✓ USB-C status driver (UCSI) up: 2 port(s)
-  ✓ charging power arriving via USB-C port0 (USB-C (caps lock)) (charger's offers not reported)
+  ✓ charging power arriving via USB-C port0 (USB-C (caps lock)) — power level not reported (drawing 3.25 A; charger's offers not reported)
   ✓ kernel log clean
   → all good
