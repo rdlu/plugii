@@ -40,10 +40,36 @@ pub struct Half {
     /// What is plugged into the root port (hubs carry the rest of the tree);
     /// `None` when the half is idle.
     pub device: Option<UsbDevice>,
+    /// The root port's `over_current_count`.
+    #[serde(default)]
+    pub over_current_count: Option<u32>,
+    /// The root port's `state`: `configured`, `suspended`, `not attached`, …
+    #[serde(default)]
+    pub port_state: Option<String>,
+    /// Where ACPI says the port is. Only a hint for unlabelled sockets, never
+    /// trusted over labels: it is wrong on some machines (the XPS 9320 calls
+    /// both sockets "left").
+    #[serde(default)]
+    pub physical_location: Option<PhysicalLocation>,
+}
+
+/// ACPI `_PLD` as the kernel exposes it under `physical_location/`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PhysicalLocation {
+    /// `top`, `bottom`, `left`, `right`, `front`, `back`, `unknown`.
+    pub panel: Option<String>,
+    /// `left`, `center`, `right`.
+    pub horizontal: Option<String>,
+    /// `upper`, `center`, `lower`.
+    pub vertical: Option<String>,
+    pub dock: bool,
+    pub lid: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+// A scan holds a handful of sockets; boxing the half would only add noise.
+#[allow(clippy::large_enum_variant)]
 pub enum Usb3Side {
     /// Paired by the kernel's `peer` link or a `peer:` label.
     Paired(Half),
@@ -64,6 +90,15 @@ pub struct UsbDevice {
     pub product: Option<String>,
     pub serial: Option<String>,
     pub speed: Speed,
+    /// The fastest speed the device supports, from its BOS descriptor (or
+    /// bcdUSB for USB 2 devices); `None` when it can't be told.
+    #[serde(default)]
+    pub capable_speed: Option<Speed>,
+    /// SuperSpeed lanes in use (`rx_lanes` / `tx_lanes`); 2 on a Gen 2x2 link.
+    #[serde(default)]
+    pub rx_lanes: Option<u8>,
+    #[serde(default)]
+    pub tx_lanes: Option<u8>,
     /// bcdUSB, e.g. `0x0320` for USB 3.2.
     pub bcd_usb: Option<u16>,
     /// bDeviceClass; 9 is a hub.
@@ -149,6 +184,9 @@ pub struct TypecPort {
     pub partner: Option<Partner>,
     /// The cable's `type` (`passive`, `active`) when UCSI reports a cable.
     pub cable_type: Option<String>,
+    /// The port's current power role, `source` or `sink`.
+    #[serde(default)]
+    pub power_role: Option<String>,
     /// Power is flowing in through this port (its ucsi-source-psy is online).
     pub charging: bool,
     pub pd_contract: Option<PdContract>,
@@ -169,6 +207,10 @@ pub struct Partner {
 pub struct PdContract {
     pub voltage_mv: u32,
     pub current_ma: u32,
+    /// 1-based position of the partner's source PDO this contract runs on,
+    /// when exactly one fixed PDO has the contract's voltage.
+    #[serde(default)]
+    pub source_pdo: Option<u8>,
 }
 
 impl PdContract {

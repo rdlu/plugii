@@ -75,6 +75,7 @@ fn contract_and_source_watts() {
     let c = PdContract {
         voltage_mv: 20_000,
         current_ma: 3_250,
+        source_pdo: None,
     };
     assert_eq!(c.watts(), 65.0);
     let s = UsbCSource {
@@ -106,6 +107,9 @@ fn device(
         product: Some(product.into()),
         serial: None,
         speed,
+        capable_speed: Some(speed),
+        rx_lanes: Some(1),
+        tx_lanes: Some(1),
         bcd_usb: Some(if speed.is_superspeed() {
             0x0320
         } else {
@@ -171,11 +175,17 @@ fn xps() -> Snapshot {
                     bus: 3,
                     port: 1,
                     device: Some(usb2_hub),
+                    over_current_count: Some(0),
+                    port_state: Some("not attached".into()),
+                    physical_location: None,
                 },
                 usb3: Usb3Side::Paired(Half {
                     bus: 2,
                     port: 1,
                     device: Some(usb3_hub),
+                    over_current_count: Some(0),
+                    port_state: Some("not attached".into()),
+                    physical_location: None,
                 }),
                 typec_port: Some("port0".into()),
             },
@@ -186,11 +196,17 @@ fn xps() -> Snapshot {
                     bus: 3,
                     port: 3,
                     device: None,
+                    over_current_count: Some(0),
+                    port_state: Some("not attached".into()),
+                    physical_location: None,
                 },
                 usb3: Usb3Side::Paired(Half {
                     bus: 2,
                     port: 3,
                     device: None,
+                    over_current_count: Some(0),
+                    port_state: Some("not attached".into()),
+                    physical_location: None,
                 }),
                 typec_port: Some("port1".into()),
             },
@@ -226,10 +242,12 @@ fn xps() -> Snapshot {
                         sink_pdos: Vec::new(),
                     }),
                     cable_type: None,
+                    power_role: Some("sink".into()),
                     charging: true,
                     pd_contract: Some(PdContract {
                         voltage_mv: 20_000,
                         current_ma: 3_250,
+                        source_pdo: Some(4),
                     }),
                 },
                 TypecPort {
@@ -243,6 +261,7 @@ fn xps() -> Snapshot {
                         sink_pdos: vec![Pdo::Fixed { mv: 5_000, ma: 900 }],
                     }),
                     cable_type: Some("passive".into()),
+                    power_role: Some("source".into()),
                     charging: false,
                     pd_contract: None,
                 },
@@ -317,6 +336,9 @@ fn odd_machine() -> Snapshot {
                     bus: 1,
                     port: 1,
                     device: None,
+                    over_current_count: Some(0),
+                    port_state: Some("not attached".into()),
+                    physical_location: None,
                 },
                 usb3: Usb3Side::Unknown,
                 typec_port: None,
@@ -335,6 +357,15 @@ fn odd_machine() -> Snapshot {
                         0,
                         "usbhid",
                     )),
+                    over_current_count: None,
+                    port_state: None,
+                    physical_location: Some(PhysicalLocation {
+                        panel: Some("back".into()),
+                        horizontal: Some("right".into()),
+                        vertical: None,
+                        dock: false,
+                        lid: false,
+                    }),
                 },
                 usb3: Usb3Side::Usb2Only,
                 typec_port: None,
@@ -370,6 +401,7 @@ fn odd_machine() -> Snapshot {
                     sink_pdos: Vec::new(),
                 }),
                 cable_type: None,
+                power_role: None,
                 charging: false,
                 pd_contract: None,
             }],

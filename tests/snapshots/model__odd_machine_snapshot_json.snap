@@ -12,7 +12,10 @@ expression: snapshot
       "usb2": {
         "bus": 1,
         "port": 1,
-        "device": null
+        "device": null,
+        "over_current_count": 0,
+        "port_state": "not attached",
+        "physical_location": null
       },
       "usb3": "unknown",
       "typec_port": null
@@ -31,12 +34,24 @@ expression: snapshot
           "product": "Receiver",
           "serial": null,
           "speed": "low",
+          "capable_speed": "low",
+          "rx_lanes": 1,
+          "tx_lanes": 1,
           "bcd_usb": 528,
           "device_class": 0,
           "max_power_ma": 0,
           "driver": "usbhid",
           "urbnum": 1234,
           "children": []
+        },
+        "over_current_count": null,
+        "port_state": null,
+        "physical_location": {
+          "panel": "back",
+          "horizontal": "right",
+          "vertical": null,
+          "dock": false,
+          "lid": false
         }
       },
       "usb3": "usb2_only",
@@ -82,6 +97,7 @@ expression: snapshot
           "sink_pdos": []
         },
         "cable_type": null,
+        "power_role": null,
         "charging": false,
         "pd_contract": null
       }
