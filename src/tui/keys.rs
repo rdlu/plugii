@@ -1,5 +1,6 @@
 //! The vim-first keymap: crossterm key events in, [`Action`]s out, with the
-//! pending state (a count, `g`, `Ctrl-w`, `:`) kept between keys.
+//! pending state (`g`, `Ctrl-w`, `:`) kept between keys. No counts: the
+//! lists are short, and bare `1`/`2`/`3` jump to a tab.
 
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 
@@ -15,12 +16,12 @@ pub enum Dir {
 /// What a complete key sequence asks for.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Action {
-    /// `j` / `k`, times the count (negative is up).
+    /// `j` / `k` (negative is up).
     Move(i64),
-    /// `gg`; with a count, that line (1-based).
-    Top(Option<u32>),
-    /// `G`; with a count, that line (1-based).
-    Bottom(Option<u32>),
+    /// `gg`.
+    Top,
+    /// `G`.
+    Bottom,
     HalfDown,
     HalfUp,
     /// `h` / `←`: collapse a hub, else the pane to the left.
@@ -29,8 +30,8 @@ pub enum Action {
     Right,
     /// `Ctrl-w h/j/k/l`.
     Focus(Dir),
-    /// `gt`, `Tab`; with a count, that tab (1-based).
-    NextTab(Option<u32>),
+    /// `gt`, `Tab`.
+    NextTab,
     /// `gT`, `Shift-Tab`.
     PrevTab,
     /// `1` / `2` / `3` (0-based here).
@@ -48,7 +49,6 @@ pub enum Action {
 /// Keys typed so far that don't make an action yet.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Pending {
-    count: Option<u32>,
     prefix: Prefix,
 }
 
@@ -67,21 +67,20 @@ enum Prefix {
 }
 
 impl Pending {
-    /// The keys typed so far, for the status line: `5`, `g`, `^W`, `:q`.
+    /// The keys typed so far, for the status line: `g`, `^W`, `:q`.
     pub fn text(&self) -> String {
-        let mut out = self.count.map(|c| c.to_string()).unwrap_or_default();
-        out.push_str(match self.prefix {
+        match self.prefix {
             Prefix::None => "",
             Prefix::G => "g",
             Prefix::CtrlW => "^W",
             Prefix::Colon => ":",
             Prefix::ColonQ => ":q",
-        });
-        out
+        }
+        .to_owned()
     }
 
     pub fn is_empty(&self) -> bool {
-        self.count.is_none() && self.prefix == Prefix::None
+        self.prefix == Prefix::None
     }
 
     /// Feeds one key; returns the action it completes, if any.
@@ -97,12 +96,11 @@ impl Pending {
             return if quit { Action::Quit } else { Action::None };
         }
         let prefix = std::mem::take(&mut self.prefix);
-        let count = self.count.take();
         match prefix {
             Prefix::G => {
                 return match key.code {
-                    KeyCode::Char('g') => Action::Top(count),
-                    KeyCode::Char('t') => Action::NextTab(count),
+                    KeyCode::Char('g') => Action::Top,
+                    KeyCode::Char('t') => Action::NextTab,
                     KeyCode::Char('T') => Action::PrevTab,
                     _ => Action::None,
                 };
@@ -145,31 +143,22 @@ impl Pending {
                 _ => Action::None,
             };
         }
-        let times = i64::from(count.unwrap_or(1));
         match key.code {
-            // `1`-`3` jump to a tab, so a count starts at 4-9; once one is
-            // pending every digit extends it (`5`, `40`, `45`).
-            KeyCode::Char(c @ '0'..='9') if count.is_some() || c >= '4' => {
-                let digit = c.to_digit(10).unwrap_or(0);
-                self.count = Some(count.unwrap_or(0).saturating_mul(10).saturating_add(digit));
-                Action::None
-            }
             KeyCode::Char(c @ '1'..='3') => Action::GoTab(c as usize - '1' as usize),
-            KeyCode::Char('j') | KeyCode::Down => Action::Move(times),
-            KeyCode::Char('k') | KeyCode::Up => Action::Move(-times),
+            KeyCode::Char('j') | KeyCode::Down => Action::Move(1),
+            KeyCode::Char('k') | KeyCode::Up => Action::Move(-1),
             KeyCode::Char('h') | KeyCode::Left => Action::Left,
             KeyCode::Char('l') | KeyCode::Right => Action::Right,
             KeyCode::Char('g') => {
                 self.prefix = Prefix::G;
-                self.count = count;
                 Action::None
             }
-            KeyCode::Char('G') => Action::Bottom(count),
-            KeyCode::Home => Action::Top(None),
-            KeyCode::End => Action::Bottom(None),
+            KeyCode::Char('G') => Action::Bottom,
+            KeyCode::Home => Action::Top,
+            KeyCode::End => Action::Bottom,
             KeyCode::PageDown => Action::HalfDown,
             KeyCode::PageUp => Action::HalfUp,
-            KeyCode::Tab => Action::NextTab(None),
+            KeyCode::Tab => Action::NextTab,
             KeyCode::BackTab => Action::PrevTab,
             KeyCode::Char(':') => {
                 self.prefix = Prefix::Colon;
@@ -196,16 +185,15 @@ mod tests {
     }
 
     #[test]
-    fn counts_start_at_four() {
-        assert_eq!(feed("5j").last(), Some(&Action::Move(5)));
-        assert_eq!(feed("40k").last(), Some(&Action::Move(-40)));
-        assert_eq!(feed("2"), [Action::GoTab(1)]);
-        assert_eq!(feed("4gg").last(), Some(&Action::Top(Some(4))));
+    fn digits_jump_to_tabs_not_counts() {
+        assert_eq!(feed("1"), [Action::GoTab(0)]);
+        assert_eq!(feed("3j"), [Action::GoTab(2), Action::Move(1)]);
+        assert_eq!(feed("5j"), [Action::None, Action::Move(1)]);
     }
 
     #[test]
     fn g_sequences() {
-        assert_eq!(feed("gt").last(), Some(&Action::NextTab(None)));
+        assert_eq!(feed("gt").last(), Some(&Action::NextTab));
         assert_eq!(feed("gT").last(), Some(&Action::PrevTab));
         assert_eq!(feed("gx").last(), Some(&Action::None));
         // A stray key after `g` drops it: `j` then moves.
@@ -232,9 +220,8 @@ mod tests {
     #[test]
     fn esc_cancels() {
         let mut p = Pending::default();
-        p.feed(KeyEvent::new(KeyCode::Char('5'), KeyModifiers::NONE));
         p.feed(KeyEvent::new(KeyCode::Char('g'), KeyModifiers::NONE));
-        assert_eq!(p.text(), "5g");
+        assert_eq!(p.text(), "g");
         assert_eq!(
             p.feed(KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE)),
             Action::None

@@ -239,7 +239,7 @@ fn flash_marks_a_socket_that_just_changed() {
 }
 
 #[test]
-fn top_and_bottom_and_counts() {
+fn top_and_bottom() {
     let mut app = daisy_dock();
     let len = app.socket_rows().len();
     assert!(len > 12, "{len}");
@@ -247,9 +247,9 @@ fn top_and_bottom_and_counts() {
     assert_eq!(sel(&app), len - 1);
     keys(&mut app, "gg");
     assert_eq!(sel(&app), 0);
-    keys(&mut app, "5j");
+    keys(&mut app, "jjjjj");
     assert_eq!(sel(&app), 5);
-    keys(&mut app, "4k");
+    keys(&mut app, "kkkk");
     assert_eq!(sel(&app), 1);
     app.on_key(key(KeyCode::Down));
     assert_eq!(sel(&app), 2);
@@ -258,9 +258,8 @@ fn top_and_bottom_and_counts() {
     keys(&mut app, "k");
     keys(&mut app, "k");
     assert_eq!(sel(&app), 0);
-    keys(&mut app, "6gg");
-    assert_eq!(sel(&app), 5);
-    keys(&mut app, "99j");
+    keys(&mut app, "G");
+    keys(&mut app, "j");
     assert_eq!(sel(&app), len - 1);
 }
 

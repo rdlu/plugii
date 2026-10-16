@@ -235,10 +235,8 @@ impl App {
     fn apply(&mut self, action: Action) {
         match action {
             Action::Move(n) => self.move_by(n),
-            Action::Top(line) => self.move_to(line.map_or(0, |l| l.saturating_sub(1) as usize)),
-            Action::Bottom(line) => {
-                self.move_to(line.map_or(usize::MAX, |l| l.saturating_sub(1) as usize));
-            }
+            Action::Top => self.move_to(0),
+            Action::Bottom => self.move_to(usize::MAX),
             Action::HalfDown => self.move_by(self.half_page()),
             Action::HalfUp => self.move_by(-self.half_page()),
             Action::Left => {
@@ -252,12 +250,7 @@ impl App {
                 }
             }
             Action::Focus(dir) => self.focus_dir(dir),
-            Action::NextTab(Some(n)) => {
-                if let Some(&tab) = Tab::ALL.get((n as usize).wrapping_sub(1)) {
-                    self.tab = tab;
-                }
-            }
-            Action::NextTab(None) => self.tab = Tab::ALL[(self.tab.index() + 1) % 3],
+            Action::NextTab => self.tab = Tab::ALL[(self.tab.index() + 1) % 3],
             Action::PrevTab => self.tab = Tab::ALL[(self.tab.index() + 2) % 3],
             Action::GoTab(i) => self.tab = Tab::ALL[i.min(2)],
             Action::Pause => self.toggle_pause(),
