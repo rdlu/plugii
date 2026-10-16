@@ -484,6 +484,30 @@ nav[aria-label="breadcrumb"],
 .hextra-search-wrapper kbd {
   border-radius: 0 !important;
 }
+.hextra-search-dialog {
+  border-radius: 0 !important;
+  background: var(--p-panel) !important;
+  border-color: var(--p-outline) !important;
+}
+.hextra-search-results > li > a {
+  border-radius: 0 !important;
+  color: var(--p-text) !important;
+}
+.hextra-search-crumb,
+.hextra-search-excerpt {
+  color: var(--p-muted) !important;
+}
+.hextra-search-match {
+  color: var(--p-accent) !important;
+}
+/* The selected result in reverse video, like the sidebar's active page. */
+.hextra-search-results > li > a[aria-selected="true"] {
+  background: var(--p-accent) !important;
+}
+.hextra-search-results > li > a[aria-selected="true"],
+.hextra-search-results > li > a[aria-selected="true"] * {
+  color: var(--p-on-accent) !important;
+}
 
 /* ── Landing ──────────────────────────────────────────────────────────── */
 
@@ -595,4 +619,10 @@ main h2.not-prose {
   color: #c6c6c6;
   background: #131313;
   border-top: 1px solid #474747;
+}
+/* The pane is always dark, whatever the theme. */
+.plugii-demo figcaption a {
+  color: #6dd2ff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
