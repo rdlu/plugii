@@ -1,0 +1,32 @@
+---
+source: tests/report.rs
+expression: text(&snap)
+---
+USB ports
+  no hotplug USB ports found
+
+USB-C (UCSI)
+  no USB-C ports registered
+
+Display connectors
+  HDMI-A-1 connected
+
+Power
+  AC: offline  battery: 88% Discharging  (charge limit 80%)
+  CPU: 25% busy  1.9 GHz avg (max 3.3, floor 0.4)  package 4 W  61 °C  battery −23.1 W
+  CPU mostly idle — load it (e.g. a build) to test whether this power source throttles
+
+Kernel log (this boot)
+  [   23s] usb usb2-port1: Cannot enable. Maybe the USB cable is bad? (at boot)
+  [  130s] i915 0000:00:02.0: [drm] *ERROR* [ENCODER:265:DDI TC1/PHY TC1] Link Training failed at link rate = 270000, lane count = 
+  [  200s] xhci_hcd 0000:06:00.4: HC died; cleaning up
+  [  300s] xhci_hcd 0000:00:14.0: ERROR unknown event type 37
+  kernel: usb 3-1: device descriptor read/64, error -110
+  8 USB link reset(s): port 1-1 ×2, port 1-2 ×1, port 2-1 ×3, port 4-2 ×1, unknown port ×1
+
+Health
+  ✗ USB-C status driver (UCSI) didn't init — Linux can't see USB-C state. Video still works; fix: pkexec sh -c 'modprobe -r ucsi_acpi && modprobe ucsi_acpi', or reboot
+  ✓ external display on HDMI
+  ✗ 11 USB/USB-C/display error line(s) in the kernel log — see above, or journalctl -k -b
+  ⚠ 8 USB link resets this boot on port 1-1 ×2, port 1-2 ×1, port 2-1 ×3, port 4-2 ×1, unknown port ×1 — flaky cable/dock or a marginal SuperSpeed link; reseat or swap the cable
+  → something needs a look

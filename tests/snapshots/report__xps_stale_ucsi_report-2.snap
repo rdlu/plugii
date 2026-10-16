@@ -1,0 +1,469 @@
+---
+source: tests/report.rs
+expression: json(&snap)
+---
+{
+  "findings": [
+    {
+      "level": "ok",
+      "message": "USB 3 links up (SuperSpeed lanes working)"
+    },
+    {
+      "level": "ok",
+      "message": "USB-C status driver (UCSI) up: 2 port(s)"
+    },
+    {
+      "level": "warn",
+      "message": "USB-C status for USB-C (left) looks stale (charging state and advertised power disagree); replug the cable to refresh"
+    },
+    {
+      "level": "warn",
+      "message": "USB-C status for USB-C (right) looks stale (charging state and advertised power disagree); replug the cable to refresh"
+    },
+    {
+      "level": "ok",
+      "message": "charging on USB-C (right) at 20 V × 2.35 A ≈ 47 W"
+    },
+    {
+      "level": "ok",
+      "message": "Thunderbolt/USB4: 2 domain(s), security user, 0 device(s) attached"
+    },
+    {
+      "level": "ok",
+      "message": "external display on USB-C (DP alt mode working)"
+    },
+    {
+      "level": "ok",
+      "message": "charging power arriving via USB-C port1 (USB-C (right)) 20V 2.35A ≈ 47W"
+    },
+    {
+      "level": "ok",
+      "message": "kernel log clean"
+    }
+  ],
+  "snapshot": {
+    "cpu": null,
+    "displays": [
+      {
+        "connector": "DP-3",
+        "kind": "dp",
+        "mode": null,
+        "vrr": null
+      }
+    ],
+    "host": "unknown",
+    "kernel_log": {
+      "benign_count": 0,
+      "errors": [],
+      "link_resets": []
+    },
+    "power": {
+      "ac_online": true,
+      "battery": {
+        "capacity_pct": 78,
+        "charge_limit_pct": 80,
+        "flow_mw": null,
+        "status": "Not charging"
+      },
+      "usb_c_sources": [
+        {
+          "current_ma": 2350,
+          "typec_port": "port1",
+          "voltage_mv": 20000
+        }
+      ]
+    },
+    "sockets": [
+      {
+        "key": "0000:00:14.0-1",
+        "label": "USB-C (left)",
+        "typec_port": "port0",
+        "usb2": {
+          "bus": 3,
+          "device": {
+            "bcd_usb": 528,
+            "capable_speed": "super",
+            "children": [
+              {
+                "bcd_usb": 513,
+                "capable_speed": null,
+                "children": [],
+                "device_class": 17,
+                "driver": "usb",
+                "manufacturer": "Fresco Logic, Inc",
+                "max_power_ma": 0,
+                "product": "Generic Billboard Device",
+                "product_id": 28930,
+                "rx_lanes": 1,
+                "serial": null,
+                "speed": "full",
+                "sysfs_name": "3-1.1",
+                "tx_lanes": 1,
+                "urbnum": 20,
+                "vendor_id": 7516
+              },
+              {
+                "bcd_usb": 528,
+                "capable_speed": "super",
+                "children": [
+                  {
+                    "bcd_usb": 512,
+                    "capable_speed": null,
+                    "children": [],
+                    "device_class": 0,
+                    "driver": "usbhid,usbfs",
+                    "manufacturer": "Yubico",
+                    "max_power_ma": 30,
+                    "product": "YubiKey OTP+FIDO+CCID",
+                    "product_id": 1031,
+                    "rx_lanes": 1,
+                    "serial": null,
+                    "speed": "full",
+                    "sysfs_name": "3-1.2.2",
+                    "tx_lanes": 1,
+                    "urbnum": 5288,
+                    "vendor_id": 4176
+                  },
+                  {
+                    "bcd_usb": 528,
+                    "capable_speed": "super_plus",
+                    "children": [
+                      {
+                        "bcd_usb": 512,
+                        "capable_speed": null,
+                        "children": [],
+                        "device_class": 0,
+                        "driver": "usbhid",
+                        "manufacturer": "Logitech",
+                        "max_power_ma": 98,
+                        "product": "USB Receiver",
+                        "product_id": 50475,
+                        "rx_lanes": 1,
+                        "serial": null,
+                        "speed": "full",
+                        "sysfs_name": "3-1.2.3.1",
+                        "tx_lanes": 1,
+                        "urbnum": 86,
+                        "vendor_id": 1133
+                      },
+                      {
+                        "bcd_usb": 512,
+                        "capable_speed": null,
+                        "children": [],
+                        "device_class": 0,
+                        "driver": "usbhid",
+                        "manufacturer": "Logitech",
+                        "max_power_ma": 98,
+                        "product": "USB Receiver",
+                        "product_id": 50504,
+                        "rx_lanes": 1,
+                        "serial": null,
+                        "speed": "full",
+                        "sysfs_name": "3-1.2.3.2",
+                        "tx_lanes": 1,
+                        "urbnum": 65,
+                        "vendor_id": 1133
+                      },
+                      {
+                        "bcd_usb": 272,
+                        "capable_speed": "full",
+                        "children": [],
+                        "device_class": 0,
+                        "driver": "usbhid",
+                        "manufacturer": "8BitDo",
+                        "max_power_ma": 484,
+                        "product": "8BitDo Pro 3 Receiver",
+                        "product_id": 12553,
+                        "rx_lanes": 1,
+                        "serial": "REDACTED",
+                        "speed": "full",
+                        "sysfs_name": "3-1.2.3.3",
+                        "tx_lanes": 1,
+                        "urbnum": 14,
+                        "vendor_id": 11720
+                      }
+                    ],
+                    "device_class": 9,
+                    "driver": "hub",
+                    "manufacturer": "VIA Labs, Inc.",
+                    "max_power_ma": 0,
+                    "product": "USB2.0 Hub",
+                    "product_id": 10274,
+                    "rx_lanes": 1,
+                    "serial": "REDACTED",
+                    "speed": "high",
+                    "sysfs_name": "3-1.2.3",
+                    "tx_lanes": 1,
+                    "urbnum": 63,
+                    "vendor_id": 8457
+                  }
+                ],
+                "device_class": 9,
+                "driver": "hub",
+                "manufacturer": "GenesysLogic",
+                "max_power_ma": 0,
+                "product": "USB2.1 Hub",
+                "product_id": 1552,
+                "rx_lanes": 1,
+                "serial": null,
+                "speed": "high",
+                "sysfs_name": "3-1.2",
+                "tx_lanes": 1,
+                "urbnum": 60,
+                "vendor_id": 1507
+              },
+              {
+                "bcd_usb": 512,
+                "capable_speed": null,
+                "children": [],
+                "device_class": 239,
+                "driver": "cdc_acm,usbhid",
+                "manufacturer": "sofle",
+                "max_power_ma": 100,
+                "product": "Eyelash Sofle",
+                "product_id": 24926,
+                "rx_lanes": 1,
+                "serial": "REDACTED",
+                "speed": "full",
+                "sysfs_name": "3-1.3",
+                "tx_lanes": 1,
+                "urbnum": 21017,
+                "vendor_id": 7504
+              }
+            ],
+            "device_class": 9,
+            "driver": "hub",
+            "manufacturer": "GenesysLogic",
+            "max_power_ma": 100,
+            "product": "USB2.1 Hub",
+            "product_id": 1552,
+            "rx_lanes": 1,
+            "serial": null,
+            "speed": "high",
+            "sysfs_name": "3-1",
+            "tx_lanes": 1,
+            "urbnum": 58,
+            "vendor_id": 1507
+          },
+          "over_current_count": 0,
+          "physical_location": {
+            "dock": false,
+            "horizontal": "left",
+            "lid": false,
+            "panel": "unknown",
+            "vertical": "center"
+          },
+          "port": 1,
+          "port_state": "configured"
+        },
+        "usb3": {
+          "paired": {
+            "bus": 2,
+            "device": {
+              "bcd_usb": 800,
+              "capable_speed": "super",
+              "children": [
+                {
+                  "bcd_usb": 800,
+                  "capable_speed": "super",
+                  "children": [],
+                  "device_class": 9,
+                  "driver": "hub",
+                  "manufacturer": "GenesysLogic",
+                  "max_power_ma": 0,
+                  "product": "USB3.2 Hub",
+                  "product_id": 1573,
+                  "rx_lanes": 1,
+                  "serial": null,
+                  "speed": "super",
+                  "sysfs_name": "2-1.2",
+                  "tx_lanes": 1,
+                  "urbnum": 57,
+                  "vendor_id": 1507
+                },
+                {
+                  "bcd_usb": 800,
+                  "capable_speed": "super",
+                  "children": [],
+                  "device_class": 239,
+                  "driver": "uvcvideo,snd-usb-audio,usbhid,cdc_acm",
+                  "manufacturer": "EMEET",
+                  "max_power_ma": 496,
+                  "product": "EMEET SmartCam S800",
+                  "product_id": 155,
+                  "rx_lanes": 1,
+                  "serial": "REDACTED",
+                  "speed": "super",
+                  "sysfs_name": "2-1.4",
+                  "tx_lanes": 1,
+                  "urbnum": 863,
+                  "vendor_id": 12943
+                }
+              ],
+              "device_class": 9,
+              "driver": "hub",
+              "manufacturer": "GenesysLogic",
+              "max_power_ma": 0,
+              "product": "USB3.1 Hub",
+              "product_id": 1574,
+              "rx_lanes": 1,
+              "serial": null,
+              "speed": "super",
+              "sysfs_name": "2-1",
+              "tx_lanes": 1,
+              "urbnum": 370,
+              "vendor_id": 1507
+            },
+            "over_current_count": 0,
+            "physical_location": {
+              "dock": false,
+              "horizontal": "left",
+              "lid": false,
+              "panel": "unknown",
+              "vertical": "center"
+            },
+            "port": 1,
+            "port_state": "suspended"
+          }
+        }
+      },
+      {
+        "key": "0000:00:14.0-3",
+        "label": "USB-C (right)",
+        "typec_port": "port1",
+        "usb2": {
+          "bus": 3,
+          "device": null,
+          "over_current_count": 0,
+          "physical_location": {
+            "dock": false,
+            "horizontal": "left",
+            "lid": false,
+            "panel": "unknown",
+            "vertical": "center"
+          },
+          "port": 3,
+          "port_state": "not attached"
+        },
+        "usb3": {
+          "paired": {
+            "bus": 2,
+            "device": null,
+            "over_current_count": 0,
+            "physical_location": {
+              "dock": false,
+              "horizontal": "left",
+              "lid": false,
+              "panel": "unknown",
+              "vertical": "center"
+            },
+            "port": 3,
+            "port_state": "not attached"
+          }
+        }
+      }
+    ],
+    "taken_at_ms": 0,
+    "thunderbolt": {
+      "devices": [],
+      "domains": [
+        {
+          "controller_device": "Gen12",
+          "controller_vendor": "INTEL",
+          "generation": 4,
+          "index": 0,
+          "iommu_dma_protection": true,
+          "security": "user"
+        },
+        {
+          "controller_device": "Gen12",
+          "controller_vendor": "INTEL",
+          "generation": 4,
+          "index": 1,
+          "iommu_dma_protection": true,
+          "security": "user"
+        }
+      ]
+    },
+    "typec": {
+      "ports": [
+        {
+          "cable_type": null,
+          "charging": false,
+          "label": "USB-C (left)",
+          "name": "port0",
+          "partner": {
+            "alt_modes": 1,
+            "pd_revision": null,
+            "sink_pdos": [
+              {
+                "fixed": {
+                  "ma": 3000,
+                  "mv": 5000
+                }
+              }
+            ],
+            "source_pdos": [
+              {
+                "fixed": {
+                  "ma": 1500,
+                  "mv": 5000
+                }
+              },
+              {
+                "fixed": {
+                  "ma": 2170,
+                  "mv": 9000
+                }
+              },
+              {
+                "fixed": {
+                  "ma": 2600,
+                  "mv": 15000
+                }
+              },
+              {
+                "fixed": {
+                  "ma": 2880,
+                  "mv": 20000
+                }
+              }
+            ],
+            "supports_pd": true
+          },
+          "pd_contract": null,
+          "pd_inconsistent": true,
+          "power_role": "sink"
+        },
+        {
+          "cable_type": null,
+          "charging": true,
+          "label": "USB-C (right)",
+          "name": "port1",
+          "partner": {
+            "alt_modes": 1,
+            "pd_revision": null,
+            "sink_pdos": [
+              {
+                "fixed": {
+                  "ma": 3000,
+                  "mv": 5000
+                }
+              }
+            ],
+            "source_pdos": [],
+            "supports_pd": true
+          },
+          "pd_contract": {
+            "current_ma": 2350,
+            "source_pdo": null,
+            "voltage_mv": 20000
+          },
+          "pd_inconsistent": true,
+          "power_role": "source"
+        }
+      ],
+      "ucsi_present": true
+    }
+  }
+}

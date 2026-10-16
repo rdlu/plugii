@@ -1,0 +1,50 @@
+---
+source: tests/report.rs
+expression: text(&snap)
+---
+USB ports
+
+  USB-C (left)         0000:00:14.0-1
+    USB 3 half: linked
+      └ 05e3:0626  5G (USB 3 Gen 1)       USB3.1 Hub
+        └ 328f:009b  5G (USB 3 Gen 1)       EMEET SmartCam S800
+    USB 2 half: linked
+      └ 05e3:0610  480M (USB 2)           USB2.1 Hub
+        └ 1d5c:7102  12M (USB 1 full)       Generic Billboard Device
+        └ 1d50:615e  12M (USB 1 full)       Eyelash Sofle
+    USB-C:      partner (port0)
+
+  USB-C (right)        0000:00:14.0-3
+    USB 3 half: idle
+    USB 2 half: idle
+    USB-C:      partner (port1)
+      └ display in DP alt mode → DP-3
+
+USB-C (UCSI)
+  port0 (USB-C (left)): partner  pd=no  alt-modes=1  power-in=no
+  port1 (USB-C (right)): partner  pd=yes  alt-modes=1  power-in=charging
+    offers: 5V 1A · 9V 1A · 12V 1.5A · 15V 1.8A · ▶20V 2.35A (47 W)
+
+Thunderbolt / USB4
+  domain0  security user, IOMMU DMA protection  INTEL Gen12, gen 4
+  domain1  security user, IOMMU DMA protection  INTEL Gen12, gen 4
+  no Thunderbolt/USB4 devices attached
+
+Display connectors
+  DP-3 connected (USB-C alt mode)
+
+Power
+  AC: online  via USB-C port1 (USB-C (right)) 20V 2.35A ≈ 47W  battery: 78% Not charging  (charge limit 80%)
+
+Kernel log (this boot)
+  no USB, USB-C or link-training errors
+
+Health
+  ✓ USB 3 links up (SuperSpeed lanes working)
+  ✓ USB-C status driver (UCSI) up: 2 port(s)
+  ✓ charging on USB-C (right) at 20 V × 2.35 A ≈ 47 W (best offer 47 W)
+  ✓ Thunderbolt/USB4: 2 domain(s), security user, 0 device(s) attached
+  ✓ external display on USB-C (DP alt mode working)
+  ✓ charging power arriving via USB-C port1 (USB-C (right)) 20V 2.35A ≈ 47W
+  ✓ kernel log clean
+  → all good

@@ -1,0 +1,25 @@
+---
+source: tests/report.rs
+expression: text(&snap)
+---
+USB ports
+  no hotplug USB ports found
+
+USB-C (UCSI)
+  no USB-C ports registered
+
+Display connectors
+  no external display connected
+
+Power
+  AC: no mains supply  no battery
+  CPU: 50% busy  2.0 GHz avg (max 2.0, floor 0.4)  50 °C
+
+Kernel log (this boot)
+  no USB, USB-C or link-training errors
+
+Health
+  ✗ USB-C status driver (UCSI) didn't init — Linux can't see USB-C state. Video still works; fix: pkexec sh -c 'modprobe -r ucsi_acpi && modprobe ucsi_acpi', or reboot
+  ✓ CPU not power-throttled (50% busy at 2.0 GHz)
+  ✓ kernel log clean
+  → something needs a look
