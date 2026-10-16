@@ -191,7 +191,8 @@ fn usb_ports(s: &Snapshot, st: Style) -> String {
     out
 }
 
-/// A device and everything below it, indented by hub depth.
+/// A device and everything below it, indented by hub depth; a device's
+/// label stands in for its product string.
 fn tree(out: &mut String, device: &UsbDevice, st: Style) {
     let depth = device.sysfs_name.matches('.').count();
     let line = format!(
@@ -201,7 +202,11 @@ fn tree(out: &mut String, device: &UsbDevice, st: Style) {
         device.vendor_id,
         device.product_id,
         device.speed.label(),
-        device.product.as_deref().unwrap_or(""),
+        device
+            .label
+            .as_deref()
+            .or(device.product.as_deref())
+            .unwrap_or(""),
         indent = depth * 2
     );
     let _ = writeln!(out, "{}", line.trim_end());

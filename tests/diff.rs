@@ -109,6 +109,93 @@ fn xps_swapped_back() {
     insta::assert_snapshot!(lines("xps", "xps-swapped", "xps"));
 }
 
+/// A daisy capture with daisy's labels plus `extra` lines.
+fn collect_labelled(name: &str, extra: &str, t_ms: u64) -> Snapshot {
+    let text = fs::read_to_string(fixtures().join("labels/daisy")).unwrap() + extra;
+    let mut snap = collect::snapshot_with(
+        &Root::new(fixtures().join("sysfs").join(name)),
+        &labels::Labels::parse(&text),
+        &CollectOpts::offline(),
+        None,
+        None,
+    );
+    snap.taken_at_ms = t_ms;
+    snap
+}
+
+fn labelled_lines(old: &str, new: &str, extra: &str) -> Vec<String> {
+    let events = diff::diff(
+        &collect_labelled(old, extra, 1000),
+        &collect_labelled(new, extra, 2000),
+    );
+    events
+        .iter()
+        .filter(|e| e.socket.as_deref() == Some("USB-C (hinge)"))
+        .map(|e| e.line())
+        .collect()
+}
+
+/// A labelled hub leaving or arriving is one event, by name, with the
+/// count of devices below it; the unlabelled USB 3 half keeps its wording.
+#[test]
+fn labelled_hub_collapses_to_one_event() {
+    let switch = "device:05e3:0610  USB switch (desk)\n";
+    let left = diff::diff(
+        &collect_labelled("daisy-dock", switch, 1000),
+        &collect_labelled("daisy-empty", switch, 2000),
+    );
+    let hub = left
+        .iter()
+        .find(|e| e.text.starts_with("USB switch (desk)"))
+        .unwrap();
+    assert_eq!(hub.kind, EventKind::Removed);
+    assert_eq!(hub.socket.as_deref(), Some("USB-C (hinge)"));
+    assert_eq!(
+        labelled_lines("daisy-dock", "daisy-empty", switch),
+        [
+            "− 05e3:0626 USB3.1 Hub @5G on USB-C (hinge) with 1 device",
+            "− USB switch (desk): 1 device left",
+        ]
+    );
+    assert_eq!(
+        labelled_lines("daisy-empty", "daisy-dock", switch),
+        [
+            "+ 05e3:0626 USB3.1 Hub @5G on USB-C (hinge) with 1 device",
+            "+ USB switch (desk) @480M on USB-C (hinge), 1 device",
+        ]
+    );
+}
+
+/// A labelled device that isn't a hub with devices below it is named by its
+/// label in the usual wording.
+#[test]
+fn labelled_devices_are_named_by_label() {
+    let labels = "device:0b95:1790  Ethernet (desk)\ndevice:05E3:0608  inner hub\n";
+    assert_eq!(
+        labelled_lines("daisy-dock", "daisy-empty", labels),
+        [
+            "− 05e3:0626 USB3.1 Hub @5G on USB-C (hinge) with 1 device",
+            "− 05e3:0610 USB2.1 Hub @480M on USB-C (hinge) with 1 device",
+        ]
+    );
+    // The dock's USB 3 hub stays and only its Ethernet adapter goes.
+    let dock = collect_labelled("daisy-dock", labels, 1000);
+    let mut without = dock.clone();
+    without.taken_at_ms = 2000;
+    for socket in &mut without.sockets {
+        if let plugii::model::Usb3Side::Paired(h) = &mut socket.usb3
+            && let Some(hub) = &mut h.device
+        {
+            hub.children.clear();
+        }
+    }
+    let lines: Vec<String> = diff::diff(&dock, &without)
+        .iter()
+        .map(|e| e.line())
+        .collect();
+    assert_eq!(lines, ["− Ethernet (desk) @5G on USB-C (hinge)"]);
+}
+
 /// New kernel errors and link resets are problems, counted by the increase.
 #[test]
 fn kernel_log_problems() {

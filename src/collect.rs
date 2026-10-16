@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use crate::labels::Labels;
-use crate::model::{KernelLog, Snapshot, Socket, Usb3Side};
+use crate::model::{KernelLog, Snapshot, Socket, Usb3Side, UsbDevice};
 use crate::sysfs::{self, Root, cpu, drm, kernel_log, power, thunderbolt, typec, usb};
 
 /// What to collect beyond sysfs.
@@ -94,6 +94,38 @@ pub fn snapshot_with(
         cpu: opts.cpu_window.and_then(|w| cpu::measure(root, w)),
         kernel_log,
         sockets,
+    }
+}
+
+/// Names from `labels` put on a scan in place of the ones it was taken
+/// with: socket and UCSI port labels, each socket's UCSI port, and device
+/// names in every tree. What labels decided at scan time stays: `peer:`
+/// pairing, and the kernel log's places.
+pub fn apply_labels(s: &mut Snapshot, labels: &Labels) {
+    for socket in &mut s.sockets {
+        socket.label = labels.socket_label(&socket.key).map(str::to_owned);
+        socket.typec_port = labels.typec_port_for_socket(&socket.key).map(str::to_owned);
+        if let Some(d) = &mut socket.usb2.device {
+            apply_device_labels(d, labels);
+        }
+        if let Usb3Side::Paired(half) = &mut socket.usb3
+            && let Some(d) = &mut half.device
+        {
+            apply_device_labels(d, labels);
+        }
+    }
+    for port in &mut s.typec.ports {
+        port.label = labels.typec_label(&port.name).map(str::to_owned);
+    }
+}
+
+/// `device:` names on `d` and everything below it.
+pub fn apply_device_labels(d: &mut UsbDevice, labels: &Labels) {
+    d.label = labels
+        .device_label(d.vendor_id, d.product_id)
+        .map(str::to_owned);
+    for child in &mut d.children {
+        apply_device_labels(child, labels);
     }
 }
 

@@ -3,18 +3,22 @@
 //! renderer reads the rest.
 
 use std::collections::{HashSet, VecDeque};
+use std::path::PathBuf;
 
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 
 use super::detail::Target;
 use super::ghosts::{self, Ghost};
 use super::keys::{Action, Dir, Pending};
-use super::ports::{self, TreeOpts};
+use super::ports::{self, RowKind, TreeOpts};
 use super::stats::Stats;
+use crate::collect;
 use crate::diff::Event;
 use crate::health;
 use crate::history::{History, Sample};
+use crate::labels::{self, Key, Labels};
 use crate::model::{Finding, Snapshot};
+use crate::watch::{self, SharedLabels};
 
 /// Samples kept for the charts: 10 minutes at the watcher's 1 s tick.
 pub const HISTORY_LEN: usize = 600;
@@ -93,6 +97,45 @@ pub enum Overlay {
     Help,
 }
 
+/// The labels file the label wizard writes, and the labels it holds,
+/// shared with the watcher.
+#[derive(Debug, Clone)]
+pub struct LabelsFile {
+    /// `~/.config/plugii/labels` in the TUI; a temporary file in tests.
+    pub path: PathBuf,
+    /// The path as the status line shows it, `~` for the home directory.
+    pub shown: String,
+    pub labels: SharedLabels,
+}
+
+impl LabelsFile {
+    pub fn new(path: PathBuf, shown: String, labels: SharedLabels) -> Self {
+        Self {
+            path,
+            shown,
+            labels,
+        }
+    }
+}
+
+/// The `L` prompt: what it names, and the text so far.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LabelPrompt {
+    pub key: Key,
+    /// `socket 0000:06:00.3-1`, `device 0b95:1790`.
+    pub what: String,
+    /// What the prompt line starts with: `label device 0b95:1790 (AX88179B): `.
+    pub title: String,
+    pub text: String,
+}
+
+/// A one-off message in the status line: the label wizard's outcome.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Notice {
+    pub text: String,
+    pub error: bool,
+}
+
 /// Updates held back while paused, applied on resume so the event list and
 /// the chart history have no gap.
 #[derive(Debug, Default)]
@@ -144,6 +187,12 @@ pub struct App {
     pub events_filter: String,
     /// Recently unplugged subtrees, shown until they expire.
     pub ghosts: Vec<Ghost>,
+    /// Where `L` writes labels; without one (no config directory) it can't.
+    /// Its labels are put on every snapshot that comes in.
+    pub labels_file: Option<LabelsFile>,
+    /// The `L` prompt is open: keys edit its text.
+    pub label_prompt: Option<LabelPrompt>,
+    pub notice: Option<Notice>,
 }
 
 impl App {
@@ -175,12 +224,22 @@ impl App {
             sockets_filter: String::new(),
             events_filter: String::new(),
             ghosts: Vec::new(),
+            labels_file: None,
+            label_prompt: None,
+            notice: None,
         }
     }
 
     /// A new scan, the events since the previous one, and its chart sample.
     /// While paused these are held and applied on resume.
-    pub fn on_update(&mut self, snapshot: Snapshot, events: Vec<Event>, sample: Sample) {
+    ///
+    /// The labels file's labels go on the snapshot: a scan the watcher
+    /// started before `L` wrote new ones would otherwise show the old
+    /// names for a moment.
+    pub fn on_update(&mut self, mut snapshot: Snapshot, events: Vec<Event>, sample: Sample) {
+        if let Some(file) = &self.labels_file {
+            collect::apply_labels(&mut snapshot, &watch::current(&file.labels));
+        }
         if self.paused {
             let stats = self.held.stats.get_or_insert_with(|| self.stats.clone());
             stats.observe(&snapshot);
@@ -207,6 +266,10 @@ impl App {
     /// A key: to the prompt while it is open, else through the keymap to
     /// the popup or the tab.
     pub fn on_key(&mut self, key: KeyEvent) {
+        if self.label_prompt.is_some() {
+            self.label_prompt_key(key);
+            return;
+        }
         if self.prompt {
             self.prompt_key(key);
             return;
@@ -291,6 +354,149 @@ impl App {
     fn cancel_prompt(&mut self) {
         self.prompt = false;
         self.set_filter(String::clear);
+    }
+
+    /// `L` on the Ports tree: a prompt to label the selected device's
+    /// vid:pid, or else the socket the row belongs to, filled with its
+    /// current label.
+    fn open_label_prompt(&mut self) {
+        if self.tab != Tab::Ports || self.focus() != Pane::Sockets {
+            return;
+        }
+        let Some(row) = self.selected_row() else {
+            return;
+        };
+        if self.labels_file.is_none() {
+            self.notice = Some(Notice {
+                text: "can't label: no config directory (HOME and XDG_CONFIG_HOME unset)".into(),
+                error: true,
+            });
+            return;
+        }
+        let prompt = match &row.kind {
+            RowKind::Device { device, .. } => {
+                let what = format!("device {:04x}:{:04x}", device.vendor_id, device.product_id);
+                let title = match &device.product {
+                    Some(p) => format!("label {what} ({p}): "),
+                    None => format!("label {what}: "),
+                };
+                LabelPrompt {
+                    key: Key::Device {
+                        vendor_id: device.vendor_id,
+                        product_id: device.product_id,
+                    },
+                    title,
+                    what,
+                    text: device.label.clone().unwrap_or_default(),
+                }
+            }
+            _ => {
+                let label = self
+                    .snapshot
+                    .as_ref()
+                    .and_then(|s| s.sockets.iter().find(|x| x.key == row.socket))
+                    .and_then(|s| s.label.clone());
+                let what = format!("socket {}", row.socket);
+                LabelPrompt {
+                    key: Key::Socket(row.socket.clone()),
+                    title: format!("label {what}: "),
+                    what,
+                    text: label.unwrap_or_default(),
+                }
+            }
+        };
+        self.notice = None;
+        self.label_prompt = Some(prompt);
+    }
+
+    fn label_prompt_key(&mut self, key: KeyEvent) {
+        if key.kind == KeyEventKind::Release {
+            return;
+        }
+        let ctrl = key.modifiers.contains(KeyModifiers::CONTROL);
+        let Some(prompt) = &mut self.label_prompt else {
+            return;
+        };
+        match key.code {
+            KeyCode::Esc => self.label_prompt = None,
+            KeyCode::Char('c') if ctrl => self.label_prompt = None,
+            KeyCode::Char('u') if ctrl => prompt.text.clear(),
+            KeyCode::Enter => self.save_label(),
+            KeyCode::Backspace => {
+                prompt.text.pop();
+            }
+            KeyCode::Char(c) if !ctrl && !key.modifiers.contains(KeyModifiers::ALT) => {
+                prompt.text.push(c);
+            }
+            _ => {}
+        }
+    }
+
+    /// Writes the prompt's label to the labels file (an empty one removes
+    /// the key's lines), then shows the file's labels at once and hands
+    /// them to the watcher.
+    ///
+    /// A socket's UCSI port is found by carrying the same label, so a
+    /// `typec:` line with the socket's old label gets the new one too.
+    fn save_label(&mut self) {
+        let Some(prompt) = self.label_prompt.take() else {
+            return;
+        };
+        let Some(file) = &self.labels_file else {
+            return;
+        };
+        let text = prompt.text.trim().to_owned();
+        let mut edits = vec![(prompt.key.clone(), text.clone())];
+        if let Key::Socket(socket) = &prompt.key
+            && !text.is_empty()
+        {
+            let before = watch::current(&file.labels);
+            if let Some(old) = before.socket_label(socket) {
+                edits.extend(
+                    before
+                        .typec
+                        .iter()
+                        .filter(|(_, l)| *l == old)
+                        .map(|(port, _)| (Key::Typec(port.clone()), text.clone())),
+                );
+            }
+        }
+        match labels::write(&file.path, &edits) {
+            Ok(new) => {
+                let shown = file.shown.clone();
+                watch::replace(&file.labels, new.clone());
+                self.relabel(&new);
+                let text = if text.is_empty() {
+                    format!("unlabelled {} in {shown}", prompt.what)
+                } else {
+                    format!("labelled {} \"{text}\" in {shown}", prompt.what)
+                };
+                self.notice = Some(Notice { text, error: false });
+            }
+            Err(e) => {
+                self.notice = Some(Notice {
+                    text: format!("can't write {}: {e}", file.shown),
+                    error: true,
+                });
+            }
+        }
+    }
+
+    /// Puts `labels` on what is shown (and held while paused), and checks
+    /// health again: findings name sockets by label.
+    fn relabel(&mut self, labels: &Labels) {
+        let selected = self.selected_row().map(|r| r.id);
+        if let Some(s) = &mut self.snapshot {
+            collect::apply_labels(s, labels);
+            self.findings = health::check(s);
+        }
+        if let Some(s) = &mut self.held.snapshot {
+            collect::apply_labels(s, labels);
+        }
+        for g in &mut self.ghosts {
+            collect::apply_device_labels(&mut g.device, labels);
+        }
+        self.reselect(selected);
     }
 
     fn overlay_action(&mut self, action: Action) {
@@ -529,7 +735,8 @@ impl App {
                 }
             }
             Action::Close | Action::Quit => self.should_quit = true,
-            Action::NotYet | Action::None => {}
+            Action::Label => self.open_label_prompt(),
+            Action::None => {}
         }
     }
 

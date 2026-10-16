@@ -89,6 +89,10 @@ pub struct UsbDevice {
     pub manufacturer: Option<String>,
     pub product: Option<String>,
     pub serial: Option<String>,
+    /// The name a `device:<vid>:<pid>` line in the labels file gives it.
+    /// Left out of the JSON when unset.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub label: Option<String>,
     pub speed: Speed,
     /// The fastest speed the device supports, from its BOS descriptor (or
     /// bcdUSB for USB 2 devices); `None` when it can't be told.

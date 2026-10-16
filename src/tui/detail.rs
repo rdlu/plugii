@@ -132,6 +132,7 @@ pub fn device(s: &Snapshot, ghosts: &[&Ghost], name: &str, now_ms: u64) -> Popup
         "vendor:product",
         format!("{:04x}:{:04x}", d.vendor_id, d.product_id),
     ));
+    out.push(field("label", or_none(d.label.clone())));
     out.push(field("manufacturer", or_none(d.manufacturer.clone())));
     out.push(field("product", or_none(d.product.clone())));
     out.push(field("serial", or_none(d.serial.clone())));
@@ -346,7 +347,7 @@ pub fn help() -> Popup {
         ]));
     }
     out.push(Line::default());
-    out.push(Line::from("In the / prompt".bold().cyan()));
+    out.push(Line::from("In the / and L prompts".bold().cyan()));
     for (keys, help) in PROMPT_KEYS {
         out.push(Line::from(vec![
             format!("  {keys:<KEYS$}").bold(),

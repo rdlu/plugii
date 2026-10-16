@@ -55,8 +55,8 @@ pub enum Action {
     Close,
     /// `:q⏎`, `Ctrl-c`: quit from anywhere.
     Quit,
-    /// A key bound in a later milestone (label).
-    NotYet,
+    /// `L`: name the selected socket or device in the labels file.
+    Label,
     /// Nothing: an unbound key, or a key that only extends a pending
     /// sequence.
     None,
@@ -90,7 +90,7 @@ const fn bind(
 
 const MOVE: &str = "Move";
 const PANES: &str = "Panes and tabs";
-const VIEW: &str = "Details and filter";
+const VIEW: &str = "Details, filter and labels";
 const OTHER: &str = "Other";
 
 /// Every binding, in help order.
@@ -170,8 +170,16 @@ pub const BINDINGS: &[Binding] = &[
         &[("/", Action::Search)],
         "filter devices (on Events: event lines)",
     ),
-    bind(VIEW, &[("n", Action::NextMatch)], "next match"),
-    bind(VIEW, &[("N", Action::PrevMatch)], "previous match"),
+    bind(
+        VIEW,
+        &[("n", Action::NextMatch), ("N", Action::PrevMatch)],
+        "next / previous match",
+    ),
+    bind(
+        VIEW,
+        &[("L", Action::Label)],
+        "label the selected socket or device",
+    ),
     bind(
         VIEW,
         &[("Esc", Action::Back)],
@@ -188,14 +196,12 @@ pub const BINDINGS: &[Binding] = &[
     ),
 ];
 
-/// The `/` prompt's keys. It takes every key, so `j` or `q` type text.
+/// The `/` and `L` prompts' keys. They take every key, so `j` or `q` type
+/// text.
 pub const PROMPT_KEYS: &[(&str, &str)] = &[
-    (
-        "text",
-        "filters as you type: vid:pid, product, manufacturer",
-    ),
-    ("⏎", "apply"),
-    ("Esc  Ctrl-c", "cancel and clear the filter"),
+    ("text", "/ filters by vid:pid, product, manufacturer, label"),
+    ("⏎", "apply; L: save the label (empty removes it)"),
+    ("Esc  Ctrl-c", "cancel (/ also clears the filter)"),
     ("Backspace", "delete a character"),
 ];
 
@@ -330,7 +336,7 @@ impl Pending {
             KeyCode::Char('n') => Action::NextMatch,
             KeyCode::Char('N') => Action::PrevMatch,
             KeyCode::Char('?') => Action::Help,
-            KeyCode::Char('L') => Action::NotYet,
+            KeyCode::Char('L') => Action::Label,
             _ => Action::None,
         }
     }
@@ -413,8 +419,8 @@ mod tests {
             p.feed(KeyEvent::new(KeyCode::Char('c'), KeyModifiers::CONTROL)),
             Action::Quit
         );
-        // `l` never labels, `h` never opens help; `L` comes later.
-        assert_eq!(feed("lhL"), [Action::Right, Action::Left, Action::NotYet]);
+        // `l` never labels, `h` never opens help; `L` labels.
+        assert_eq!(feed("lhL"), [Action::Right, Action::Left, Action::Label]);
     }
 
     /// A help token as key events: a named key, else one key per character.
@@ -486,11 +492,12 @@ mod tests {
             | Action::Search
             | Action::NextMatch
             | Action::PrevMatch
+            | Action::Label
             | Action::Help
             | Action::Back
             | Action::Close
             | Action::Quit => true,
-            Action::NotYet | Action::None => false,
+            Action::None => false,
         };
         let all = [
             Action::Move(1),
@@ -516,6 +523,7 @@ mod tests {
             Action::Search,
             Action::NextMatch,
             Action::PrevMatch,
+            Action::Label,
             Action::Help,
             Action::Back,
             Action::Close,

@@ -40,7 +40,7 @@ pub enum Command {
     Capture { dir: PathBuf },
     /// Play back a file written by `watch --record`.
     Replay { file: PathBuf },
-    /// List the labels file's sockets, peers and USB-C ports.
+    /// List the labels file's sockets, peers, USB-C ports and devices.
     Labels,
 }
 

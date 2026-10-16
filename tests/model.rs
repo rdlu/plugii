@@ -106,6 +106,7 @@ fn device(
         manufacturer: Some("Realtek".into()),
         product: Some(product.into()),
         serial: None,
+        label: None,
         speed,
         capable_speed: Some(speed),
         rx_lanes: Some(1),

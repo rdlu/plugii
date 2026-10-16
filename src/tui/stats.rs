@@ -404,6 +404,7 @@ mod tests {
             manufacturer: None,
             product: None,
             serial: None,
+            label: None,
             speed,
             capable_speed: None,
             rx_lanes: None,

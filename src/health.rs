@@ -494,6 +494,7 @@ mod tests {
             manufacturer: None,
             product: Some("Hub".into()),
             serial: None,
+            label: None,
             speed,
             capable_speed: None,
             rx_lanes: None,

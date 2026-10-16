@@ -18,7 +18,7 @@ script is the baseline, the TUI and charts are the point.
 - **Labels:** `~/.config/plugii/labels` only (the script's
   `~/.config/usb-ports/labels` is retired with the script). Same format as
   the script: `<pci>-<port> label`, `peer:<usb2-key> <usb3-key>`, `typec:portN label`,
-  `esrt:<guid> label`.
+  `esrt:<guid> label`, `device:<vid>:<pid> name`.
 - **Firmware section** (DMI, fwupd, Lenovo/Dell catalogs): last milestone,
   opt-in with `--firmware` (network + cache).
 - **No async runtime.** std threads + channels.
@@ -107,7 +107,7 @@ Tabs: **Ports** | **Charts** | **Events**.
   PDOs, active one highlighted), Power, Health.
 - Detail view (Enter): strings, serial, driver, bcdUSB, bMaxPower,
   capable-vs-linked speed ("10G capable, linked at 5G → cable/hub limiting").
-- Label wizard (`L`): name the selected unlabeled socket, write it to the labels file.
+- Label wizard (`L`): name the selected socket or device, write it to the labels file.
 - Charts: power timeline (PD contract W, battery W, CPU package W) with
   vertical markers at plug events; CPU GHz + temp on the same time axis;
   per-port URB/s sparklines; per-socket link-speed timeline strips;
@@ -119,7 +119,7 @@ Tabs: **Ports** | **Charts** | **Events**.
   - Panes and tabs: `Ctrl-w h/j/k/l` move focus between panes, `gt` / `gT`
     next/previous tab, `1`/`2`/`3` jump to a tab, `Tab` cycles too.
   - `⏎` / `o` details, `Esc` back, `/` filter devices, `n` / `N` next/previous
-    match, `L` label socket, `p` pause, `c` clear events, `?` help (lists every
+    match, `L` label socket or device, `p` pause, `c` clear events, `?` help (lists every
     binding), `q` / `:q` / `Ctrl-c` quit.
   - No key does something different from what vim users expect: `l` never
     labels and `h` never opens help.

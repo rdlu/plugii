@@ -4,19 +4,21 @@
 
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use std::sync::{Arc, RwLock};
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use plugii::collect::{self, CollectOpts};
 use plugii::diff::{self, Event, EventKind};
 use plugii::history::{History, Sample};
-use plugii::labels;
+use plugii::labels::{self, Key};
 use plugii::model::{CpuSample, LinkResets, Snapshot, Usb3Side, UsbDevice};
 use plugii::sysfs::Root;
 use plugii::tui::App;
-use plugii::tui::app::{self, Overlay, Pane, Tab};
+use plugii::tui::app::{self, LabelsFile, Overlay, Pane, Tab};
 use plugii::tui::detail::Target;
 use plugii::tui::ports::RowKind;
 use plugii::tui::ui;
+use plugii::watch;
 use ratatui::Terminal;
 use ratatui::backend::TestBackend;
 
@@ -434,15 +436,267 @@ fn events_follow_until_moved_up_and_clear() {
     assert_eq!(sel(&app), 0);
 }
 
+/// daisy-dock with daisy's labels plus `extra` lines.
+fn daisy_dock_labelled(extra: &str) -> Snapshot {
+    let text = std::fs::read_to_string(fixtures().join("labels/daisy")).unwrap() + extra;
+    let root = Root::new(fixtures().join("sysfs/daisy-dock"));
+    let mut snap = collect::snapshot_with(
+        &root,
+        &labels::Labels::parse(&text),
+        &CollectOpts::offline(),
+        Some(Default::default()),
+        None,
+    );
+    snap.taken_at_ms = T0;
+    snap
+}
+
 #[test]
-fn label_key_is_a_no_op_for_now() {
-    let mut app = daisy_dock();
-    keys(&mut app, "4j");
-    let before = (app.tab, sel(&app), app.focus());
+fn ports_daisy_dock_with_device_labels_120x40() {
+    let mut app = app_with(daisy_dock_labelled(
+        "device:05e3:0626  Desk switch\ndevice:0B95:1790  Ethernet (desk)\n",
+    ));
+    let screen = render(&mut app, 120, 40);
+    // The label in place of the product, vid:pid kept.
+    assert!(screen.contains("  5G  05e3:0626  Desk switch "), "{screen}");
+    assert!(
+        screen.contains("  5G  0b95:1790  Ethernet (desk) "),
+        "{screen}"
+    );
+    assert!(screen.contains("480M  05e3:0610  USB2.1 Hub "), "{screen}");
+    insta::assert_snapshot!(screen);
+    // The filter finds devices by label too.
+    keys(&mut app, "/ethernet");
+    app.on_key(key(KeyCode::Enter));
+    assert_eq!(app.selected_row().unwrap().id, "7-1.2");
+}
+
+#[test]
+fn detail_shows_the_device_label() {
+    let mut app = app_with(daisy_dock_labelled("device:0b95:1790  Ethernet (desk)\n"));
+    select(&mut app, "7-1.2");
+    keys(&mut app, "o");
+    let screen = render(&mut app, 120, 40);
+    assert!(
+        screen.contains("│ label              Ethernet (desk) "),
+        "{screen}"
+    );
+}
+
+/// The app on daisy-dock with daisy's labels file copied into a temporary
+/// config directory, where `L` writes.
+fn labelling() -> (tempfile::TempDir, App) {
+    let dir = tempfile::tempdir().unwrap();
+    let path = labels::path(dir.path());
+    std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+    std::fs::copy(fixtures().join("labels/daisy"), &path).unwrap();
+    let shared = Arc::new(RwLock::new(labels::read(&path).unwrap()));
+    let mut app = App::new(0);
+    app.now_ms = T0;
+    app.labels_file = Some(LabelsFile::new(
+        path,
+        "~/.config/plugii/labels".into(),
+        shared,
+    ));
+    let snap = snapshot("daisy-dock", "daisy");
+    let sample = Sample {
+        t_ms: snap.taken_at_ms,
+        ..Sample::default()
+    };
+    app.on_update(snap, Vec::new(), sample);
+    (dir, app)
+}
+
+fn labels_text(app: &App) -> String {
+    std::fs::read_to_string(&app.labels_file.as_ref().unwrap().path).unwrap()
+}
+
+fn prompt(app: &App) -> Option<(Key, String, String)> {
+    app.label_prompt
+        .as_ref()
+        .map(|p| (p.key.clone(), p.title.clone(), p.text.clone()))
+}
+
+fn notice(app: &App) -> Option<(String, bool)> {
+    app.notice.as_ref().map(|n| (n.text.clone(), n.error))
+}
+
+#[test]
+fn l_on_a_socket_row_opens_the_socket_prompt() {
+    let (_dir, mut app) = labelling();
+    let before = labels_text(&app);
+    let hinge = (
+        Key::Socket("0000:06:00.3-1".into()),
+        "label socket 0000:06:00.3-1: ".to_owned(),
+        "USB-C (hinge)".to_owned(),
+    );
+    // The card's title, its halves and its USB-C row all label the socket.
+    for id in [
+        "0000:06:00.3-1",
+        "0000:06:00.3-1/usb3",
+        "0000:06:00.3-1/usb2",
+    ] {
+        select(&mut app, id);
+        keys(&mut app, "L");
+        assert_eq!(prompt(&app), Some(hinge.clone()), "{id}");
+        let screen = render(&mut app, 120, 40);
+        assert_eq!(
+            screen.lines().last().unwrap(),
+            "label socket 0000:06:00.3-1: USB-C (hinge)"
+        );
+        // Esc cancels: nothing written, the tree keeps its selection.
+        app.on_key(key(KeyCode::Esc));
+        assert_eq!(prompt(&app), None);
+        assert_eq!(app.selected_row().unwrap().id, id);
+    }
+    select(&mut app, "0000:06:00.4-1/typec");
     keys(&mut app, "L");
-    assert_eq!((app.tab, sel(&app), app.focus()), before);
-    assert!(app.overlay.is_none());
+    assert_eq!(
+        prompt(&app).unwrap().1,
+        "label socket 0000:06:00.4-1: ".to_owned()
+    );
+    app.on_key(ctrl('c'));
+    assert_eq!(prompt(&app), None);
     assert!(!app.should_quit);
+    assert_eq!(labels_text(&app), before);
+    assert_eq!(notice(&app), None);
+}
+
+#[test]
+fn l_on_a_device_row_labels_its_vid_pid() {
+    let (_dir, mut app) = labelling();
+    select(&mut app, "7-1.2");
+    keys(&mut app, "L");
+    assert_eq!(
+        prompt(&app),
+        Some((
+            Key::Device {
+                vendor_id: 0x0b95,
+                product_id: 0x1790
+            },
+            "label device 0b95:1790 (AX88179B): ".into(),
+            String::new()
+        ))
+    );
+    // Every key types: `q`, `j`, `?`, `L`, digits.
+    keys(&mut app, "qj?L1");
+    assert_eq!(prompt(&app).unwrap().2, "qj?L1");
+    assert!(!app.should_quit);
+    assert!(app.overlay.is_none());
+    assert_eq!(app.selected_row().unwrap().id, "7-1.2");
+    // Ctrl-u clears, Backspace deletes.
+    app.on_key(ctrl('u'));
+    keys(&mut app, "Ethernet (desk)x");
+    app.on_key(key(KeyCode::Backspace));
+    assert_eq!(
+        render(&mut app, 120, 40).lines().last().unwrap(),
+        "label device 0b95:1790 (AX88179B): Ethernet (desk)"
+    );
+
+    app.on_key(key(KeyCode::Enter));
+    assert_eq!(prompt(&app), None);
+    let daisy = std::fs::read_to_string(fixtures().join("labels/daisy")).unwrap();
+    assert_eq!(
+        labels_text(&app),
+        format!("{daisy}device:0b95:1790  Ethernet (desk)\n")
+    );
+    assert_eq!(
+        notice(&app),
+        Some((
+            "labelled device 0b95:1790 \"Ethernet (desk)\" in ~/.config/plugii/labels".into(),
+            false
+        ))
+    );
+    // Shown at once, and handed to the watcher.
+    let screen = render(&mut app, 120, 40);
+    assert!(
+        screen.contains("5G  0b95:1790  Ethernet (desk)"),
+        "{screen}"
+    );
+    assert!(screen.contains("labelled device 0b95:1790"), "{screen}");
+    let shared = watch::current(&app.labels_file.as_ref().unwrap().labels);
+    assert_eq!(shared.device_label(0x0b95, 0x1790), Some("Ethernet (desk)"));
+
+    // A scan the watcher took with the old labels shows the new ones.
+    let stale = snapshot("daisy-dock", "daisy");
+    app.on_update(stale, Vec::new(), Sample::default());
+    assert!(render(&mut app, 120, 40).contains("0b95:1790  Ethernet (desk)"));
+
+    // `L` again starts from the label; an empty one removes it.
+    keys(&mut app, "L");
+    assert_eq!(prompt(&app).unwrap().2, "Ethernet (desk)");
+    app.on_key(ctrl('u'));
+    app.on_key(key(KeyCode::Enter));
+    assert_eq!(labels_text(&app), daisy);
+    assert_eq!(
+        notice(&app),
+        Some((
+            "unlabelled device 0b95:1790 in ~/.config/plugii/labels".into(),
+            false
+        ))
+    );
+    assert!(render(&mut app, 120, 40).contains("5G  0b95:1790  AX88179B"));
+}
+
+/// The UCSI port is found by its label matching the socket's, so it is
+/// renamed with the socket and the two stay together.
+#[test]
+fn relabelling_a_socket_keeps_its_usb_c_port() {
+    let (_dir, mut app) = labelling();
+    select(&mut app, "0000:06:00.4-1");
+    keys(&mut app, "L");
+    app.on_key(ctrl('u'));
+    keys(&mut app, "USB-C (left)");
+    app.on_key(key(KeyCode::Enter));
+    let text = labels_text(&app);
+    assert!(text.contains("\n0000:06:00.4-1  USB-C (left)\n"), "{text}");
+    assert!(text.contains("\ntypec:port0  USB-C (left)\n"), "{text}");
+    assert!(text.contains("# UCSI ports: port0 = caps lock"), "{text}");
+    let s = app.snapshot.as_ref().unwrap();
+    let socket = s
+        .sockets
+        .iter()
+        .find(|x| x.key == "0000:06:00.4-1")
+        .unwrap();
+    assert_eq!(socket.label.as_deref(), Some("USB-C (left)"));
+    assert_eq!(socket.typec_port.as_deref(), Some("port0"));
+    assert_eq!(s.typec.ports[0].label.as_deref(), Some("USB-C (left)"));
+    let screen = render(&mut app, 120, 40);
+    assert!(screen.contains("─ USB-C (left) ─"), "{screen}");
+    assert!(screen.contains("port0 · USB-C (left)  partner"), "{screen}");
+    assert_eq!(app.selected_row().unwrap().id, "0000:06:00.4-1");
+}
+
+#[test]
+fn a_label_that_cannot_be_written_is_an_error() {
+    let (dir, mut app) = labelling();
+    // The directory the file would go in is a file.
+    let blocker = dir.path().join("blocker");
+    std::fs::write(&blocker, "").unwrap();
+    app.labels_file.as_mut().unwrap().path = blocker.join("plugii/labels");
+    select(&mut app, "7-1.2");
+    keys(&mut app, "Lx");
+    app.on_key(key(KeyCode::Enter));
+    let (text, error) = notice(&app).unwrap();
+    assert!(error);
+    assert!(
+        text.starts_with("can't write ~/.config/plugii/labels: "),
+        "{text}"
+    );
+    assert!(render(&mut app, 120, 40).contains("0b95:1790  AX88179B"));
+}
+
+#[test]
+fn l_without_a_config_directory_says_so() {
+    let mut app = daisy_dock();
+    select(&mut app, "7-1.2");
+    keys(&mut app, "L");
+    assert_eq!(prompt(&app), None);
+    assert!(notice(&app).unwrap().1);
+    // Only on the Ports tree.
+    let (_dir, mut app) = labelling();
+    keys(&mut app, "3L");
+    assert_eq!(prompt(&app), None);
 }
 
 /// Selects the row with this id in the Sockets tree.

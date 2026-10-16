@@ -12,7 +12,10 @@ pub mod ports;
 pub mod stats;
 pub mod ui;
 
+use std::env;
+use std::path::PathBuf;
 use std::sync::mpsc::TryRecvError;
+use std::sync::{Arc, RwLock};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use color_eyre::eyre::Result;
@@ -20,12 +23,13 @@ use crossterm::event::{self, Event as TermEvent, KeyEventKind};
 
 use crate::diff;
 use crate::history::Sample;
-use crate::labels::Labels;
+use crate::labels::{self, Labels};
 use crate::model::Snapshot;
 use crate::sysfs::Root;
-use crate::watch::{self, Update};
+use crate::watch::{self, SharedLabels, Update};
 
 pub use app::App;
+use app::LabelsFile;
 
 /// How long to wait for a key before checking the watcher again.
 const POLL: Duration = Duration::from_millis(100);
@@ -33,15 +37,22 @@ const POLL: Duration = Duration::from_millis(100);
 const REDRAW: Duration = Duration::from_secs(1);
 
 /// Runs the TUI until the user quits. The terminal is restored on exit and
-/// on panic.
-pub fn run(root: Root, labels: Labels) -> Result<()> {
+/// on panic. `labels_path` is where the label wizard writes (`None`: it
+/// can't).
+pub fn run(root: Root, labels: Labels, labels_path: Option<PathBuf>) -> Result<()> {
     // Read the local offset before any thread starts: the `time` crate
     // refuses to once the process is multi-threaded.
     let offset = time::UtcOffset::current_local_offset()
         .map(|o| o.whole_seconds())
         .unwrap_or(0);
     let mut app = App::new(offset);
-    let updates = watch::spawn(root, labels);
+    let shared: SharedLabels = Arc::new(RwLock::new(labels));
+    let home = env::var_os("HOME").map(PathBuf::from);
+    app.labels_file = labels_path.map(|path| {
+        let shown = labels::display_path(&path, home.as_deref());
+        LabelsFile::new(path, shown, Arc::clone(&shared))
+    });
+    let updates = watch::spawn(root, shared);
     let mut terminal = ratatui::try_init()?;
     let result = run_loop(&mut terminal, &mut app, &updates);
     ratatui::restore();

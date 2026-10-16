@@ -91,8 +91,8 @@ pub struct TreeOpts<'a> {
     pub filter: &'a str,
 }
 
-/// Whether `device` itself matches `filter`: its vid:pid, product or
-/// manufacturer contains it, ignoring case. An empty filter matches all.
+/// Whether `device` itself matches `filter`: its vid:pid, product,
+/// manufacturer or label contains it, ignoring case. An empty filter matches all.
 pub fn device_matches(device: &UsbDevice, filter: &str) -> bool {
     if filter.is_empty() {
         return true;
@@ -103,6 +103,7 @@ pub fn device_matches(device: &UsbDevice, filter: &str) -> bool {
         Some(id.as_str()),
         device.product.as_deref(),
         device.manufacturer.as_deref(),
+        device.label.as_deref(),
     ]
     .into_iter()
     .flatten()
@@ -420,7 +421,12 @@ pub fn row_line(row: &Row, width: usize) -> Line<'static> {
             let indent = Span::raw(format!("   {:indent$}", "", indent = depth * 2));
             let badge = format!("{:>4}", speed_badge(device.speed));
             let id = format!("{:04x}:{:04x}", device.vendor_id, device.product_id);
-            let product = device.product.clone().unwrap_or_default();
+            // A `device:` label stands in for the product string.
+            let product = device
+                .label
+                .clone()
+                .or_else(|| device.product.clone())
+                .unwrap_or_default();
             if *ghost {
                 let dim = Style::new()
                     .fg(Color::DarkGray)

@@ -137,12 +137,12 @@ fn same_device(a: &UsbDevice, b: &UsbDevice) -> bool {
 fn devices(was: &[UsbDevice], now: &[UsbDevice], socket: &str, out: &mut Events) {
     for d in was {
         if !now.iter().any(|n| same_device(d, n)) {
-            out.push(EventKind::Removed, Some(socket), device_text(d, socket));
+            out.push(EventKind::Removed, Some(socket), removed_text(d, socket));
         }
     }
     for d in now {
         match was.iter().find(|w| same_device(w, d)) {
-            None => out.push(EventKind::Added, Some(socket), device_text(d, socket)),
+            None => out.push(EventKind::Added, Some(socket), added_text(d, socket)),
             Some(w) => {
                 if w.speed != d.speed {
                     out.push(
@@ -162,8 +162,12 @@ fn devices(was: &[UsbDevice], now: &[UsbDevice], socket: &str, out: &mut Events)
     }
 }
 
-/// `0bda:5411 USB3.1 Hub`, or `0bda:5411 device` without a product string.
+/// Its `device:` label (`USB switch (desk)`), else `0bda:5411 USB3.1 Hub`,
+/// or `0bda:5411 device` without a product string.
 fn device_name(d: &UsbDevice) -> String {
+    if let Some(label) = &d.label {
+        return label.clone();
+    }
     format!(
         "{:04x}:{:04x} {}",
         d.vendor_id,
@@ -172,13 +176,53 @@ fn device_name(d: &UsbDevice) -> String {
     )
 }
 
+/// `1 device`, `6 devices`.
+fn devices_count(n: usize) -> String {
+    if n == 1 {
+        "1 device".into()
+    } else {
+        format!("{n} devices")
+    }
+}
+
+/// A labelled hub with devices below it: the name and how many, told as
+/// one thing.
+fn labelled_hub(d: &UsbDevice) -> Option<(&str, usize)> {
+    let label = d.label.as_deref()?;
+    let n = descendants(d);
+    (d.device_class == HUB_CLASS && n > 0).then_some((label, n))
+}
+
+const HUB_CLASS: u8 = 9;
+
+/// `05e3:0610 USB2.1 Hub @480M on USB-C (hinge) with 2 devices`; a
+/// labelled hub as `USB switch (desk): 2 devices left`.
+fn removed_text(d: &UsbDevice, socket: &str) -> String {
+    match labelled_hub(d) {
+        Some((label, n)) => format!("{label}: {} left", devices_count(n)),
+        None => device_text(d, socket),
+    }
+}
+
+/// `05e3:0610 USB2.1 Hub @480M on USB-C (hinge) with 2 devices`; a
+/// labelled hub as `USB switch (desk) @480M on USB-C (hinge), 2 devices`.
+fn added_text(d: &UsbDevice, socket: &str) -> String {
+    match labelled_hub(d) {
+        Some((label, n)) => format!(
+            "{label} @{} on {socket}, {}",
+            d.speed.short(),
+            devices_count(n)
+        ),
+        None => device_text(d, socket),
+    }
+}
+
 /// `05e3:0610 USB2.1 Hub @480M on USB-C (hinge) with 2 devices`.
 fn device_text(d: &UsbDevice, socket: &str) -> String {
     let mut text = format!("{} @{} on {socket}", device_name(d), d.speed.short());
-    match descendants(d) {
-        0 => {}
-        1 => text.push_str(" with 1 device"),
-        n => text.push_str(&format!(" with {n} devices")),
+    let n = descendants(d);
+    if n > 0 {
+        text.push_str(&format!(" with {}", devices_count(n)));
     }
     text
 }

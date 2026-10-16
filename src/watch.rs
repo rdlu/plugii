@@ -4,6 +4,7 @@
 
 use std::os::fd::AsRawFd;
 use std::sync::mpsc::{self, Receiver, Sender};
+use std::sync::{Arc, PoisonError, RwLock};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -35,9 +36,27 @@ pub const DEBOUNCE_MAX: Duration = Duration::from_millis(500);
 /// How often the tick refreshes the kernel log.
 pub const KERNEL_LOG_EVERY: Duration = Duration::from_secs(10);
 
-/// Starts the watcher thread. The first snapshot is sent right away. The
-/// thread ends when the receiver is dropped.
-pub fn spawn(root: Root, labels: Labels) -> Receiver<Update> {
+/// The labels the watcher scans with, shared with the TUI: the label wizard
+/// writes new ones in, and the next scan uses them.
+pub type SharedLabels = Arc<RwLock<Labels>>;
+
+/// A copy of the shared labels; a writer that panicked left whole labels
+/// behind, so poisoning is ignored.
+pub fn current(labels: &SharedLabels) -> Labels {
+    labels
+        .read()
+        .unwrap_or_else(PoisonError::into_inner)
+        .clone()
+}
+
+/// Puts `new` in place of the shared labels.
+pub fn replace(labels: &SharedLabels, new: Labels) {
+    *labels.write().unwrap_or_else(PoisonError::into_inner) = new;
+}
+
+/// Starts the watcher thread. The first snapshot is sent right away; each
+/// scan reads `labels` afresh. The thread ends when the receiver is dropped.
+pub fn spawn(root: Root, labels: SharedLabels) -> Receiver<Update> {
     let (tx, rx) = mpsc::channel();
     thread::Builder::new()
         .name("plugii-watch".into())
@@ -153,10 +172,10 @@ fn poll_readable(fd: i32, timeout: Duration) -> bool {
     n > 0 && pfd.revents & libc::POLLIN != 0
 }
 
-fn run(root: &Root, labels: &Labels, tx: &Sender<Update>) {
+fn run(root: &Root, labels: &SharedLabels, tx: &Sender<Update>) {
     let mut last = collect::snapshot(
         root,
-        labels,
+        &current(labels),
         &CollectOpts {
             cpu_window: None,
             kernel_log: true,
@@ -194,7 +213,7 @@ fn run(root: &Root, labels: &Labels, tx: &Sender<Update>) {
                 None => thread::sleep(timeout),
             },
             Step::Scan(scan) => {
-                last = rescan(root, labels, &last, scan, &mut counters);
+                last = rescan(root, &current(labels), &last, scan, &mut counters);
                 if tx.send(Update::Snapshot(Box::new(last.clone()))).is_err() {
                     return;
                 }

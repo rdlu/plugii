@@ -83,7 +83,8 @@ fn print_labels() -> Result<ExitCode> {
 /// The live TUI.
 fn watch() -> Result<ExitCode> {
     let labels = load_labels()?;
-    plugii::tui::run(Root::live(), labels)?;
+    let path = labels::config_dir().map(|dir| labels::path(&dir));
+    plugii::tui::run(Root::live(), labels, path)?;
     Ok(ExitCode::SUCCESS)
 }
 

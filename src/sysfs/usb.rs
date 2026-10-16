@@ -36,14 +36,14 @@ pub fn read_sockets(root: &Root, labels: &Labels) -> Vec<Socket> {
         let Some(pci) = &hub.pci else { continue };
         let key = format!("{pci}-{}", port.port);
         let usb3 = match usb3_port(&devices, &hubs, port, labels.peer_of(&key)) {
-            Some(peer) => Usb3Side::Paired(read_half(&devices, &peer)),
+            Some(peer) => Usb3Side::Paired(read_half(&devices, &peer, labels)),
             None if any_peer => Usb3Side::Usb2Only,
             None => Usb3Side::Unknown,
         };
         sockets.push(Socket {
             label: labels.socket_label(&key).map(str::to_owned),
             typec_port: labels.typec_port_for_socket(&key).map(str::to_owned),
-            usb2: read_half(&devices, port),
+            usb2: read_half(&devices, port, labels),
             usb3,
             key,
         });
@@ -159,11 +159,11 @@ fn ss_bus(hubs: &[RootHub], pci: &str) -> Option<u32> {
         .map(|h| h.bus)
 }
 
-fn read_half(devices: &Path, port: &RootPort) -> Half {
+fn read_half(devices: &Path, port: &RootPort, labels: &Labels) -> Half {
     Half {
         bus: port.bus,
         port: port.port,
-        device: read_device(devices, &format!("{}-{}", port.bus, port.port)),
+        device: read_device(devices, &format!("{}-{}", port.bus, port.port), labels),
         over_current_count: read_parse(port.dir.join("over_current_count")),
         port_state: read(port.dir.join("state")),
         physical_location: physical_location(&port.dir.join("physical_location")),
@@ -186,9 +186,10 @@ fn physical_location(dir: &Path) -> Option<PhysicalLocation> {
 
 /// The device `name` (`2-1`, `2-1.4`) with everything below it; `None` when
 /// nothing is enumerated there.
-fn read_device(devices: &Path, name: &str) -> Option<UsbDevice> {
+fn read_device(devices: &Path, name: &str, labels: &Labels) -> Option<UsbDevice> {
     let dir = devices.join(name);
     let vendor_id = read_hex(dir.join("idVendor"))?;
+    let product_id = read_hex(dir.join("idProduct")).unwrap_or(0);
     let speed = Speed::from_sysfs(&read(dir.join("speed"))?)?;
     let bcd_usb = read(dir.join("version")).and_then(|v| parse_bcd(&v));
     let capable_speed = capable_speed(
@@ -199,10 +200,13 @@ fn read_device(devices: &Path, name: &str) -> Option<UsbDevice> {
     Some(UsbDevice {
         sysfs_name: name.to_owned(),
         vendor_id,
-        product_id: read_hex(dir.join("idProduct")).unwrap_or(0),
+        product_id,
         manufacturer: read(dir.join("manufacturer")).map(|s| s.trim().to_owned()),
         product: read(dir.join("product")).map(|s| s.trim().to_owned()),
         serial: read(dir.join("serial")).map(|s| s.trim().to_owned()),
+        label: labels
+            .device_label(vendor_id, product_id)
+            .map(str::to_owned),
         speed,
         capable_speed,
         rx_lanes: read_parse(dir.join("rx_lanes")),
@@ -215,7 +219,7 @@ fn read_device(devices: &Path, name: &str) -> Option<UsbDevice> {
         urbnum: read_parse(dir.join("urbnum")),
         children: children(devices, name)
             .iter()
-            .filter_map(|child| read_device(devices, child))
+            .filter_map(|child| read_device(devices, child, labels))
             .collect(),
     })
 }

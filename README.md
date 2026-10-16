@@ -50,6 +50,9 @@ esrt:a77b326c-...  USB-C PD firmware
 
 # peer:<usb2-key>  <usb3-key>  (pair the halves where firmware has no peer link)
 peer:0000:00:14.0-1  0000:00:0d.0-1
+
+# device:<vid>:<pid>  <name>  (every device with these ids)
+device:05e3:0610  USB switch (desk)
 ```
 
 - **Sockets:** find the key by plugging something in and reading the unlabeled
@@ -65,6 +68,15 @@ peer:0000:00:14.0-1  0000:00:0d.0-1
   9320's Thunderbolt ports, for one), pair them by hand: plug a USB 3 device
   in; the USB 3 key is its SuperSpeed root port's `<pci-address>-<port>`,
   which on Intel matches the USB 2 one by port number.
+- **Devices:** a name for a vid:pid, shown in place of the product string in
+  the report and the TUI. A labelled hub coming or going is one event:
+  `− USB switch (desk): 6 devices left`.
+
+In `plugii watch`, `L` on the Ports tab names the selected socket or device
+and writes it to `~/.config/plugii/labels` (creating it if needed): the last
+line for that key is replaced in place, else a line is appended; comments and
+order are kept. An empty name removes the key's lines. Relabelling a socket
+renames the `typec:` line that carried its old label too.
 
 ## License
 

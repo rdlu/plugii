@@ -211,6 +211,33 @@ fn daisy_dock_report() {
     insta::assert_snapshot!(text(&snap));
 }
 
+/// A `device:` label stands in for the product string on the device's line;
+/// the rest of the report is as without it.
+#[test]
+fn device_labels_name_devices_in_the_report() {
+    let text_of = |extra: &str| {
+        let file = fs::read_to_string(fixtures().join("labels/daisy")).unwrap() + extra;
+        let snap = collect("daisy-dock", &Labels::parse(&file), Some("daisy")).1;
+        report::render(&snap, &health::check(&snap), false)
+    };
+    let plain = text_of("");
+    let labelled = text_of("device:05E3:0610  USB switch (desk)\ndevice:0b95:1790  Ethernet\n");
+    assert!(
+        labelled.contains("      └ 05e3:0610  480M (USB 2)           USB switch (desk)\n"),
+        "{labelled}"
+    );
+    assert!(
+        labelled.contains("        └ 0b95:1790  5G (USB 3 Gen 1)       Ethernet\n"),
+        "{labelled}"
+    );
+    assert_eq!(
+        labelled
+            .replace("USB switch (desk)", "USB2.1 Hub")
+            .replace("Ethernet\n", "AX88179B\n"),
+        plain
+    );
+}
+
 /// The faults log (resets on `usb 2-1`, `2-1.3`) against the XPS sockets:
 /// bus 2 port 1 is the left socket's USB 3 half.
 #[test]

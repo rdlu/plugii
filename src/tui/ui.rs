@@ -16,7 +16,7 @@ use crate::diff::{Event, EventKind};
 pub fn draw(f: &mut Frame, app: &mut App) {
     let area = f.area();
     app.size = (area.width, area.height);
-    let prompt_rows = u16::from(app.prompt);
+    let prompt_rows = u16::from(app.prompt || app.label_prompt.is_some());
     let [top, body, prompt] = Layout::vertical([
         Constraint::Length(1),
         Constraint::Min(0),
@@ -44,7 +44,16 @@ pub fn draw(f: &mut Frame, app: &mut App) {
             list_pane(f, body, app, Pane::Events, "Events", lines, &[]);
         }
     }
-    if app.prompt {
+    if let Some(p) = &app.label_prompt {
+        f.render_widget(
+            Paragraph::new(Line::from(vec![
+                p.title.clone().cyan().bold(),
+                Span::raw(p.text.clone()),
+                " ".reversed(),
+            ])),
+            prompt,
+        );
+    } else if app.prompt {
         let text = app.filter().unwrap_or_default().to_owned();
         f.render_widget(
             Paragraph::new(Line::from(vec![
@@ -147,6 +156,14 @@ fn status_spans(app: &App) -> Vec<Span<'static>> {
     }
     if let Some(filter) = app.filter().filter(|f| !f.is_empty() && !app.prompt) {
         out.push(format!("/{filter}").cyan());
+        out.push("  ".into());
+    }
+    if let Some(n) = &app.notice {
+        out.push(if n.error {
+            n.text.clone().red()
+        } else {
+            n.text.clone().green()
+        });
         out.push("  ".into());
     }
     if let Some(w) = &app.warning {

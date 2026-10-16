@@ -179,7 +179,10 @@ fn watcher_sends_snapshots() {
         .and_then(|dir| labels::load(&dir).ok())
         .unwrap_or_default();
     let started = std::time::Instant::now();
-    let rx = watch::spawn(Root::live(), labels);
+    let rx = watch::spawn(
+        Root::live(),
+        std::sync::Arc::new(std::sync::RwLock::new(labels)),
+    );
     let mut snapshots = Vec::new();
     while snapshots.len() < 2 {
         let left = Duration::from_secs(3).saturating_sub(started.elapsed());

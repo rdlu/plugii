@@ -20,11 +20,11 @@ expression: screen
 │─ USB-C (caps lock)│   gT  Shift-Tab     previous tab                                             │ing)               │
 │ USB 3  idle       │   1  2  3           Ports / Charts / Events tab                              │(s)                │
 │ USB 2  idle       │                                                                              │t0 (USB-C (caps    │
-│ USB-C  partner (po│ Details and filter                                                           │awing 2.75 A;      │
+│ USB-C  partner (po│ Details, filter and labels                                                   │awing 2.75 A;      │
 │   └ no USB data, n│   ⏎  o              details of the selected device or socket                 │                   │
 │                   │   /                 filter devices (on Events: event lines)                  │                   │
-│                   │   n                 next match                                               │                   │
-│                   │   N                 previous match                                           │                   │
+│                   │   n  N              next / previous match                                    │                   │
+│                   │   L                 label the selected socket or device                      │                   │
 │                   │   Esc               close a popup, else clear the filter                     │                   │
 │                   │                                                                              │                   │
 │                   │ Other                                                                        │                   │
@@ -34,10 +34,10 @@ expression: screen
 │                   │   q                 close a popup, else quit                                 │                   │
 │                   │   :q⏎  Ctrl-c       quit                                                     │                   │
 │                   │                                                                              │                   │
-│                   │ In the / prompt                                                              │                   │
-│                   │   text              filters as you type: vid:pid, product, manufacturer      │                   │
-│                   │   ⏎                 apply                                                    │                   │
-│                   │   Esc  Ctrl-c       cancel and clear the filter                              │                   │
+│                   │ In the / and L prompts                                                       │                   │
+│                   │   text              / filters by vid:pid, product, manufacturer, label       │                   │
+│                   │   ⏎                 apply; L: save the label (empty removes it)              │                   │
+│                   │   Esc  Ctrl-c       cancel (/ also clears the filter)                        │                   │
 │                   │   Backspace         delete a character                                       │                   │
 │                   │                                                                              │                   │
 │                   │ A dim ↓ after a speed: linked below what the device supports (⏎ tells more). │                   │
