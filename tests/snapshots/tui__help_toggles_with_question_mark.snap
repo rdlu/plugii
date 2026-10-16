@@ -28,17 +28,17 @@ expression: screen
 │                   │   Esc               close a popup, else clear the filter                     │                   │
 │                   │                                                                              │                   │
 │                   │ Other                                                                        │                   │
-│                   │   p                 pause / resume updates                                   │                   │
+│                   │   p                 pause / resume updates (in a replay: playback)           │                   │
 │                   │   c                 clear events                                             │                   │
 │                   │   ?                 this help                                                │                   │
 │                   │   q                 close a popup, else quit                                 │                   │
 │                   │   :q⏎  Ctrl-c       quit                                                     │                   │
 │                   │                                                                              │                   │
+│                   │ Replay only (plugii replay)                                                  │                   │
+│                   │   +  -              faster / slower: ×1 ×2 ×4 ×10 ×30 ×60                    │                   │
+│                   │   ]  [              next / previous plug or unplug                           │                   │
+│                   │                                                                              │                   │
 │                   │ In the / and L prompts                                                       │                   │
 │                   │   text              / filters by vid:pid, product, manufacturer, label       │                   │
 │                   │   ⏎                 apply; L: save the label (empty removes it)              │                   │
-│                   │   Esc  Ctrl-c       cancel (/ also clears the filter)                        │                   │
-│                   │   Backspace         delete a character                                       │                   │
-│                   │                                                                              │                   │
-│                   │ A dim ↓ after a speed: linked below what the device supports (⏎ tells more). │                   │
 └───────────────────└──────────────────────────────────────────────────── Esc/q close · j/k scroll ┘───────────────────┘

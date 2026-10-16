@@ -193,6 +193,42 @@ pub struct App {
     /// The `L` prompt is open: keys edit its text.
     pub label_prompt: Option<LabelPrompt>,
     pub notice: Option<Notice>,
+    /// `watch --record`: the file being written, as the status line shows
+    /// it; `None` when not recording or after a write failed.
+    pub recording: Option<String>,
+    /// Set in `plugii replay`: the player's state for the status line, and
+    /// the replay key last pressed.
+    pub replay: Option<ReplayView>,
+}
+
+/// What a replay shows in the status line; [`super::replay::Replay`] keeps
+/// it current.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ReplayView {
+    /// The recording's name, as the status line shows it.
+    pub file: String,
+    /// The recording header's host.
+    pub host: String,
+    /// The first and last snapshots' times, and where playback is.
+    pub start_ms: u64,
+    pub end_ms: u64,
+    pub at_ms: u64,
+    pub speed: u32,
+    pub paused: bool,
+    /// Played to the end (and paused there).
+    pub ended: bool,
+    /// The replay key pressed, for the replay to act on.
+    pub request: Option<ReplayRequest>,
+}
+
+/// A replay key's request.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ReplayRequest {
+    TogglePause,
+    Faster,
+    Slower,
+    NextPlug,
+    PrevPlug,
 }
 
 impl App {
@@ -227,7 +263,23 @@ impl App {
             labels_file: None,
             label_prompt: None,
             notice: None,
+            recording: None,
+            replay: None,
         }
+    }
+
+    /// Forgets every snapshot, event and sample, keeping what the user set
+    /// (tab, focus, filters, collapsed hubs): a replay seeking back feeds
+    /// the recording again from the start.
+    pub fn clear_data(&mut self) {
+        self.snapshot = None;
+        self.findings.clear();
+        self.history = History::new(HISTORY_LEN);
+        self.stats = Stats::default();
+        self.events.clear();
+        self.events_follow = true;
+        self.ghosts.clear();
+        self.held = Held::default();
     }
 
     /// A new scan, the events since the previous one, and its chart sample.
@@ -707,7 +759,15 @@ impl App {
             Action::NextTab => self.tab = Tab::ALL[(self.tab.index() + 1) % 3],
             Action::PrevTab => self.tab = Tab::ALL[(self.tab.index() + 2) % 3],
             Action::GoTab(i) => self.tab = Tab::ALL[i.min(2)],
+            // A replay pauses playback, not the view: see `replay`.
+            Action::Pause if self.replay.is_some() => {
+                self.replay_request(ReplayRequest::TogglePause)
+            }
             Action::Pause => self.toggle_pause(),
+            Action::Faster => self.replay_request(ReplayRequest::Faster),
+            Action::Slower => self.replay_request(ReplayRequest::Slower),
+            Action::NextPlug => self.replay_request(ReplayRequest::NextPlug),
+            Action::PrevPlug => self.replay_request(ReplayRequest::PrevPlug),
             Action::ClearEvents => {
                 self.events.clear();
                 *self.pane_mut(Pane::Events) = PaneState {
@@ -735,8 +795,21 @@ impl App {
                 }
             }
             Action::Close | Action::Quit => self.should_quit = true,
+            Action::Label if self.replay.is_some() => {
+                self.notice = Some(Notice {
+                    text: "labels can't be edited in a replay".into(),
+                    error: true,
+                });
+            }
             Action::Label => self.open_label_prompt(),
             Action::None => {}
+        }
+    }
+
+    /// Hands a replay key to the replay; live, replay keys do nothing.
+    fn replay_request(&mut self, request: ReplayRequest) {
+        if let Some(r) = &mut self.replay {
+            r.request = Some(request);
         }
     }
 

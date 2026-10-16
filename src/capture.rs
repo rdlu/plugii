@@ -155,9 +155,14 @@ const KEEP_LINKS: &[&str] = &["peer", "driver", "usb_power_delivery"];
 /// Never descended into.
 const SKIP_DIRS: &[&str] = &["power", "subsystem", "firmware_node", "device"];
 
-/// Per-unit identifiers: serial numbers, Thunderbolt and DMI UUIDs, and the
-/// battery's Dell electronic PPID (`eppid`).
-fn redact(name: &str) -> bool {
+/// What a redacted identifier is replaced with, here and in recordings
+/// (`watch --record --redact`, see [`crate::record::redact`]).
+pub const REDACTED: &str = "REDACTED";
+
+/// Per-unit identifiers, by sysfs file name: serial numbers, Thunderbolt and
+/// DMI UUIDs, and the battery's Dell electronic PPID (`eppid`). Recordings
+/// redact the model fields read from these files.
+pub fn redact(name: &str) -> bool {
     name.contains("serial") || matches!(name, "unique_id" | "product_uuid" | "eppid")
 }
 
@@ -328,7 +333,7 @@ impl Copier {
         };
         let bytes = if redact(&name) {
             self.summary.redacted += 1;
-            b"REDACTED\n".to_vec()
+            format!("{REDACTED}\n").into_bytes()
         } else {
             bytes
         };

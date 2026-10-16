@@ -11,12 +11,16 @@ use plugii::collect::{self, CollectOpts};
 use plugii::diff::{self, Event, EventKind};
 use plugii::history::{History, Sample};
 use plugii::labels::{self, Key};
+use std::time::Duration;
+
 use plugii::model::{CpuSample, LinkResets, Snapshot, Usb3Side, UsbDevice};
+use plugii::record::{Output, Recorder};
 use plugii::sysfs::Root;
 use plugii::tui::App;
 use plugii::tui::app::{self, LabelsFile, Overlay, Pane, Tab};
 use plugii::tui::detail::Target;
 use plugii::tui::ports::RowKind;
+use plugii::tui::replay::Replay;
 use plugii::tui::ui;
 use plugii::watch;
 use ratatui::Terminal;
@@ -1224,4 +1228,184 @@ fn pause_holds_the_chart_stats_too() {
     // Not reporting offers, a charger drawing other amps is another one.
     assert_eq!(app.stats.chargers.len(), 2);
     assert_eq!(app.stats.sockets[0].links.len(), 3);
+}
+
+/// daisy-empty, then the dock plugged in, a tick with only the CPU and
+/// power changed, then the dock swapped for a charger; 5 s apart.
+fn recorded_session() -> plugii::record::Recording {
+    let mut snaps = vec![
+        snapshot("daisy-empty", "daisy"),
+        snapshot("daisy-dock", "daisy"),
+        snapshot("daisy-dock", "daisy"),
+        snapshot("daisy-charger", "daisy"),
+    ];
+    snaps[2].cpu = Some(CpuSample {
+        util_pct: 40,
+        avg_khz: 2_400_000,
+        max_khz: 4_200_000,
+        min_khz: Some(400_000),
+        package_w: Some(12.0),
+        package_temp_c: Some(60.0),
+    });
+    for (i, s) in snaps.iter_mut().enumerate() {
+        s.taken_at_ms = T0 + i as u64 * 5000;
+        // The top line shows the header's host, from the first snapshot.
+        s.host = "daisy".into();
+    }
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("session.jsonl");
+    let mut rec = Recorder::new(Output::create(&path, false).unwrap(), false);
+    for s in &snaps {
+        rec.record(s).unwrap();
+    }
+    rec.finish().unwrap();
+    let recording = plugii::record::read(&path).unwrap();
+    assert_eq!(recording.snapshots, snaps);
+    recording
+}
+
+fn replay() -> Replay {
+    Replay::new(App::new(0), recorded_session(), "session.jsonl".into(), 1).unwrap()
+}
+
+fn replay_keys(r: &mut Replay, text: &str) {
+    for c in text.chars() {
+        r.on_key(key(KeyCode::Char(c)));
+    }
+}
+
+fn top_line(app: &mut App) -> String {
+    render(app, 120, 40).lines().next().unwrap().to_owned()
+}
+
+#[test]
+fn replay_jumps_to_the_dock_and_lists_its_events() {
+    let mut r = replay();
+    assert_eq!(r.player.current(), Some(0));
+    assert_eq!(r.app.now_ms, T0);
+    replay_keys(&mut r, "]");
+    assert_eq!(r.player.current(), Some(1));
+    // The App's clock is the recording's.
+    assert_eq!(r.app.now_ms, T0 + 5000);
+    assert!(!r.app.events.is_empty());
+    assert!(r.app.events.iter().all(|e| e.t_ms == T0 + 5000));
+    keys(&mut r.app, "3");
+    insta::assert_snapshot!(render(&mut r.app, 120, 40));
+}
+
+#[test]
+fn replay_status_line() {
+    let mut r = replay();
+    let top = top_line(&mut r.app);
+    assert!(
+        top.contains("▶ replay 00:00:00 / 00:00:15 ×1  session.jsonl"),
+        "{top}"
+    );
+    r.tick(Duration::from_secs(6));
+    assert_eq!(r.player.current(), Some(1));
+    insta::assert_snapshot!(top_line(&mut r.app));
+    replay_keys(&mut r, "p");
+    assert!(r.player.paused());
+    assert!(!r.app.paused, "a replay pauses playback, not the view");
+    assert!(top_line(&mut r.app).contains("⏸ replay 00:00:06 / 00:00:15 ×1"));
+    replay_keys(&mut r, "p");
+    r.tick(Duration::from_secs(60));
+    assert!(r.player.ended());
+    let top = top_line(&mut r.app);
+    assert!(
+        top.contains("end of recording  ⏸ replay 00:00:15 / 00:00:15 ×1  session.jsonl"),
+        "{top}"
+    );
+    // `p` at the end plays it again from the start.
+    replay_keys(&mut r, "p");
+    assert_eq!(r.player.current(), Some(0));
+    assert!(!r.player.paused());
+    assert!(r.app.events.is_empty());
+}
+
+#[test]
+fn replay_speed_keys() {
+    let mut r = replay();
+    replay_keys(&mut r, "+++");
+    assert_eq!(r.player.speed(), 10);
+    assert!(top_line(&mut r.app).contains("×10"));
+    replay_keys(&mut r, "++++");
+    assert_eq!(r.player.speed(), 60);
+    replay_keys(&mut r, "-");
+    assert_eq!(r.player.speed(), 30);
+    replay_keys(&mut r, "------");
+    assert_eq!(r.player.speed(), 1);
+    // ×4: 5 s of recording in 1.25 s.
+    replay_keys(&mut r, "++");
+    r.tick(Duration::from_millis(1250));
+    assert_eq!(r.player.current(), Some(1));
+}
+
+#[test]
+fn replay_seeks_back_by_rebuilding() {
+    let mut r = replay();
+    replay_keys(&mut r, "]");
+    let at_dock = (
+        r.app.events.clone(),
+        r.app.history.len(),
+        r.app.snapshot.clone(),
+    );
+    replay_keys(&mut r, "]");
+    assert_eq!(r.player.current(), Some(3));
+    assert!(r.player.ended());
+    assert!(r.app.events.len() > at_dock.0.len());
+    replay_keys(&mut r, "[");
+    assert_eq!(r.player.current(), Some(1));
+    assert!(!r.player.ended());
+    assert_eq!(
+        (
+            r.app.events.clone(),
+            r.app.history.len(),
+            r.app.snapshot.clone()
+        ),
+        at_dock
+    );
+    replay_keys(&mut r, "[");
+    assert_eq!(r.player.current(), Some(1));
+    assert_eq!(
+        r.app.notice.as_ref().map(|n| n.text.as_str()),
+        Some("no earlier plug or unplug")
+    );
+    // gg and G keep their list meaning.
+    keys(&mut r.app, "3");
+    replay_keys(&mut r, "gg");
+    assert_eq!(sel(&r.app), 0);
+    assert_eq!(r.player.current(), Some(1));
+}
+
+#[test]
+fn replay_refuses_labels() {
+    let mut r = replay();
+    replay_keys(&mut r, "L");
+    assert!(r.app.label_prompt.is_none());
+    let n = r.app.notice.clone().unwrap();
+    assert_eq!(n.text, "labels can't be edited in a replay");
+    assert!(top_line(&mut r.app).contains("labels can't be edited in a replay"));
+}
+
+#[test]
+fn replay_keys_do_nothing_live() {
+    let mut app = daisy_dock();
+    let before = render(&mut app, 120, 40);
+    keys(&mut app, "+-[]");
+    assert!(app.replay.is_none());
+    assert!(!app.paused);
+    assert!(app.notice.is_none());
+    assert_eq!(render(&mut app, 120, 40), before);
+}
+
+#[test]
+fn recording_shows_in_the_status_line() {
+    let mut app = daisy_dock();
+    app.recording = Some("~/dock.jsonl.gz".into());
+    let top = top_line(&mut app);
+    assert!(
+        top.contains("● REC ~/dock.jsonl.gz  updated 12:00:00"),
+        "{top}"
+    );
 }

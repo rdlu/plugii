@@ -1,12 +1,15 @@
 use std::io::{IsTerminal, Write};
+use std::path::Path;
 use std::process::ExitCode;
 
 use clap::Parser;
 use color_eyre::eyre::{Result, WrapErr, bail};
-use plugii::cli::{Action, Cli};
+use plugii::cli::{self, Action, Cli};
 use plugii::collect::{self, CollectOpts};
 use plugii::labels::{self, Labels};
+use plugii::record::{self, Output, Recorder};
 use plugii::sysfs::Root;
+use plugii::tui::RecordTo;
 use plugii::{health, report};
 
 fn main() -> Result<ExitCode> {
@@ -20,10 +23,9 @@ fn main() -> Result<ExitCode> {
         Action::Report {
             health_only, json, ..
         } => run_report(health_only, json),
-        Action::Watch { record: None } => watch(),
-        Action::Watch { record: Some(_) } => not_yet("plugii watch --record"),
+        Action::Watch { record } => watch(record),
         Action::Capture { dir } => capture(&dir),
-        Action::Replay { .. } => not_yet("plugii replay"),
+        Action::Replay { file, speed } => replay(&file, speed),
         Action::Labels => print_labels(),
     }
 }
@@ -80,12 +82,37 @@ fn print_labels() -> Result<ExitCode> {
     Ok(ExitCode::SUCCESS)
 }
 
-/// The live TUI.
-fn watch() -> Result<ExitCode> {
+/// The live TUI, recording with `--record`. The file is created before the
+/// TUI starts, so an existing one stops it with a plain error.
+fn watch(record: Option<cli::Record>) -> Result<ExitCode> {
     let labels = load_labels()?;
     let path = labels::config_dir().map(|dir| labels::path(&dir));
-    plugii::tui::run(Root::live(), labels, path)?;
+    let record = match record {
+        Some(r) => {
+            let out = Output::create(&r.file, r.force)
+                .wrap_err_with(|| format!("can't record to {}", r.file.display()))?;
+            Some(RecordTo {
+                recorder: Recorder::new(out, r.redact),
+                shown: shown(&r.file),
+            })
+        }
+        None => None,
+    };
+    plugii::tui::run(Root::live(), labels, path, record)?;
     Ok(ExitCode::SUCCESS)
+}
+
+fn replay(file: &Path, speed: u32) -> Result<ExitCode> {
+    let recording =
+        record::read(file).wrap_err_with(|| format!("can't replay {}", file.display()))?;
+    plugii::tui::replay(recording, shown(file), speed)?;
+    Ok(ExitCode::SUCCESS)
+}
+
+/// A path as the status line shows it, `~` for the home directory.
+fn shown(path: &Path) -> String {
+    let home = std::env::var_os("HOME").map(std::path::PathBuf::from);
+    labels::display_path(path, home.as_deref())
 }
 
 fn capture(dir: &std::path::Path) -> Result<ExitCode> {

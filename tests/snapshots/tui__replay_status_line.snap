@@ -1,0 +1,5 @@
+---
+source: tests/tui.rs
+expression: top_line(&mut r.app)
+---
+ Ports │ Charts │ Events   daisy                                          ▶ replay 00:00:06 / 00:00:15 ×1  session.jsonl

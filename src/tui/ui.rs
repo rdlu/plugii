@@ -135,9 +135,14 @@ fn top_line(f: &mut Frame, area: Rect, app: &App) {
     ])
     .areas(area);
     f.render_widget(tabs, tabs_area);
-    if let Some(s) = &app.snapshot {
+    let host = match (&app.replay, &app.snapshot) {
+        (Some(r), _) => Some(r.host.clone()),
+        (None, Some(s)) => Some(s.host.clone()),
+        (None, None) => None,
+    };
+    if let Some(host) = host {
         f.render_widget(
-            Paragraph::new(Line::from(vec![" ".into(), s.host.clone().bold()])),
+            Paragraph::new(Line::from(vec![" ".into(), host.bold()])),
             host_area,
         );
     }
@@ -170,7 +175,33 @@ fn status_spans(app: &App) -> Vec<Span<'static>> {
         out.push(w.clone().yellow());
         out.push("  ".into());
     }
-    if app.paused {
+    if let Some(file) = &app.recording {
+        out.push("● REC ".red().bold());
+        out.push(file.clone().red());
+        out.push("  ".into());
+    }
+    if let Some(r) = &app.replay {
+        if r.ended {
+            out.push("end of recording".yellow());
+            out.push("  ".into());
+        }
+        let (icon, style) = if r.paused {
+            ("⏸", Style::new().fg(Color::Black).bg(Color::Yellow).bold())
+        } else {
+            ("▶", Style::new().fg(Color::Cyan).bold())
+        };
+        out.push(Span::styled(
+            format!(
+                "{icon} replay {} / {} ×{}",
+                duration(r.at_ms.saturating_sub(r.start_ms)),
+                duration(r.end_ms.saturating_sub(r.start_ms)),
+                r.speed
+            ),
+            style,
+        ));
+        out.push("  ".into());
+        out.push(r.file.clone().dark_gray());
+    } else if app.paused {
         out.push(" PAUSED ".black().on_yellow().bold());
     } else {
         match &app.snapshot {
@@ -181,6 +212,12 @@ fn status_spans(app: &App) -> Vec<Span<'static>> {
         }
     }
     out
+}
+
+/// `HH:MM:SS` for a span of ms.
+fn duration(ms: u64) -> String {
+    let s = ms / 1000;
+    format!("{:02}:{:02}:{:02}", s / 3600, s % 3600 / 60, s % 60)
 }
 
 pub(super) fn block(app: &App, pane: Pane, title: &str) -> Block<'static> {

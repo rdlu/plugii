@@ -9,8 +9,8 @@ authorization, and what the power source lets the CPU do. A one-shot CLI report
 ends in a health verdict; a ratatui TUI updates live while you swap hubs,
 cables, chargers and devices.
 
-**Status: early development.** The report, health verdict, `--json`,
-`capture` and `labels` work; the TUI, recording and firmware checks don't yet.
+**Status: early development.** The report, health verdict, `--json`, the TUI,
+recording and replay, `capture` and `labels` work; firmware checks don't yet.
 
 ## Commands
 
@@ -18,6 +18,9 @@ cables, chargers and devices.
 plugii                        full report + health; exit 1 if anything is wrong
 plugii -H                     health verdict only
 plugii --json                 the snapshot and findings as JSON
+plugii watch                  live TUI (also: plugii -w)
+plugii watch --record f.jsonl record snapshots while watching
+plugii replay f.jsonl         play a recording back
 plugii capture <dir>          copy the sysfs files plugii reads, as a test fixture
 plugii labels                 list what the labels file names
 ```
@@ -26,10 +29,27 @@ Planned:
 
 ```text
 plugii --firmware             also check BIOS / PD firmware versions (network)
-plugii watch                  live TUI (also: plugii -w)
-plugii watch --record f.jsonl record snapshots while watching
-plugii replay f.jsonl         play a recording back
 ```
+
+## Record and replay
+
+`plugii watch --record session.jsonl` runs the TUI as usual and writes every
+snapshot to the file (even while the view is paused); the status line shows
+`● REC session.jsonl`. A name ending in `.gz` is gzip-compressed. An existing
+file is left alone unless you add `--force`. `--redact` replaces device
+serial numbers and Thunderbolt unique IDs with `REDACTED`, for recordings you
+share.
+
+`plugii replay session.jsonl [--speed N]` plays it back in the same TUI, with
+the recorded times on events and charts. `p` pauses, `+` / `-` step the speed
+through ×1 ×2 ×4 ×10 ×30 ×60, and `]` / `[` jump to the next / previous plug
+or unplug. Labels can't be edited in a replay: it shows the labels as they
+were.
+
+The file is JSON lines: a header, then a full snapshot whenever something
+changes and a small tick (CPU, power, URB counters) otherwise, with a full
+snapshot at least every 10 minutes. Each line is flushed as it's written, so
+after a crash the file still plays up to its last line.
 
 ## Labels
 

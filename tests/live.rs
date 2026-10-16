@@ -205,3 +205,70 @@ fn watcher_sends_snapshots() {
     assert!(snapshots[0].cpu.is_none());
     assert!(snapshots[1].cpu.is_some());
 }
+
+#[test]
+#[ignore = "watches the running machine"]
+fn records_three_seconds_from_the_watcher() {
+    use plugii::record::{self, Output, Recorder};
+    use plugii::watch::{self, Update};
+
+    let labels = labels::config_dir()
+        .and_then(|dir| labels::load(&dir).ok())
+        .unwrap_or_default();
+    let dir = tempfile::tempdir().unwrap();
+    let plain = dir.path().join("live.jsonl");
+    let gz = dir.path().join("live.jsonl.gz");
+    // The same recorder the TUI writes with, one per file.
+    let mut recorders = [
+        Recorder::new(Output::create(&plain, false).unwrap(), true),
+        Recorder::new(Output::create(&gz, false).unwrap(), true),
+    ];
+    let rx = watch::spawn(
+        Root::live(),
+        std::sync::Arc::new(std::sync::RwLock::new(labels)),
+    );
+    let started = std::time::Instant::now();
+    while let Some(left) = Duration::from_secs(3).checked_sub(started.elapsed()) {
+        match rx.recv_timeout(left) {
+            Ok(Update::Snapshot(snap)) => {
+                for r in &mut recorders {
+                    r.record(&snap).unwrap();
+                }
+            }
+            Ok(Update::Warning(w)) => println!("warning: {w}"),
+            Err(_) => break,
+        }
+    }
+    for r in recorders {
+        r.finish().unwrap();
+    }
+    for path in [&plain, &gz] {
+        let bytes = std::fs::metadata(path).unwrap().len();
+        let read = record::read(path).unwrap();
+        println!(
+            "{}: {} bytes, {} lines after the header, warnings {:?}",
+            path.file_name().unwrap().to_string_lossy(),
+            bytes,
+            read.snapshots.len(),
+            read.warnings
+        );
+        assert!(read.snapshots.len() >= 2, "{}", read.snapshots.len());
+        assert!(read.warnings.is_empty());
+    }
+    let text = std::fs::read_to_string(&plain).unwrap();
+    let kinds: String = text
+        .lines()
+        .skip(1)
+        .map(|l| {
+            if l.contains("\"snapshot\":") {
+                'K'
+            } else {
+                't'
+            }
+        })
+        .collect();
+    println!(
+        "plain: {} lines; keyframes and ticks: {kinds}",
+        text.lines().count()
+    );
+}

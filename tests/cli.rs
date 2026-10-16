@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use clap::{CommandFactory, Parser};
-use plugii::cli::{Action, Cli};
+use plugii::cli::{Action, Cli, Record};
 
 fn action(args: &[&str]) -> Action {
     let argv = std::iter::once("plugii").chain(args.iter().copied());
@@ -48,12 +48,24 @@ fn watch_subcommand_and_flag() {
     assert_eq!(action(&["watch"]), Action::Watch { record: None });
     assert_eq!(action(&["-w"]), Action::Watch { record: None });
     assert_eq!(action(&["--watch"]), Action::Watch { record: None });
+    let record = |file: &str, redact, force| Action::Watch {
+        record: Some(Record {
+            file: PathBuf::from(file),
+            redact,
+            force,
+        }),
+    };
     assert_eq!(
         action(&["watch", "--record", "f.jsonl"]),
-        Action::Watch {
-            record: Some(PathBuf::from("f.jsonl"))
-        }
+        record("f.jsonl", false, false)
     );
+    assert_eq!(
+        action(&["watch", "--record", "f.jsonl.gz", "--redact", "--force"]),
+        record("f.jsonl.gz", true, true)
+    );
+    // --redact and --force only go with --record.
+    assert!(rejects(&["watch", "--redact"]));
+    assert!(rejects(&["watch", "--force"]));
 }
 
 #[test]
@@ -67,9 +79,19 @@ fn capture_and_replay() {
     assert_eq!(
         action(&["replay", "f.jsonl"]),
         Action::Replay {
-            file: "f.jsonl".into()
+            file: "f.jsonl".into(),
+            speed: 1
         }
     );
+    assert_eq!(
+        action(&["replay", "f.jsonl", "--speed", "30"]),
+        Action::Replay {
+            file: "f.jsonl".into(),
+            speed: 30
+        }
+    );
+    assert!(rejects(&["replay", "f.jsonl", "--speed", "3"]));
+    assert!(rejects(&["replay", "f.jsonl", "--speed", "0"]));
 }
 
 #[test]

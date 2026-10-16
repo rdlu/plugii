@@ -8,6 +8,7 @@ pub mod health;
 pub mod history;
 pub mod labels;
 pub mod model;
+pub mod record;
 pub mod report;
 pub mod sysfs;
 pub mod tui;

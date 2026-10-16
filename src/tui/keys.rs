@@ -57,6 +57,16 @@ pub enum Action {
     Quit,
     /// `L`: name the selected socket or device in the labels file.
     Label,
+    /// `+`: replay faster. Replay only, like the three below; live they do
+    /// nothing.
+    Faster,
+    /// `-`: replay slower.
+    Slower,
+    /// `]`: jump to the next snapshot where something was plugged or
+    /// unplugged.
+    NextPlug,
+    /// `[`: jump to the previous one.
+    PrevPlug,
     /// Nothing: an unbound key, or a key that only extends a pending
     /// sequence.
     None,
@@ -92,6 +102,7 @@ const MOVE: &str = "Move";
 const PANES: &str = "Panes and tabs";
 const VIEW: &str = "Details, filter and labels";
 const OTHER: &str = "Other";
+const REPLAY: &str = "Replay only (plugii replay)";
 
 /// Every binding, in help order.
 pub const BINDINGS: &[Binding] = &[
@@ -185,7 +196,11 @@ pub const BINDINGS: &[Binding] = &[
         &[("Esc", Action::Back)],
         "close a popup, else clear the filter",
     ),
-    bind(OTHER, &[("p", Action::Pause)], "pause / resume updates"),
+    bind(
+        OTHER,
+        &[("p", Action::Pause)],
+        "pause / resume updates (in a replay: playback)",
+    ),
     bind(OTHER, &[("c", Action::ClearEvents)], "clear events"),
     bind(OTHER, &[("?", Action::Help)], "this help"),
     bind(OTHER, &[("q", Action::Close)], "close a popup, else quit"),
@@ -193,6 +208,16 @@ pub const BINDINGS: &[Binding] = &[
         OTHER,
         &[(":q⏎", Action::Quit), ("Ctrl-c", Action::Quit)],
         "quit",
+    ),
+    bind(
+        REPLAY,
+        &[("+", Action::Faster), ("-", Action::Slower)],
+        "faster / slower: ×1 ×2 ×4 ×10 ×30 ×60",
+    ),
+    bind(
+        REPLAY,
+        &[("]", Action::NextPlug), ("[", Action::PrevPlug)],
+        "next / previous plug or unplug",
     ),
 ];
 
@@ -337,6 +362,10 @@ impl Pending {
             KeyCode::Char('N') => Action::PrevMatch,
             KeyCode::Char('?') => Action::Help,
             KeyCode::Char('L') => Action::Label,
+            KeyCode::Char('+') => Action::Faster,
+            KeyCode::Char('-') => Action::Slower,
+            KeyCode::Char(']') => Action::NextPlug,
+            KeyCode::Char('[') => Action::PrevPlug,
             _ => Action::None,
         }
     }
@@ -496,7 +525,11 @@ mod tests {
             | Action::Help
             | Action::Back
             | Action::Close
-            | Action::Quit => true,
+            | Action::Quit
+            | Action::Faster
+            | Action::Slower
+            | Action::NextPlug
+            | Action::PrevPlug => true,
             Action::None => false,
         };
         let all = [
@@ -528,6 +561,10 @@ mod tests {
             Action::Back,
             Action::Close,
             Action::Quit,
+            Action::Faster,
+            Action::Slower,
+            Action::NextPlug,
+            Action::PrevPlug,
         ];
         for a in all.into_iter().filter(|&a| listed(a)) {
             assert!(

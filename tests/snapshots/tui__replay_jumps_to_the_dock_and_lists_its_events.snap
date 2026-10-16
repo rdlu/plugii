@@ -1,0 +1,44 @@
+---
+source: tests/tui.rs
+expression: "render(&mut r.app, 120, 40)"
+---
+ Ports │ Charts │ Events   daisy                                          ▶ replay 00:00:05 / 00:00:15 ×1  session.jsonl
+┌ Events ──────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│12:00:05  + 05e3:0626 USB3.1 Hub @5G on USB-C (hinge) with 1 device                                                   │
+│12:00:05  + 05e3:0610 USB2.1 Hub @480M on USB-C (hinge) with 1 device                                                 │
+│12:00:05  + USB-C partner on port0 (USB-C (caps lock))                                                                │
+│12:00:05  ~ charging via port0 (USB-C (caps lock)) — power level not reported (drawing 2.75 A)                        │
+│12:00:05  ~ AC online                                                                                                 │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘

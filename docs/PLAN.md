@@ -121,6 +121,9 @@ Tabs: **Ports** | **Charts** | **Events**.
   - `⏎` / `o` details, `Esc` back, `/` filter devices, `n` / `N` next/previous
     match, `L` label socket or device, `p` pause, `c` clear events, `?` help (lists every
     binding), `q` / `:q` / `Ctrl-c` quit.
+  - Replay only (live they do nothing): `p` pauses playback, `+` / `-` speed
+    ×1 ×2 ×4 ×10 ×30 ×60, `]` / `[` next/previous plug or unplug; `gg` / `G`
+    keep their list meaning, `L` says labels can't be edited in a replay.
   - No key does something different from what vim users expect: `l` never
     labels and `h` never opens help.
 
@@ -146,7 +149,7 @@ No PRs or pushes until the user calls it reliable enough to release.
 6. ✅ TUI extras: detail view, capable-vs-linked, label wizard, help, URB sparklines, speed timeline, charger table,
    **device labels** (`device:<vid>:<pid>  <name>` in the labels file; tree, details and events use the name;
    a labelled hub leaving collapses to one event, e.g. "− USB switch (desk): 6 devices left").
-7. `--record` / `replay`.
+7. ✅ `--record` / `replay` (JSONL keyframes + ticks, `.gz`, `--redact`; replay keys `p`, `+`/`-`, `]`/`[`).
 8. Firmware section (`--firmware`), with the vendor modules.
 9. Release: GitHub Actions (CI + release binaries), docs, GitHub Pages site,
    first tagged release.
