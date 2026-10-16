@@ -93,8 +93,23 @@ layout: hextra-home
 
 <div class="hx:mt-6"></div>
 
-{{< cards >}}
-  {{< card link="/docs/getting-started/" title="Getting started" subtitle="Install plugii, run the report and the TUI, and read the exit codes." icon="arrow-right" >}}
-  {{< card link="/docs/reading-the-report/" title="Reading the report" subtitle="A real report, section by section." icon="document-text" >}}
-  {{< card link="/docs/health/" title="Health checks" subtitle="Every finding plugii can give, and what to do about it." icon="badge-check" >}}
-{{< /cards >}}
+{{< hextra/feature-grid >}}
+  {{< hextra/feature-card
+    title="Getting started"
+    icon="arrow-right"
+    link="docs/getting-started/"
+    subtitle="Install plugii, run the report and the TUI, and read the exit codes."
+  >}}
+  {{< hextra/feature-card
+    title="Reading the report"
+    icon="document-text"
+    link="docs/reading-the-report/"
+    subtitle="A real report, section by section."
+  >}}
+  {{< hextra/feature-card
+    title="Health checks"
+    icon="badge-check"
+    link="docs/health/"
+    subtitle="Every finding plugii can give, and what to do about it."
+  >}}
+{{< /hextra/feature-grid >}}
