@@ -179,7 +179,7 @@ the last 1000, and <kbd>c</kbd> clears it.
 ## Labels
 
 <kbd>L</kbd> on the Ports tab names the selected socket or device and writes
-it to the labels file: see [Labels](../labels/#label-from-the-tui).
+it to the labels file: see [Labels](../labels/#the-label-wizard-l-key).
 
 ## In a replay
 

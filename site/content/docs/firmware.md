@@ -1,6 +1,7 @@
 ---
 title: Firmware
-description: plugii --firmware - BIOS, EC and USB-C PD firmware versions against Lenovo's and Dell's catalogs and fwupd, the day-long cache, offline behaviour and esrt labels.
+description: plugii --firmware - BIOS, EC and USB-C PD firmware versions against Lenovo's and Dell's catalogs and fwupd / LVFS (fwupdmgr), the day-long cache, offline behaviour and esrt labels.
+keywords: [firmware, BIOS, EC, PD firmware, fwupd, fwupdmgr, LVFS, Lenovo catalog, Dell catalog, esrt, --firmware]
 weight: 8
 ---
 
@@ -57,7 +58,7 @@ Picked by DMI `sys_vendor`:
 Other vendors get the DMI and fwupd parts. Adding one is a module under
 `src/vendor/`.
 
-### fwupd
+### fwupd and LVFS
 
 When `fwupdmgr` is installed, plugii runs `fwupdmgr get-devices --json`
 and `fwupdmgr get-updates --json` (fwupd's cached metadata; this doesn't
@@ -69,10 +70,14 @@ download anything):
 - pending updates (⚠, `fwupdmgr update`). The list is as new as the last
   `fwupdmgr refresh`.
 
-Without fwupd, the section says `fwupd not installed — skipping capsule
-firmware checks`.
+### Without fwupd
 
-## Naming firmware with `esrt:`
+Without `fwupdmgr` the section says `fwupd not installed — skipping
+capsule firmware checks`; the BIOS, EC and vendor catalog checks still
+run. Install fwupd for the versions of the firmware your `esrt:` labels
+name, and for failed and pending updates from LVFS.
+
+## Naming fwupd's firmware with `esrt:`
 
 fwupd lists some capsule firmware only as "UEFI Device Firmware". Find its
 GUID in `fwupdmgr get-devices`, then name it:

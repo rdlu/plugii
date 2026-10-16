@@ -1,6 +1,7 @@
 ---
 title: Labels
-description: Name sockets, USB-C ports, firmware and devices, from the TUI with L or by hand, and pair USB 2 / USB 3 halves where firmware doesn't.
+description: Name your USB sockets, USB-C ports, firmware and devices with the label wizard (the L key in plugii watch) or by hand in ~/.config/plugii/labels, and pair USB 2 / USB 3 halves where firmware doesn't.
+keywords: [label, labels, label wizard, L key, rename a socket, name a USB port, labels file, typec, esrt, peer]
 weight: 6
 ---
 
@@ -11,6 +12,51 @@ ACPI has a location hint, but it's often wrong (on the Dell XPS 9320 both
 sockets say "left"), so plugii only shows it in a socket's details and
 never uses it over a label.
 {{< /callout >}}
+
+## The label wizard (L key)
+
+You don't have to edit the file: the label wizard in `plugii watch` names
+the socket or device you're on. Press the <kbd>L</kbd> key, type a label,
+press <kbd>⏎</kbd>.
+
+{{% steps %}}
+
+### Pick the row
+
+On the **Ports** tab (<kbd>1</kbd>), move to the socket or the device with
+<kbd>j</kbd> / <kbd>k</kbd>. A device row names its vid:pid; any other row
+of a card (its title, a half, the USB-C line) names the socket.
+
+### Press the L key and type the label
+
+Press <kbd>L</kbd>. The wizard's prompt says what you're naming and starts
+with the current label:
+
+```text
+label device 0b95:1790 (AX88179B): _
+```
+
+### Save or cancel
+
+<kbd>⏎</kbd> saves, <kbd>Esc</kbd> or <kbd>Ctrl-c</kbd> cancels. An
+empty name removes the label.
+
+{{% /steps %}}
+
+plugii writes `~/.config/plugii/labels` (creating it and its directory if
+needed), and the new name shows at once. The last line for that key is
+replaced in place, else a line is appended; comments, blank lines and the
+order of everything else are kept, and the file is replaced atomically. A
+symlinked labels file (dotfiles) is followed and its target written.
+Relabelling a socket also renames the `typec:` line that carried its old
+label, so the USB-C port stays tied to it. The status line says what was
+written, or why it couldn't be.
+
+### The L key in a replay
+
+In `plugii replay` the wizard doesn't open: <kbd>L</kbd> only says that
+labels can't be edited in a replay, since a recording shows the labels as
+they were when it was made.
 
 ## Where the file lives
 
@@ -39,7 +85,7 @@ firmware (ESRT):
   a77b326c-bbf9-4867-af3b-a01f96f274f5  USB-C PD firmware
 ```
 
-## What you can name
+## Keys you can label
 
 ```text {filename="~/.config/plugii/labels"}
 # A socket: its USB 2 root port's <pci-address>-<port>
@@ -64,8 +110,8 @@ format. How to find each key:
 ### Sockets
 
 Plug something into the socket and run `plugii`: the `unlabeled` block that
-gains a device has the key next to it. Or press <kbd>L</kbd> on that socket
-in the TUI.
+gains a device has the key next to it. Or skip the key: press <kbd>L</kbd>
+on that socket in the TUI.
 
 ### USB-C ports
 
@@ -101,44 +147,3 @@ Thunderbolt ports, for one), the report says `USB 3 half: unknown`; pair
 them by hand. Plug a USB 3 device in: the USB 3 key is the `<pci-address>-<port>`
 of the SuperSpeed root port it appears under (in `/sys/bus/usb/devices`,
 or with `lsusb -t`), which on Intel matches the USB 2 one by port number.
-
-## Label from the TUI
-
-You don't have to edit the file. In `plugii watch`:
-
-{{% steps %}}
-
-### Pick the row
-
-On the **Ports** tab (<kbd>1</kbd>), move to the socket or the device with
-<kbd>j</kbd> / <kbd>k</kbd>. A device row names its vid:pid; any other row
-of a card (its title, a half, the USB-C line) names the socket.
-
-### Name it
-
-Press <kbd>L</kbd>. The prompt says what you're naming and starts with the
-current label:
-
-```text
-label device 0b95:1790 (AX88179B): _
-```
-
-### Save or cancel
-
-<kbd>⏎</kbd> saves, <kbd>Esc</kbd> or <kbd>Ctrl-c</kbd> cancels. An
-empty name removes the label.
-
-{{% /steps %}}
-
-plugii writes `~/.config/plugii/labels` (creating it and its directory if
-needed), and the new name shows at once. The last line for that key is
-replaced in place, else a line is appended; comments, blank lines and the
-order of everything else are kept, and the file is replaced atomically. A
-symlinked labels file (dotfiles) is followed and its target written.
-Relabelling a socket also renames the `typec:` line that carried its old
-label, so the USB-C port stays tied to it. The status line says what was
-written, or why it couldn't be.
-
-> [!CAUTION]
-> In `plugii replay`, <kbd>L</kbd> only says that labels can't be edited in
-> a replay: a recording shows the labels as they were when it was made.

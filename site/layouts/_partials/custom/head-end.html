@@ -12,6 +12,10 @@
     (and the same for 0xProto-Bold.ttf).
     Glyphs it lacks (arrows, braille, blocks) fall back to the system mono.
 */ -}}
+{{- /* A page's `keywords` front matter (Hextra emits only the description). */ -}}
+{{- with .Keywords }}
+<meta name="keywords" content="{{ delimit . ", " }}" />
+{{- end }}
 {{- $duo := "fonts/ia-writer-duo/" -}}
 {{- $proto := "fonts/0xproto/" -}}
 <link rel="preload" href="{{ print $duo "iAWriterDuoS-Regular.woff2" | relURL }}" as="font" type="font/woff2" crossorigin />
