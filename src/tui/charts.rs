@@ -1,12 +1,15 @@
-//! The Charts tab: power and CPU on one time axis, with plug markers.
+//! The Charts tab: power and CPU on one time axis, with plug markers; below
+//! them the link-speed strips on the same axis, URB/s sparklines and the
+//! charger table ([`activity`]).
 
 use ratatui::Frame;
-use ratatui::layout::{Constraint, Layout, Rect};
+use ratatui::layout::{Alignment, Constraint, Layout, Rect};
 use ratatui::style::{Color, Style, Stylize};
 use ratatui::symbols::Marker;
-use ratatui::text::Span;
+use ratatui::text::{Line, Span};
 use ratatui::widgets::{Axis, Chart, Dataset, GraphType, LegendPosition};
 
+use super::activity;
 use super::app::{App, Pane};
 use super::ui::block;
 use crate::diff::EventKind;
@@ -17,10 +20,36 @@ type Series = (&'static str, Color, Vec<(f64, f64)>);
 
 /// The longest window shown: the whole history.
 const MAX_WINDOW_S: u64 = 600;
+/// Rows the two charts keep however many sockets and chargers there are.
+const CHARTS_MIN: u16 = 16;
+/// The fewest rows the link, URB and charger panes take when all three
+/// show: one row each, plus the table's header.
+const LOWER_MIN: [u16; 3] = [3, 3, 4];
+/// The widest the label column gets for socket names.
+const LABELS_MAX: usize = 18;
 
-pub fn draw(f: &mut Frame, area: Rect, app: &App) {
-    let [top, bottom] =
-        Layout::vertical([Constraint::Percentage(50), Constraint::Percentage(50)]).areas(area);
+/// The time axis every pane on the tab shares.
+#[derive(Debug, Clone, Copy)]
+pub struct TimeAxis {
+    /// Unix ms at the right edge.
+    pub now_ms: u64,
+    pub window_s: u64,
+    /// Columns left of the axis line, inside the border: the y labels or
+    /// the socket names.
+    pub labels: u16,
+}
+
+impl TimeAxis {
+    /// Columns left of the plot inside a pane `inner_width` wide, as
+    /// ratatui's `Chart` lays them out: the labels (at most a third of the
+    /// width) and the axis line.
+    pub fn plot_left(&self, inner_width: u16) -> u16 {
+        self.labels.min(inner_width / 3) + 1
+    }
+}
+
+pub fn draw(f: &mut Frame, area: Rect, app: &mut App) {
+    let [power_area, cpu_area, links_area, urbs_area, chargers_area] = areas(area, app);
     let now = app.view_now_ms();
     let window_s = window_s(app, now);
     let start_ms = now.saturating_sub(window_s * 1000);
@@ -47,12 +76,6 @@ pub fn draw(f: &mut Frame, area: Rect, app: &App) {
             _ => None,
         })
         .collect();
-    let x_axis = || {
-        Axis::default()
-            .bounds([-(window_s as f64), 0.0])
-            .labels(x_labels(window_s))
-            .style(Style::new().fg(Color::DarkGray))
-    };
 
     // Power: PD contract, battery flow, CPU package, in W.
     let power = [
@@ -67,6 +90,49 @@ pub fn draw(f: &mut Frame, area: Rect, app: &App) {
         (lo * 1.1 / 5.0).floor() * 5.0,
         ((hi * 1.1 / 5.0).ceil() * 5.0).max(5.0),
     );
+    let power_labels = [
+        format!("{lo:.0} W"),
+        format!("{:.0} W", (lo + hi) / 2.0),
+        format!("{hi:.0} W"),
+    ];
+
+    // CPU: clock on the axis; temperature scaled so its top is the axis top.
+    let ghz = series(|s| s.cpu_ghz);
+    let temp = series(|s| s.cpu_temp_c);
+    let ghz_top = (ghz.iter().map(|p| p.1).fold(1.0, f64::max) * 1.1 * 2.0).ceil() / 2.0;
+    let temp_top = (temp.iter().map(|p| p.1).fold(100.0, f64::max) / 10.0).ceil() * 10.0;
+    let cpu_label = |frac: f64| format!("{:.1} GHz {:>3.0} °C", ghz_top * frac, temp_top * frac);
+    let cpu_labels = [cpu_label(0.0), cpu_label(0.5), cpu_label(1.0)];
+
+    // One label column for every pane, so their time axes line up.
+    let names = app
+        .stats
+        .sockets
+        .iter()
+        .map(|s| Span::raw(s.name.as_str()).width())
+        .max()
+        .unwrap_or(0)
+        .min(if app.narrow() { 0 } else { LABELS_MAX });
+    let labels = power_labels
+        .iter()
+        .chain(&cpu_labels)
+        .map(|l| Span::raw(l.as_str()).width())
+        .fold(names, usize::max) as u16;
+    let axis = TimeAxis {
+        now_ms: now,
+        window_s,
+        labels,
+    };
+    let y_labels = |labels: [String; 3]| {
+        labels.map(|l| Span::raw(format!("{l:>w$}", w = axis.labels as usize)))
+    };
+    let x_axis = || {
+        Axis::default()
+            .bounds([-(window_s as f64), 0.0])
+            .labels(x_labels(window_s))
+            .style(Style::new().fg(Color::DarkGray))
+    };
+
     let power_marks = mark_lines(&marks, lo, hi);
     let mut datasets: Vec<Dataset> = marker_sets(&power_marks);
     datasets.extend(named_sets(&power));
@@ -76,22 +142,14 @@ pub fn draw(f: &mut Frame, area: Rect, app: &App) {
         .y_axis(
             Axis::default()
                 .bounds([lo, hi])
-                .labels([
-                    Span::raw(format!("{lo:.0} W")),
-                    Span::raw(format!("{:.0} W", (lo + hi) / 2.0)),
-                    Span::raw(format!("{hi:.0} W")),
-                ])
+                .labels(y_labels(power_labels))
+                .labels_alignment(Alignment::Right)
                 .style(Style::new().fg(Color::DarkGray)),
         )
         .legend_position(Some(LegendPosition::TopLeft))
         .hidden_legend_constraints((Constraint::Ratio(1, 1), Constraint::Ratio(1, 1)));
-    f.render_widget(chart, top);
+    f.render_widget(chart, power_area);
 
-    // CPU: clock on the axis; temperature scaled so its top is the axis top.
-    let ghz = series(|s| s.cpu_ghz);
-    let temp = series(|s| s.cpu_temp_c);
-    let ghz_top = (ghz.iter().map(|p| p.1).fold(1.0, f64::max) * 1.1 * 2.0).ceil() / 2.0;
-    let temp_top = (temp.iter().map(|p| p.1).fold(100.0, f64::max) / 10.0).ceil() * 10.0;
     let temp_scaled: Vec<(f64, f64)> = temp
         .iter()
         .map(|&(t, c)| (t, c / temp_top * ghz_top))
@@ -103,25 +161,80 @@ pub fn draw(f: &mut Frame, area: Rect, app: &App) {
     let cpu_marks = mark_lines(&marks, 0.0, ghz_top);
     let mut datasets: Vec<Dataset> = marker_sets(&cpu_marks);
     datasets.extend(named_sets(&cpu));
-    let label = |frac: f64| {
-        Span::raw(format!(
-            "{:.1} GHz {:>3.0} °C",
-            ghz_top * frac,
-            temp_top * frac
-        ))
-    };
     let chart = Chart::new(datasets)
         .block(block(app, Pane::CpuChart, "CPU (GHz, °C)"))
         .x_axis(x_axis())
         .y_axis(
             Axis::default()
                 .bounds([0.0, ghz_top])
-                .labels([label(0.0), label(0.5), label(1.0)])
+                .labels(y_labels(cpu_labels))
+                .labels_alignment(Alignment::Right)
                 .style(Style::new().fg(Color::DarkGray)),
         )
         .legend_position(Some(LegendPosition::TopLeft))
         .hidden_legend_constraints((Constraint::Ratio(1, 1), Constraint::Ratio(1, 1)));
-    f.render_widget(chart, bottom);
+    f.render_widget(chart, cpu_area);
+
+    activity::links(f, links_area, app, &axis);
+    activity::urbs(f, urbs_area, app, &axis);
+    activity::chargers(f, chargers_area, app);
+    let lower = [links_area, urbs_area, chargers_area];
+    if let [shown] = lower.iter().filter(|a| a.height > 0).collect::<Vec<_>>()[..] {
+        // One pane at a time: say how to reach the others.
+        let hint = Line::from(" ^W j/k: link speed · URB/s · chargers ".dark_gray());
+        let row = Rect::new(
+            shown.x + 1,
+            shown.bottom() - 1,
+            shown.width.saturating_sub(2),
+            1,
+        );
+        f.render_widget(hint.right_aligned(), row);
+    }
+}
+
+/// The power and CPU charts on top, the link strips, URB/s and charger
+/// panes below at the height their rows want. When that leaves the charts
+/// too little, the panes below shrink (and scroll) first, down to one row
+/// each; below that only one of them shows.
+fn areas(area: Rect, app: &App) -> [Rect; 5] {
+    let sockets = app.stats.sockets.len().max(1) as u16;
+    let chargers = app.stats.chargers.len().max(1) as u16;
+    let mut lower = [sockets + 2, sockets + 2, chargers + 3];
+    let want: u16 = lower.iter().sum();
+    let budget = want.min(area.height.saturating_sub(CHARTS_MIN));
+    if budget >= LOWER_MIN.iter().sum() {
+        // Take rows from the tallest pane until they fit.
+        while lower.iter().sum::<u16>() > budget {
+            let i = (0..3)
+                .filter(|&i| lower[i] > LOWER_MIN[i])
+                .max_by_key(|&i| (lower[i], std::cmp::Reverse(i)))
+                .expect("the minimums fit");
+            lower[i] -= 1;
+        }
+    } else {
+        // Too short for all three: the focused one (else the link strips)
+        // gets the rows; `Ctrl-w j` / `k` page through them.
+        let shown = match app.focus() {
+            Pane::Urbs => 1,
+            Pane::Chargers => 2,
+            _ => 0,
+        };
+        lower = [0; 3];
+        if budget >= LOWER_MIN[shown] {
+            lower[shown] = budget;
+        }
+    }
+    let charts = area.height.saturating_sub(lower.iter().sum());
+    let power = charts * 11 / 20;
+    let [a, b, c, d, e] = Layout::vertical([
+        Constraint::Length(power),
+        Constraint::Length(charts - power),
+        Constraint::Length(lower[0]),
+        Constraint::Length(lower[1]),
+        Constraint::Length(lower[2]),
+    ])
+    .areas(area);
+    [a, b, c, d, e]
 }
 
 /// The history's span rounded up to a minute, between 1 and 10 minutes.
@@ -183,4 +296,14 @@ fn named_sets(series: &[Series]) -> Vec<Dataset<'_>> {
                 .style(Style::new().fg(*color))
         })
         .collect()
+}
+
+/// `text` cut to `width` columns with an ellipsis, padded to `width`.
+pub fn fit(text: &str, width: usize) -> String {
+    if Line::from(text).width() <= width {
+        return format!("{text:<width$}");
+    }
+    let mut out: String = text.chars().take(width.saturating_sub(1)).collect();
+    out.push('…');
+    format!("{out:<width$}")
 }

@@ -10,6 +10,7 @@ use super::detail::Target;
 use super::ghosts::{self, Ghost};
 use super::keys::{Action, Dir, Pending};
 use super::ports::{self, TreeOpts};
+use super::stats::Stats;
 use crate::diff::Event;
 use crate::health;
 use crate::history::{History, Sample};
@@ -56,10 +57,13 @@ pub enum Pane {
     Health,
     PowerChart,
     CpuChart,
+    Links,
+    Urbs,
+    Chargers,
     Events,
 }
 
-const PANES: usize = 7;
+const PANES: usize = 10;
 
 /// A pane's position. In the Sockets and Events panes `sel` is the selected
 /// row and `offset` the first row shown (the renderer keeps `sel` in view);
@@ -96,6 +100,8 @@ struct Held {
     snapshot: Option<Snapshot>,
     events: Vec<Event>,
     samples: Vec<Sample>,
+    /// The Charts tab's stats, carried on from the shown ones.
+    stats: Option<Stats>,
 }
 
 #[derive(Debug)]
@@ -103,6 +109,8 @@ pub struct App {
     pub snapshot: Option<Snapshot>,
     pub findings: Vec<Finding>,
     pub history: History<Sample>,
+    /// URB rates, link speeds and chargers for the Charts tab.
+    pub stats: Stats,
     pub events: VecDeque<Event>,
     pub tab: Tab,
     /// The focused pane of each tab.
@@ -144,6 +152,7 @@ impl App {
             snapshot: None,
             findings: Vec::new(),
             history: History::new(HISTORY_LEN),
+            stats: Stats::default(),
             events: VecDeque::new(),
             tab: Tab::Ports,
             focus: [Pane::Sockets, Pane::PowerChart, Pane::Events],
@@ -173,6 +182,8 @@ impl App {
     /// While paused these are held and applied on resume.
     pub fn on_update(&mut self, snapshot: Snapshot, events: Vec<Event>, sample: Sample) {
         if self.paused {
+            let stats = self.held.stats.get_or_insert_with(|| self.stats.clone());
+            stats.observe(&snapshot);
             self.held.snapshot = Some(snapshot);
             self.held.events.extend(events);
             let extra = self.held.events.len().saturating_sub(EVENTS_MAX);
@@ -182,6 +193,7 @@ impl App {
             self.held.samples.drain(..extra);
             return;
         }
+        self.stats.observe(&snapshot);
         self.apply_snapshot(snapshot, &events);
         self.push_events(events);
         self.history.push(sample);
@@ -529,6 +541,9 @@ impl App {
         }
         self.paused = false;
         let held = std::mem::take(&mut self.held);
+        if let Some(stats) = held.stats {
+            self.stats = stats;
+        }
         if let Some(snapshot) = held.snapshot {
             self.apply_snapshot(snapshot, &held.events);
         }
@@ -570,7 +585,7 @@ impl App {
         let pane = self.focus();
         match pane {
             Pane::PowerChart | Pane::CpuChart => {}
-            Pane::UsbC | Pane::Power | Pane::Health => {
+            Pane::UsbC | Pane::Power | Pane::Health | Pane::Links | Pane::Urbs | Pane::Chargers => {
                 // The renderer clamps it to the content.
                 self.pane_mut(pane).offset = to;
             }
@@ -616,7 +631,13 @@ impl App {
                 vec![Pane::Sockets],
                 vec![Pane::UsbC, Pane::Power, Pane::Health],
             ],
-            Tab::Charts => vec![vec![Pane::PowerChart, Pane::CpuChart]],
+            Tab::Charts => vec![vec![
+                Pane::PowerChart,
+                Pane::CpuChart,
+                Pane::Links,
+                Pane::Urbs,
+                Pane::Chargers,
+            ]],
             Tab::Events => vec![vec![Pane::Events]],
         }
     }

@@ -2,6 +2,7 @@
 //! rendered through ratatui's `TestBackend` from the fixture machines and
 //! hand-made histories and events.
 
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
@@ -9,7 +10,7 @@ use plugii::collect::{self, CollectOpts};
 use plugii::diff::{self, Event, EventKind};
 use plugii::history::{History, Sample};
 use plugii::labels;
-use plugii::model::{Snapshot, Usb3Side};
+use plugii::model::{CpuSample, LinkResets, Snapshot, Usb3Side, UsbDevice};
 use plugii::sysfs::Root;
 use plugii::tui::App;
 use plugii::tui::app::{self, Overlay, Pane, Tab};
@@ -761,4 +762,212 @@ fn no_ghosts_without_a_removed_event() {
         Sample::default(),
     );
     assert!(app.ghosts.is_empty());
+}
+
+/// Hand-set URB counters: each device's counter goes up by `per_s(name)`
+/// per call, from where the fixture left it.
+fn add_urbs(d: &mut UsbDevice, counts: &mut HashMap<String, u64>, per_s: &dyn Fn(&str) -> u64) {
+    let n = counts
+        .entry(d.sysfs_name.clone())
+        .or_insert(d.urbnum.unwrap_or(0));
+    *n += per_s(&d.sysfs_name);
+    d.urbnum = Some(*n);
+    for child in &mut d.children {
+        add_urbs(child, counts, per_s);
+    }
+}
+
+fn cpu(ghz: f32, package_w: f32, temp_c: f32) -> Option<CpuSample> {
+    Some(CpuSample {
+        util_pct: 50,
+        avg_khz: (ghz * 1e6) as u32,
+        max_khz: 4_900_000,
+        min_khz: Some(400_000),
+        package_w: Some(package_w),
+        package_temp_c: Some(temp_c),
+    })
+}
+
+/// Feeds `snaps` to a fresh app one second apart, ending at `T0`, with the
+/// events between them as the run loop makes them; opens the Charts tab.
+fn session(snaps: Vec<Snapshot>) -> App {
+    let mut app = App::new(0);
+    let n = snaps.len() as u64;
+    let mut prev: Option<Snapshot> = None;
+    for (i, mut snap) in snaps.into_iter().enumerate() {
+        let t = T0 - (n - 1 - i as u64) * 1000;
+        snap.taken_at_ms = t;
+        app.now_ms = t;
+        let events = prev
+            .as_ref()
+            .map(|p| diff::diff(p, &snap))
+            .unwrap_or_default();
+        let sample = Sample::from_snapshot(&snap);
+        prev = Some(snap.clone());
+        app.on_update(snap, events, sample);
+    }
+    keys(&mut app, "2");
+    app
+}
+
+/// A minute and a half on the ThinkPad: nothing plugged; the dock, whose
+/// hub first comes up at USB 2 only and whose disk copies for a while; a
+/// gap; then a plain charger on the same port.
+fn daisy_session() -> App {
+    let empty = snapshot("daisy-empty", "daisy");
+    let dock = snapshot("daisy-dock", "daisy");
+    let charger = snapshot("daisy-charger", "daisy");
+    let mut counts = HashMap::new();
+    let snaps = (0..90u64)
+        .map(|i| {
+            let mut snap = match i {
+                0..20 => empty.clone(),
+                20..50 => dock.clone(),
+                50..55 => empty.clone(),
+                _ => charger.clone(),
+            };
+            let busy = (30..42).contains(&i);
+            let per_s = |name: &str| match name {
+                "7-1.2" if busy => 4000 + 300 * (i % 4),
+                "7-1.2" => 120 + 10 * (i % 3),
+                _ => 2,
+            };
+            for socket in &mut snap.sockets {
+                if let Usb3Side::Paired(half) = &mut socket.usb3 {
+                    if (20..24).contains(&i) {
+                        half.device = None;
+                    }
+                    if let Some(d) = &mut half.device {
+                        add_urbs(d, &mut counts, &per_s);
+                    }
+                }
+                if let Some(d) = &mut socket.usb2.device {
+                    add_urbs(d, &mut counts, &per_s);
+                }
+            }
+            let load = if busy { 1.0 } else { 0.2 };
+            let wave = (i as f32 / 4.0).sin();
+            snap.cpu = cpu(
+                1.4 + 2.6 * load + 0.2 * wave,
+                6.0 + 22.0 * load,
+                50.0 + 30.0 * load,
+            );
+            let resets = match i {
+                0..21 => 0,
+                21..36 => 1,
+                _ => 3,
+            };
+            if resets > 0 {
+                snap.kernel_log.link_resets = vec![LinkResets {
+                    place: "USB-C (hinge)".into(),
+                    count: resets,
+                }];
+            }
+            snap
+        })
+        .collect();
+    session(snaps)
+}
+
+#[test]
+fn charts_daisy_session_120x40() {
+    let mut app = daisy_session();
+    assert_eq!(app.stats.chargers.len(), 2);
+    assert_eq!(app.stats.active, Some(1));
+    insta::assert_snapshot!(render(&mut app, 120, 40));
+}
+
+#[test]
+fn charts_daisy_session_80x40() {
+    let mut app = daisy_session();
+    let screen = render(&mut app, 80, 40);
+    assert!(app.narrow());
+    insta::assert_snapshot!(screen);
+}
+
+#[test]
+fn charts_daisy_session_120x24_pages_the_lower_panes() {
+    let mut app = daisy_session();
+    let screen = render(&mut app, 120, 24);
+    assert!(screen.contains("Link speed"));
+    assert!(!screen.contains("Chargers this session"));
+    insta::assert_snapshot!(screen);
+    // `Ctrl-w j` past the CPU chart pages through them.
+    for _ in 0..4 {
+        app.on_key(ctrl('w'));
+        keys(&mut app, "j");
+    }
+    assert_eq!(app.focus(), Pane::Chargers);
+    let screen = render(&mut app, 120, 24);
+    assert!(!screen.contains("Link speed"));
+    assert!(screen.contains("drawing 3.25 A"));
+}
+
+#[test]
+fn charts_lower_panes_shrink_and_scroll() {
+    let mut app = daisy_session();
+    // 28 body rows: the charts keep 16, the three panes share 12.
+    render(&mut app, 120, 29);
+    for pane in [Pane::Links, Pane::Urbs] {
+        assert_eq!(app.pane(pane).height, 2, "{pane:?}");
+    }
+    // Below its header.
+    assert_eq!(app.pane(Pane::Chargers).height, 1);
+    for _ in 0..2 {
+        app.on_key(ctrl('w'));
+        keys(&mut app, "j");
+    }
+    assert_eq!(app.focus(), Pane::Links);
+    keys(&mut app, "j");
+    let screen = render(&mut app, 120, 29);
+    assert_eq!(app.pane(Pane::Links).offset, 1);
+    let mut lines = screen.lines().skip_while(|l| !l.contains("Link speed"));
+    assert!(lines.nth(1).unwrap().starts_with("│USB-A (left)     │"));
+    keys(&mut app, "G");
+    render(&mut app, 120, 29);
+    assert_eq!(app.pane(Pane::Links).offset, 2);
+    keys(&mut app, "gg");
+    render(&mut app, 120, 29);
+    assert_eq!(app.pane(Pane::Links).offset, 0);
+}
+
+/// The XPS: unplugged, then on a 47 W charger that lists its PDOs, then on
+/// the dock, whose PDOs UCSI doesn't report.
+#[test]
+fn charts_xps_session_120x40() {
+    let empty = snapshot("xps-empty", "xps");
+    let charger = snapshot("xps", "xps");
+    let dock = snapshot("xps-dock-charger", "xps");
+    let snaps = (0..40u64)
+        .map(|i| {
+            let mut snap = match i {
+                0..10 => empty.clone(),
+                10..25 => charger.clone(),
+                _ => dock.clone(),
+            };
+            snap.cpu = cpu(2.0 + (i % 5) as f32 * 0.3, 10.0 + i as f32 * 0.5, 60.0);
+            snap
+        })
+        .collect();
+    let mut app = session(snaps);
+    assert_eq!(app.stats.chargers.len(), 2);
+    insta::assert_snapshot!(render(&mut app, 120, 40));
+}
+
+#[test]
+fn pause_holds_the_chart_stats_too() {
+    let mut app = daisy_dock();
+    assert_eq!(app.stats.chargers.len(), 1);
+    keys(&mut app, "p");
+    for (i, name) in ["daisy-empty", "daisy-charger"].into_iter().enumerate() {
+        let mut snap = snapshot(name, "daisy");
+        snap.taken_at_ms = T0 + 1000 * (i as u64 + 1);
+        app.on_update(snap, Vec::new(), Sample::default());
+    }
+    assert_eq!(app.stats.chargers.len(), 1);
+    assert_eq!(app.stats.sockets[0].links.len(), 1);
+    keys(&mut app, "p");
+    // Not reporting offers, a charger drawing other amps is another one.
+    assert_eq!(app.stats.chargers.len(), 2);
+    assert_eq!(app.stats.sockets[0].links.len(), 3);
 }
