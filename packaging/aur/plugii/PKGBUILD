@@ -1,0 +1,56 @@
+# Maintainer: Rodrigo Dlugokenski <git at dlu dot one>
+
+pkgname=plugii
+pkgver=0.1.0
+pkgrel=1
+pkgdesc='Live Linux USB port monitor: which socket, what link speed, USB-C / PD power'
+arch=('x86_64' 'aarch64')
+url='https://plugii.dlu.one'
+license=('MIT')
+# systemd-libs: libudev at runtime, and its headers and libudev.pc at build time.
+depends=('gcc-libs' 'glibc' 'systemd-libs')
+makedepends=('cargo')
+optdepends=('fwupd: firmware versions and pending updates with --firmware')
+# makepkg's LTO flags reach the C code ring (rustls) builds, which then fails to link.
+options=('!lto')
+source=("$pkgname-$pkgver.tar.gz::https://github.com/rdlu/plugii/archive/refs/tags/v$pkgver.tar.gz")
+# PLACEHOLDER until the v$pkgver tag exists: run `updpkgsums` then.
+sha256sums=('SKIP')
+
+prepare() {
+  cd "$pkgname-$pkgver"
+  export RUSTUP_TOOLCHAIN=stable
+  cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
+}
+
+build() {
+  cd "$pkgname-$pkgver"
+  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_TARGET_DIR=target
+  cargo build --frozen --release
+  mkdir -p gen/man gen/completions
+  target/release/plugii manpages gen/man
+  target/release/plugii completions bash > gen/completions/plugii.bash
+  target/release/plugii completions zsh > gen/completions/_plugii
+  target/release/plugii completions fish > gen/completions/plugii.fish
+}
+
+check() {
+  cd "$pkgname-$pkgver"
+  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_TARGET_DIR=target
+  # The suite runs against the sysfs fixtures in tests/fixtures; the live
+  # tests that read this machine are #[ignore]d.
+  cargo test --frozen --release
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  install -Dm755 target/release/plugii -t "$pkgdir/usr/bin/"
+  install -Dm644 LICENSE -t "$pkgdir/usr/share/licenses/$pkgname/"
+  install -Dm644 README.md CHANGELOG.md -t "$pkgdir/usr/share/doc/$pkgname/"
+  install -Dm644 gen/man/*.1 -t "$pkgdir/usr/share/man/man1/"
+  install -Dm644 gen/completions/plugii.bash "$pkgdir/usr/share/bash-completion/completions/plugii"
+  install -Dm644 gen/completions/_plugii -t "$pkgdir/usr/share/zsh/site-functions/"
+  install -Dm644 gen/completions/plugii.fish -t "$pkgdir/usr/share/fish/vendor_completions.d/"
+}

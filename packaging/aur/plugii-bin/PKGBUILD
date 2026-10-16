@@ -1,0 +1,31 @@
+# Maintainer: Rodrigo Dlugokenski <git at dlu dot one>
+
+pkgname=plugii-bin
+_pkgname=plugii
+pkgver=0.1.0
+pkgrel=1
+pkgdesc='Live Linux USB port monitor: which socket, what link speed, USB-C / PD power (release binary)'
+arch=('x86_64' 'aarch64')
+url='https://plugii.dlu.one'
+license=('MIT')
+depends=('gcc-libs' 'glibc' 'systemd-libs')
+optdepends=('fwupd: firmware versions and pending updates with --firmware')
+provides=("$_pkgname=$pkgver")
+conflicts=("$_pkgname")
+_release="https://github.com/rdlu/plugii/releases/download/v$pkgver"
+source_x86_64=("$_release/$_pkgname-$pkgver-x86_64-unknown-linux-gnu.tar.gz")
+source_aarch64=("$_release/$_pkgname-$pkgver-aarch64-unknown-linux-gnu.tar.gz")
+# PLACEHOLDERS until the v$pkgver release exists: run `updpkgsums` then.
+sha256sums_x86_64=('SKIP')
+sha256sums_aarch64=('SKIP')
+
+package() {
+  cd "$_pkgname-$pkgver-$CARCH-unknown-linux-gnu"
+  install -Dm755 plugii -t "$pkgdir/usr/bin/"
+  install -Dm644 LICENSE -t "$pkgdir/usr/share/licenses/$pkgname/"
+  install -Dm644 README.md CHANGELOG.md -t "$pkgdir/usr/share/doc/$pkgname/"
+  install -Dm644 man/*.1 -t "$pkgdir/usr/share/man/man1/"
+  install -Dm644 completions/plugii.bash "$pkgdir/usr/share/bash-completion/completions/plugii"
+  install -Dm644 completions/_plugii -t "$pkgdir/usr/share/zsh/site-functions/"
+  install -Dm644 completions/plugii.fish -t "$pkgdir/usr/share/fish/vendor_completions.d/"
+}

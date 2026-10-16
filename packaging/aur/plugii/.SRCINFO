@@ -1,0 +1,18 @@
+pkgbase = plugii
+	pkgdesc = Live Linux USB port monitor: which socket, what link speed, USB-C / PD power
+	pkgver = 0.1.0
+	pkgrel = 1
+	url = https://plugii.dlu.one
+	arch = x86_64
+	arch = aarch64
+	license = MIT
+	makedepends = cargo
+	depends = gcc-libs
+	depends = glibc
+	depends = systemd-libs
+	optdepends = fwupd: firmware versions and pending updates with --firmware
+	options = !lto
+	source = plugii-0.1.0.tar.gz::https://github.com/rdlu/plugii/archive/refs/tags/v0.1.0.tar.gz
+	sha256sums = SKIP
+
+pkgname = plugii
