@@ -5,28 +5,59 @@ weight: 2
 ---
 
 plugii runs on Linux. It reads sysfs, listens to udev and asks `journalctl -k`
-for the kernel log, all as your user: no root, no daemon. It's built from
-source for now (binaries come with the first release), so you need a Rust
-toolchain.
+for the kernel log, all as your user: no root, no daemon.
 
 ## Install
 
-Clone the repository, then install the `plugii` binary into `~/.cargo/bin`:
+Each [GitHub release](https://github.com/rdlu/plugii/releases) has binaries
+for x86_64 and aarch64 Linux (glibc 2.35 or newer: Ubuntu 22.04, Debian 12,
+Fedora 36 and later, Arch). They need libudev, which every systemd
+distribution has. These install methods work from the first release,
+0.1.0; until it's out, build from source.
 
 {{< tabs >}}
-{{< tab name="cargo" >}}
+{{< tab name="binary" >}}
+
+Download the tarball for your machine and its checksum, check it, and put
+the binary on your `PATH`:
 
 ```sh
-git clone https://github.com/rdlu/plugii
-cd plugii
-cargo install --locked --path .
+version=0.1.0
+target=$(uname -m)-unknown-linux-gnu   # x86_64 or aarch64
+base=https://github.com/rdlu/plugii/releases/download/v$version
+curl -fLO "$base/plugii-$version-$target.tar.gz"
+curl -fLO "$base/plugii-$version-$target.tar.gz.sha256"
+sha256sum -c "plugii-$version-$target.tar.gz.sha256"
+tar -xzf "plugii-$version-$target.tar.gz"
+install -Dm755 "plugii-$version-$target/plugii" ~/.local/bin/plugii
 ```
+
+The tarball also has man pages (`man/`) and bash, zsh and fish completions
+(`completions/`).
 
 {{< /tab >}}
 {{< tab name="mise" >}}
 
-The repository's `mise.toml` has an `install` task that runs the same
-`cargo install`:
+mise's `github` backend installs the release binary for your
+architecture:
+
+```sh
+mise use -g github:rdlu/plugii
+```
+
+{{< /tab >}}
+{{< tab name="from source" >}}
+
+With a Rust toolchain (1.88 or newer) and libudev's headers (`libudev-dev`
+and `pkg-config` on Debian and Ubuntu, `systemd-devel` on Fedora; Arch has
+them already), cargo builds it into `~/.cargo/bin`:
+
+```sh
+cargo install --locked --git https://github.com/rdlu/plugii
+```
+
+Or from a clone, where the `install` task of the repository's `mise.toml`
+runs the same `cargo install`:
 
 ```sh
 git clone https://github.com/rdlu/plugii

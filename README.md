@@ -21,6 +21,25 @@ the keymap) is the docs site in `site/`, to be published at
 <https://plugii.dlu.one/>; until then, `mise run docs` serves it
 locally. This README is the short version.
 
+## Install
+
+These work from the first release, 0.1.0; until it's out, build from source.
+
+- **Release binaries:** each
+  [GitHub release](https://github.com/rdlu/plugii/releases) has
+  `plugii-<version>-<target>.tar.gz` for `x86_64-unknown-linux-gnu` and
+  `aarch64-unknown-linux-gnu` (glibc 2.35+, libudev), each with a `.sha256`.
+  Check it with `sha256sum -c`, then put `plugii` on your `PATH`. The tarball
+  also has man pages and bash, zsh and fish completions.
+- **mise:** `mise use -g github:rdlu/plugii` installs the release binary.
+- **From source** (Rust 1.88+, libudev headers: `libudev-dev` and
+  `pkg-config` on Debian/Ubuntu):
+  `cargo install --locked --git https://github.com/rdlu/plugii`, or
+  `mise run install` in a clone.
+
+The [install page](https://plugii.dlu.one/docs/getting-started/) has the
+step-by-step version.
+
 ## Commands
 
 ```text
