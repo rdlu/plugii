@@ -1,0 +1,69 @@
+[tools]
+"cargo:cargo-insta" = "latest"
+
+[tasks.fmt]
+description = "Format the code"
+run = "cargo fmt"
+
+[tasks.lint]
+description = "Clippy with warnings as errors"
+run = "cargo clippy --all-targets -- -D warnings"
+
+[tasks.test]
+description = "Run the test suite"
+run = "cargo test"
+
+[tasks.check]
+description = "The commit gates: fmt --check, clippy, test"
+run = [
+  "cargo fmt --check",
+  "cargo clippy --all-targets -- -D warnings",
+  "cargo test",
+]
+
+[tasks.test-live]
+description = "Smoke tests against this machine's real sysfs"
+run = "cargo test --test live -- --ignored --nocapture"
+
+[tasks.review]
+description = "Review pending insta snapshots"
+run = "cargo insta review"
+
+[tasks.report]
+description = "Full report on this machine"
+run = "cargo run -q --"
+
+[tasks.health]
+description = "Health verdict only"
+run = "cargo run -q -- -H"
+
+[tasks.watch]
+description = "The live TUI"
+run = "cargo run -q -- watch"
+
+[tasks.capture]
+description = "Capture this machine's sysfs as a fixture (review the redaction before committing)"
+usage = 'arg "<name>" help="fixture name, e.g. daisy-dock"'
+run = 'cargo run -q -- capture "tests/fixtures/sysfs/${usage_name?}"'
+
+[tasks.outdated]
+description = "Dependencies with newer versions, including major ones"
+run = "cargo update --dry-run --verbose 2>&1 | grep -E 'Updating [^ ]+ v|Unchanged.*available' || echo 'all dependencies up to date'"
+
+[tasks.update]
+description = "Update Cargo.lock within semver, then run the gates"
+run = ["cargo update", { task = "check" }]
+
+[tasks.push]
+description = "Run the gates and push main to GitHub dev (retries for the security key)"
+run = '''
+set -e
+[ "$(git branch --show-current)" = main ] || { echo "not on main"; exit 1; }
+[ -z "$(git status --porcelain)" ] || { echo "working tree not clean"; exit 1; }
+mise run check
+for i in 1 2 3; do
+  git push origin main:dev && exit 0
+  echo "push failed (touch the security key?), retry $i/3"
+done
+exit 1
+'''

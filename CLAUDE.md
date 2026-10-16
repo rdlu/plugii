@@ -14,7 +14,9 @@ cargo clippy --all-targets -- -D warnings
 cargo run -- [args]
 ```
 
-All three of test, fmt --check and clippy must pass before a commit.
+All three of test, fmt --check and clippy must pass before a commit
+(`mise run check`). `mise tasks` lists the rest: `test-live`, `review`,
+`capture <name>`, `outdated`, `update`, `watch`, `push`.
 
 ## Conventions
 
