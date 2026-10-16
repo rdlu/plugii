@@ -73,6 +73,13 @@ fn capture_and_replay() {
 }
 
 #[test]
+fn labels_subcommand() {
+    assert_eq!(action(&["labels"]), Action::Labels);
+    assert!(rejects(&["labels", "x"]));
+    assert!(rejects(&["--json", "labels"]));
+}
+
+#[test]
 fn invalid_combinations() {
     assert!(rejects(&["capture"]));
     assert!(rejects(&["replay"]));

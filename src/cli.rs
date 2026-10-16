@@ -1,5 +1,5 @@
 //! Command line: `plugii [-H] [--json] [--firmware]`, `plugii watch` / `-w`,
-//! `plugii capture <dir>`, `plugii replay <file>`.
+//! `plugii capture <dir>`, `plugii replay <file>`, `plugii labels`.
 
 use std::path::PathBuf;
 
@@ -40,6 +40,8 @@ pub enum Command {
     Capture { dir: PathBuf },
     /// Play back a file written by `watch --record`.
     Replay { file: PathBuf },
+    /// List the labels file's sockets, peers and USB-C ports.
+    Labels,
 }
 
 /// What to do, with flag aliases resolved.
@@ -59,6 +61,7 @@ pub enum Action {
     Replay {
         file: PathBuf,
     },
+    Labels,
 }
 
 impl Cli {
@@ -67,6 +70,7 @@ impl Cli {
             Some(Command::Watch { record }) => Action::Watch { record },
             Some(Command::Capture { dir }) => Action::Capture { dir },
             Some(Command::Replay { file }) => Action::Replay { file },
+            Some(Command::Labels) => Action::Labels,
             None if self.watch => Action::Watch { record: None },
             None => Action::Report {
                 health_only: self.health,
