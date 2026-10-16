@@ -155,6 +155,22 @@ impl Speed {
         self.mbps() >= 5000.0
     }
 
+    /// The compact form for one-line events: `480M`, `5G`, `10G`.
+    pub fn short(self) -> String {
+        match self {
+            Self::Low => "1.5M".into(),
+            Self::Full => "12M".into(),
+            Self::High => "480M".into(),
+            Self::Super => "5G".into(),
+            Self::SuperPlus => "10G".into(),
+            Self::SuperPlus2x2 => "20G".into(),
+            Self::Other(mbps) if mbps >= 1000 && mbps % 1000 == 0 => {
+                format!("{}G", mbps / 1000)
+            }
+            Self::Other(mbps) => format!("{mbps}M"),
+        }
+    }
+
     /// The `usb-ports` script's wording.
     pub fn label(self) -> String {
         match self {

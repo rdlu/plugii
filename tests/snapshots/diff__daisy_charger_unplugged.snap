@@ -1,0 +1,7 @@
+---
+source: tests/diff.rs
+expression: "lines(\"daisy\", \"daisy-charger\", \"daisy-empty\")"
+---
+− USB-C partner on port0 (USB-C (caps lock))
+~ stopped charging via port0 (USB-C (caps lock))
+~ AC offline

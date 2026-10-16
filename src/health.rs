@@ -254,7 +254,7 @@ pub fn usb_c_sources_text(s: &Snapshot) -> String {
         .join(", ")
 }
 
-fn source_text(s: &Snapshot, src: &UsbCSource) -> String {
+pub(crate) fn source_text(s: &Snapshot, src: &UsbCSource) -> String {
     source_with_notes(s, src, Vec::new())
 }
 

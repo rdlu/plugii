@@ -1,0 +1,7 @@
+---
+source: tests/diff.rs
+expression: "lines(\"daisy\", \"daisy-empty\", \"daisy-charger\")"
+---
++ USB-C partner on port0 (USB-C (caps lock))
+~ charging via port0 (USB-C (caps lock)) — power level not reported (drawing 3.25 A)
+~ AC online

@@ -169,3 +169,36 @@ fn json_report_parses() {
         snapshot.sockets.len()
     );
 }
+
+#[test]
+#[ignore = "watches the running machine"]
+fn watcher_sends_snapshots() {
+    use plugii::watch::{self, Update};
+
+    let labels = labels::config_dir()
+        .and_then(|dir| labels::load(&dir).ok())
+        .unwrap_or_default();
+    let started = std::time::Instant::now();
+    let rx = watch::spawn(Root::live(), labels);
+    let mut snapshots = Vec::new();
+    while snapshots.len() < 2 {
+        let left = Duration::from_secs(3).saturating_sub(started.elapsed());
+        match rx.recv_timeout(left).expect("two snapshots within 3 s") {
+            Update::Snapshot(snap) => {
+                println!(
+                    "{:?}: {} sockets, {} kernel errors, cpu {:?}",
+                    started.elapsed(),
+                    snap.sockets.len(),
+                    snap.kernel_log.errors.len(),
+                    snap.cpu
+                );
+                snapshots.push(snap);
+            }
+            Update::Warning(w) => println!("warning: {w}"),
+        }
+    }
+    assert!(snapshots[1].taken_at_ms >= snapshots[0].taken_at_ms);
+    // The first scan has no counters to compare; the next one does.
+    assert!(snapshots[0].cpu.is_none());
+    assert!(snapshots[1].cpu.is_some());
+}
