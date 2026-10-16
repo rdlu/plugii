@@ -10,6 +10,7 @@ layout: hextra-home
   {{< icon name="arrow-circle-right" attributes="height=14" >}}
 {{< /hextra/hero-badge >}}
 
+<div class="plugii-hero">
 <div class="hx:mt-6 hx:mb-6">
 {{< hextra/hero-headline >}}
   Know what every USB port&nbsp;<br class="hx:sm:block hx:hidden" />is really doing
@@ -22,6 +23,7 @@ layout: hextra-home
   shows what is plugged in, at what link speed, and with what USB-C power,
   so a port that has quietly fallen back to USB&nbsp;2 stands out.
 {{< /hextra/hero-subtitle >}}
+</div>
 </div>
 
 <div class="plugii-actions">

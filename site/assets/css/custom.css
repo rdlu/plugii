@@ -1,26 +1,456 @@
-/* Teal accent, close to the Starlight spike's #1aa391 / #0f7f71.
-   Hextra derives its whole primary scale from these three. */
+/* plugii's skin for Hextra: the user's Noctalia palette, iA Writer Duo for
+   text, 0xProto for code and navigation, and a few terminal touches (square
+   corners, thin pane borders, `┌ Title ─` headings, a `$ ` prompt on shell
+   blocks, a block cursor on the hero). Fonts are declared in
+   layouts/_partials/custom/head-end.html. Dark is the default. */
+
+/* ── Palette ──────────────────────────────────────────────────────────── */
+
 :root {
-  --primary-hue: 172deg;
-  --primary-saturation: 72%;
-  --primary-lightness: 36%;
+  /* Light: Noctalia's light scheme. */
+  --p-bg: #f9f9f9;
+  --p-panel: #f2f2f2;
+  --p-raised: #eeeeee;
+  --p-text: #1b1b1b;
+  --p-muted: #474747;
+  --p-faint: #5e5e5e;
+  --p-outline: #c6c6c6;
+  --p-accent: #006685;
+  --p-on-accent: #ffffff;
+  --p-secondary: #4d616c;
+  --p-tertiary: #5e5a7d;
+  --p-error: #ba1a1a;
+  --p-ok: #2f6b1f;
+  --p-warn: #7a5900;
+
+  --p-sans: "iA Writer Duo", ui-sans-serif, system-ui, sans-serif;
+  --p-mono: "0xProto", ui-monospace, "DejaVu Sans Mono", "Noto Sans Mono", monospace;
+
+  /* Hextra derives its primary scale from these: #006685. */
+  --primary-hue: 195deg;
+  --primary-saturation: 100%;
+  --primary-lightness: 26%;
 }
 
-/* Keycaps: Hextra's prose <kbd> is a flat chip; give it a key bottom edge. */
+.dark {
+  /* Dark: pure black page, Noctalia's dark surfaces. */
+  --p-bg: #000000;
+  --p-panel: #131313;
+  --p-raised: #1f1f1f;
+  --p-text: #e2e2e2;
+  --p-muted: #c6c6c6;
+  --p-faint: #919191;
+  --p-outline: #474747;
+  --p-accent: #6dd2ff;
+  --p-on-accent: #003547;
+  --p-secondary: #b4cad6;
+  --p-tertiary: #c7c2ea;
+  --p-error: #ffb4ab;
+  --p-ok: #b9ca4a;
+  --p-warn: #e7c547;
+
+  /* #6dd2ff */
+  --primary-hue: 199deg;
+  --primary-saturation: 100%;
+  --primary-lightness: 71%;
+}
+
+/* Hextra's own tokens, pointed at the palette. */
+:root {
+  --hx-font-sans: var(--p-sans);
+  --hx-font-mono: var(--p-mono);
+  --hx-radius-xs: 0;
+  --hx-radius-sm: 1px;
+  --hx-radius-md: 2px;
+  --hx-radius-lg: 2px;
+  --hx-radius-xl: 2px;
+  --hx-radius-2xl: 2px;
+  --hx-radius-3xl: 2px;
+  --hx-color-dark: #000;
+  --hx-color-white: #fff;
+  --hx-color-gray-50: var(--p-panel);
+  --hx-color-gray-100: var(--p-raised);
+  --hx-color-gray-200: var(--p-outline);
+  --hx-color-gray-500: var(--p-faint);
+  --hx-color-gray-600: var(--p-muted);
+  --hx-color-gray-700: var(--p-muted);
+  --hx-color-gray-800: var(--p-text);
+  --hx-color-gray-900: var(--p-text);
+  --hx-color-slate-900: var(--p-text);
+  --hx-color-neutral-200: var(--p-outline);
+}
+.dark {
+  --hx-color-gray-100: var(--p-text);
+  --hx-color-gray-200: var(--p-text);
+  --hx-color-gray-300: var(--p-muted);
+  --hx-color-gray-400: var(--p-muted);
+  --hx-color-gray-500: var(--p-faint);
+  --hx-color-gray-600: var(--p-outline);
+  --hx-color-gray-700: var(--p-outline);
+  --hx-color-slate-100: var(--p-text);
+  --hx-color-neutral-50: var(--p-text);
+  --hx-color-neutral-200: var(--p-text);
+  --hx-color-neutral-300: var(--p-muted);
+  --hx-color-neutral-400: var(--p-muted);
+  --hx-color-neutral-500: var(--p-faint);
+  --hx-color-neutral-600: var(--p-outline);
+  --hx-color-neutral-700: var(--p-outline);
+  --hx-color-neutral-800: var(--p-raised);
+  --hx-color-neutral-900: var(--p-panel);
+  --hx-color-gray-800: var(--p-text);
+  --hx-color-gray-900: var(--p-text);
+}
+
+html {
+  color-scheme: light;
+}
+html.dark {
+  color-scheme: dark;
+}
+body {
+  background: var(--p-bg);
+  color: var(--p-text);
+  font-family: var(--p-sans);
+}
+::selection {
+  background: var(--p-accent);
+  color: var(--p-on-accent);
+}
+
+/* ── Chrome: navbar, sidebar, TOC, footer in mono ─────────────────────── */
+
+.hextra-nav-container nav,
+.hextra-sidebar-container,
+.hextra-toc,
+.hextra-footer,
+.hextra-search-wrapper,
+.hextra-search-input,
+.hextra-search-results,
+nav[aria-label="breadcrumb"],
+.hextra-pager,
+.hextra-tabs-toggle,
+.hextra-code-filename {
+  font-family: var(--p-mono);
+}
+.hextra-nav-container-blur {
+  background: var(--p-bg) !important;
+  box-shadow: inset 0 -1px 0 var(--p-outline) !important;
+}
+.hextra-nav-container nav a {
+  color: var(--p-muted);
+}
+.hextra-nav-container nav a:hover,
+.hextra-nav-container nav a[aria-current="true"] {
+  color: var(--p-accent);
+}
+
+@media (min-width: 768px) {
+  .hextra-sidebar-container {
+    background: var(--p-panel);
+    border-inline-end: 1px solid var(--p-outline);
+  }
+}
+.hextra-sidebar-container > div:last-child {
+  background: var(--p-panel) !important;
+  box-shadow: none !important;
+  border-color: var(--p-outline) !important;
+}
+.hextra-sidebar-container a {
+  color: var(--p-muted);
+}
+.hextra-sidebar-container a:hover {
+  color: var(--p-text);
+  background: var(--p-raised);
+}
+/* The page you're on: reverse video, like a selected row in the TUI. */
+.hextra-sidebar-container a.hextra-sidebar-active-item {
+  background: var(--p-accent) !important;
+  color: var(--p-on-accent) !important;
+  font-weight: 700;
+}
+/* Group headings (the separator pages): `── Guides`. */
+.hextra-sidebar-container li > span.hx\:cursor-default,
+.hextra-sidebar-container li:not(:has(a)) > span {
+  color: var(--p-faint);
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+}
+.hextra-sidebar-container li:not(:has(a)) > span::before {
+  content: "── ";
+  color: var(--p-outline);
+}
+
+.hextra-toc a {
+  color: var(--p-muted);
+}
+.hextra-toc a.hextra-toc-active {
+  color: var(--p-accent) !important;
+}
+.hextra-toc div.hx\:sticky.hx\:bottom-0 {
+  background: var(--p-bg) !important;
+  box-shadow: none !important;
+  border-color: var(--p-outline) !important;
+}
+.hextra-toc a:hover,
+.hextra-toc a.hx\:text-primary-600 {
+  color: var(--p-accent) !important;
+}
+.hextra-footer {
+  border-top: 1px solid var(--p-outline);
+  background: var(--p-panel) !important;
+}
+.hextra-footer,
+.hextra-footer a {
+  color: var(--p-faint);
+}
+
+/* ── Content ──────────────────────────────────────────────────────────── */
+
+.content {
+  color: var(--p-text);
+  line-height: 1.7;
+}
+.content :where(p, li, td) {
+  color: var(--p-text);
+}
+.content :where(h1, h2, h3, h4) {
+  color: var(--p-text);
+  letter-spacing: -0.01em;
+}
+.content h1 {
+  font-family: var(--p-mono);
+  font-weight: 700;
+}
+
+/* h2 as a TUI pane title: `┌─ Title ─────────`. */
+.content h2:not(.not-prose) {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6ch;
+  border-bottom: 0 !important;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+.content h2:not(.not-prose)::before {
+  content: "";
+  flex: none;
+  align-self: center;
+  width: 0.7em;
+  height: 0.55em;
+  margin-top: 0.45em;
+  border-top: 2px solid var(--p-outline);
+  border-left: 2px solid var(--p-outline);
+}
+.content h2:not(.not-prose)::after {
+  content: "";
+  flex: 1 1 2rem;
+  min-width: 2rem;
+  align-self: center;
+  border-top: 1px solid var(--p-outline);
+}
+.content h3 {
+  color: var(--p-secondary);
+}
+
+.content a:not(.not-prose a, .hextra-card, .subheading-anchor) {
+  color: var(--p-accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+.content a:not(.not-prose a, .hextra-card, .subheading-anchor):hover {
+  color: var(--p-tertiary);
+}
+
+/* Inline code. */
+.content :not(pre) > code {
+  font-family: var(--p-mono);
+  font-size: 0.86em;
+  color: var(--p-text);
+  background: var(--p-raised);
+  border: 1px solid var(--p-outline);
+  border-radius: 0;
+  padding: 0.05em 0.35em;
+}
+
+/* Code blocks: a pane with a thin border. */
+.hextra-code-block pre,
+.content pre {
+  background: var(--p-raised) !important;
+  border: 1px solid var(--p-outline);
+  border-radius: 0 !important;
+  font-family: var(--p-mono);
+  font-weight: 400;
+  line-height: 1.45;
+}
+.hextra-code-block .hextra-code-filename {
+  background: var(--p-panel);
+  border: 1px solid var(--p-outline);
+  border-bottom: 0;
+  border-radius: 0;
+  color: var(--p-muted);
+}
+.hextra-code-block .hextra-code-filename::before {
+  content: "┌ ";
+  color: var(--p-outline);
+}
+.hextra-code-copy-btn {
+  border-radius: 0 !important;
+  border-color: var(--p-outline) !important;
+  background: var(--p-panel) !important;
+}
+/* The shell prompt. Generated content isn't in innerText, so the copy
+   button copies the bare command. */
+.chroma code[data-lang="sh"] .line::before,
+.chroma code[data-lang="bash"] .line::before {
+  content: "$ ";
+  color: var(--p-accent);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Syntax colours, toned to the palette. */
+.chroma {
+  color: var(--p-text);
+  background: transparent !important;
+}
+.chroma :is(.c, .c1, .cm, .ch, .cs, .cp) {
+  color: var(--p-faint);
+  font-style: normal;
+}
+.chroma :is(.k, .kd, .kn, .kr, .kt, .nb, .nt) {
+  color: var(--p-accent);
+}
+.chroma :is(.s, .s1, .s2, .sb, .sd, .se, .si, .sr, .ss, .dl) {
+  color: var(--p-secondary);
+}
+.chroma :is(.m, .mi, .mf, .mh, .il, .no, .nv, .nn) {
+  color: var(--p-tertiary);
+}
+.chroma :is(.o, .p, .nx, .nf, .n, .err, .w) {
+  color: inherit;
+  background: none;
+}
+
+/* Tables: thin outline, header in mono. */
+.content table {
+  font-size: 0.92rem;
+}
+.content :is(th, td) {
+  border-color: var(--p-outline) !important;
+}
+.content th {
+  font-family: var(--p-mono);
+  font-weight: 700;
+  background: var(--p-panel);
+}
+.content tr {
+  border-color: var(--p-outline) !important;
+  background: transparent !important;
+}
+
+/* Callouts and alerts: a panel with a coloured left rule. */
+.content .hextra-alert,
+.content div.hx\:mt-6.hx\:flex.hx\:border.hx\:py-2 {
+  border-radius: 0 !important;
+  background: var(--p-panel) !important;
+  color: var(--p-text) !important;
+  border: 1px solid var(--p-outline) !important;
+  border-left: 3px solid var(--p-accent) !important;
+}
+.content .hextra-alert :is(p, li, .hextra-alert-title) {
+  color: var(--p-text);
+}
+.content .hextra-alert .hextra-alert-title {
+  font-family: var(--p-mono);
+  color: var(--p-accent);
+}
+.content .hextra-alert:is([data-alert="caution"], [data-alert="warning"]) {
+  border-left-color: var(--p-error) !important;
+}
+.content .hextra-alert:is([data-alert="caution"], [data-alert="warning"]) .hextra-alert-title {
+  color: var(--p-error);
+}
+.content .hextra-alert[data-alert="tip"] {
+  border-left-color: var(--p-tertiary) !important;
+}
+.content .hextra-alert[data-alert="tip"] .hextra-alert-title {
+  color: var(--p-tertiary);
+}
+.content blockquote {
+  border-color: var(--p-outline);
+  color: var(--p-muted);
+}
+
+/* Cards and feature cards: panes. */
+.hextra-card,
+.hextra-feature-card {
+  border-radius: 0 !important;
+  border: 1px solid var(--p-outline) !important;
+  background: var(--p-panel) !important;
+  box-shadow: none !important;
+}
+.hextra-feature-card::before {
+  display: none;
+}
+.hextra-card:hover,
+.hextra-feature-card:hover {
+  border-color: var(--p-accent) !important;
+}
+.hextra-card .hextra-card-icon {
+  font-family: var(--p-mono);
+  color: var(--p-text) !important;
+}
+.hextra-card .hextra-card-subtitle {
+  color: var(--p-muted) !important;
+}
+.hextra-feature-card h3 {
+  font-family: var(--p-mono);
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  color: var(--p-text);
+}
+.hextra-feature-card h3 svg {
+  color: var(--p-accent);
+}
+.hextra-feature-card p {
+  color: var(--p-muted) !important;
+  font-size: 0.92rem !important;
+}
+.hextra-feature-card p code {
+  font-family: var(--p-mono);
+  font-size: 0.88em;
+  color: var(--p-text);
+}
+
+/* Tabs (cargo / mise). */
+.hextra-tabs-toggle {
+  border-radius: 0 !important;
+}
+.hextra-tabs-toggle[aria-selected="true"] {
+  color: var(--p-accent) !important;
+  border-color: var(--p-accent) !important;
+}
+
+/* Keycaps: a key with a bottom edge. */
 .content kbd {
   display: inline;
   padding: 0.1em 0.45em;
+  font-family: var(--p-mono);
   font-size: 0.85em;
   line-height: 1;
+  color: var(--p-text);
+  background: var(--p-raised);
+  border: 1px solid var(--p-outline);
   border-bottom-width: 3px;
-  border-radius: 0.3rem;
+  border-radius: 2px;
   white-space: nowrap;
 }
 .content kbd + kbd {
   margin-inline-start: 0.15em;
 }
 .content .alt {
-  opacity: 0.6;
+  color: var(--p-faint);
   font-size: 0.85em;
   padding-inline: 0.35em;
 }
@@ -36,39 +466,133 @@
   }
 }
 
-/* Landing: buttons side by side. */
+/* Plain-text terminal output (reports, help): no prompt, a bit tighter. */
+.content .terminal pre {
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+/* ── Search ───────────────────────────────────────────────────────────── */
+
+.hextra-search-wrapper input,
+.hextra-search-input {
+  border-radius: 0 !important;
+  background: var(--p-raised) !important;
+  border: 1px solid var(--p-outline) !important;
+  color: var(--p-text) !important;
+}
+.hextra-search-wrapper kbd {
+  border-radius: 0 !important;
+}
+
+/* ── Landing ──────────────────────────────────────────────────────────── */
+
+.plugii-hero h1 {
+  font-family: var(--p-mono);
+  background: none !important;
+  color: var(--p-text) !important;
+  -webkit-text-fill-color: currentColor;
+  letter-spacing: -0.02em;
+}
+.plugii-hero h1::before {
+  content: "> ";
+  color: var(--p-accent);
+}
+/* The block cursor. */
+.plugii-hero h1::after {
+  content: "";
+  display: inline-block;
+  width: 0.55em;
+  height: 0.9em;
+  margin-inline-start: 0.12em;
+  vertical-align: -0.08em;
+  background: var(--p-accent);
+  animation: plugii-blink 1.1s steps(1, end) infinite;
+}
+@keyframes plugii-blink {
+  50% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .plugii-hero h1::after {
+    animation: none;
+  }
+}
+.plugii-hero p {
+  color: var(--p-muted) !important;
+}
+
 .plugii-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
 }
+.plugii-actions a {
+  font-family: var(--p-mono);
+  border-radius: 0 !important;
+  padding: 0.65rem 1.4rem !important;
+}
+.plugii-actions a:first-child {
+  background: var(--p-accent) !important;
+  color: var(--p-on-accent) !important;
+  font-weight: 700;
+}
+.plugii-actions a:first-child::before {
+  content: "[ ";
+}
+.plugii-actions a:first-child::after {
+  content: " ]";
+}
+.plugii-actions a + a {
+  background: transparent !important;
+  color: var(--p-text) !important;
+  box-shadow: inset 0 0 0 1px var(--p-outline) !important;
+}
+.plugii-actions a + a:hover {
+  box-shadow: inset 0 0 0 1px var(--p-accent) !important;
+  color: var(--p-accent) !important;
+}
 
-/* The demo GIF in a terminal window frame. */
+/* Section titles on the landing page. */
+.hextra-home .content h2.not-prose,
+main h2.not-prose {
+  font-family: var(--p-mono);
+}
+
+/* ── Demo video in a pane ─────────────────────────────────────────────── */
+
 .plugii-demo {
   width: 100%;
-  margin: 3rem 0 1rem;
-  border-radius: 0.75rem;
-  overflow: hidden;
-  background: #1e1e2e;
-  border: 1px solid rgb(127 127 127 / 0.25);
-  box-shadow: 0 1.5rem 3rem -1rem rgb(0 0 0 / 0.45);
+  margin: 2.5rem 0 1rem;
+  border: 1px solid var(--p-outline);
+  background: #000;
 }
 .plugii-demo .bar {
   display: flex;
-  gap: 0.45rem;
-  padding: 0.65rem 0.9rem;
-  background: #181825;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.3rem 0.75rem;
+  font-family: var(--p-mono);
+  font-size: 0.8rem;
+  color: #c6c6c6;
+  background: #131313;
+  border-bottom: 1px solid #474747;
 }
-.plugii-demo .bar span {
-  width: 0.75rem;
-  height: 0.75rem;
-  border-radius: 50%;
+.plugii-demo .bar b {
+  color: #6dd2ff;
+  font-weight: 400;
 }
-.plugii-demo .bar span:nth-child(1) { background: #f38ba8; }
-.plugii-demo .bar span:nth-child(2) { background: #f9e2af; }
-.plugii-demo .bar span:nth-child(3) { background: #a6e3a1; }
+.plugii-demo video,
 .plugii-demo img {
   display: block;
   width: 100%;
   height: auto;
+}
+.plugii-demo figcaption {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  color: #c6c6c6;
+  background: #131313;
+  border-top: 1px solid #474747;
 }
