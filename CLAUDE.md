@@ -16,7 +16,7 @@ cargo run -- [args]
 
 All three of test, fmt --check and clippy must pass before a commit
 (`mise run check`). `mise tasks` lists the rest: `test-live`, `review`,
-`capture <name>`, `outdated`, `update`, `watch`, `push`.
+`capture <name>`, `outdated`, `update`, `watch`, `install`, `push`.
 
 ## Conventions
 

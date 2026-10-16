@@ -41,6 +41,10 @@ run = "cargo run -q -- -H"
 description = "The live TUI"
 run = "cargo run -q -- watch"
 
+[tasks.install]
+description = "Install the plugii binary into ~/.cargo/bin from this checkout"
+run = "cargo install --locked --path ."
+
 [tasks.capture]
 description = "Capture this machine's sysfs as a fixture (review the redaction before committing)"
 usage = 'arg "<name>" help="fixture name, e.g. daisy-dock"'
