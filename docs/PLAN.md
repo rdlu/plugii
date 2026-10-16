@@ -107,12 +107,22 @@ Tabs: **Ports** | **Charts** | **Events**.
   PDOs, active one highlighted), Power, Health.
 - Detail view (Enter): strings, serial, driver, bcdUSB, bMaxPower,
   capable-vs-linked speed ("10G capable, linked at 5G → cable/hub limiting").
-- Label wizard (`l`): name the selected unlabeled socket, write it to the labels file.
+- Label wizard (`L`): name the selected unlabeled socket, write it to the labels file.
 - Charts: power timeline (PD contract W, battery W, CPU package W) with
   vertical markers at plug events; CPU GHz + temp on the same time axis;
   per-port URB/s sparklines; per-socket link-speed timeline strips;
   charger comparison table (max offered, negotiated, CPU GHz/W allowed, resets).
-- Keys: ↑↓ select, ⏎ details, Tab switch, l label, p pause, c clear, ? help, q quit.
+- Keys — vim-first, arrows always work too (the user navigates with vim keys):
+  - Move: `j`/`k` (↓/↑), `h`/`l` (←/→: collapse/expand a hub, or previous/next
+    pane in a row), `gg` / `G` top/bottom, `Ctrl-d` / `Ctrl-u` half page,
+    counts (`5j`).
+  - Panes and tabs: `Ctrl-w h/j/k/l` move focus between panes, `gt` / `gT`
+    next/previous tab, `1`/`2`/`3` jump to a tab, `Tab` cycles too.
+  - `⏎` / `o` details, `Esc` back, `/` filter devices, `n` / `N` next/previous
+    match, `L` label socket, `p` pause, `c` clear events, `?` help (lists every
+    binding), `q` / `:q` quit.
+  - No key does something different from what vim users expect: `l` never
+    labels and `h` never opens help.
 
 ## Testing
 
