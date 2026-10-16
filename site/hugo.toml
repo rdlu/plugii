@@ -104,3 +104,16 @@ disableKinds = ["taxonomy", "term", "rss"]
   source = "../tests/snapshots"
   target = "assets/snapshots"
   files = ["report__*.snap", "tui__*.snap", "cli__help_*.snap"]
+# Demo videos and their posters, made by `mise run demos` (site/demos/build.sh).
+[[module.mounts]]
+  source = "demos"
+  target = "assets/demos"
+  files = ["*.webm", "*.png"]
+# ...and the recording they play, for download.
+[[module.mounts]]
+  source = "static"
+  target = "static"
+[[module.mounts]]
+  source = "demos"
+  target = "static/demos"
+  files = ["*.jsonl.gz"]

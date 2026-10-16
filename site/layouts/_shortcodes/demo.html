@@ -1,0 +1,24 @@
+{{- /*
+  A terminal recording from site/demos (mounted at assets/demos), in a pane:
+  {{< demo name="ports" title="…" alt="…" caption="…" >}}
+  Plays muted on a loop; the poster is the video's first frame, and also
+  what shows without video support.
+*/ -}}
+{{- $name := .Get "name" -}}
+{{- $video := resources.Get (printf "demos/%s.webm" $name) -}}
+{{- $poster := resources.Get (printf "demos/%s.png" $name) -}}
+{{- if not (and $video $poster) -}}
+  {{- errorf "demo: demos/%s.webm or .png is missing; run `mise run demos` (%s)" $name .Position -}}
+{{- end -}}
+{{- $alt := .Get "alt" -}}
+<figure class="plugii-demo">
+  <div class="bar"><span><b>$</b> {{ .Get "title" }}</span><span aria-hidden="true">{{ .Get "speed" | default "×1" }}</span></div>
+  <video autoplay muted loop playsinline preload="metadata" width="1280" height="760"
+    poster="{{ $poster.RelPermalink }}" aria-label="{{ $alt }}">
+    <source src="{{ $video.RelPermalink }}" type="video/webm">
+    <img src="{{ $poster.RelPermalink }}" alt="{{ $alt }}" width="1280" height="760">
+  </video>
+  {{- with .Get "caption" }}
+  <figcaption>{{ . | markdownify }}</figcaption>
+  {{- end }}
+</figure>

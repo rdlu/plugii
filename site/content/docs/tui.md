@@ -125,6 +125,8 @@ linked at:
 
 ## Charts
 
+{{< demo name="charts" title="plugii replay daisy-session.jsonl.gz --speed 4" speed="×4" alt="The Charts tab during a replayed session: power and CPU panes with plug markers, the link-speed strip of the hinge USB-C port going from hub stuck at USB 2 to 5G, URB/s bars while a device behind the dock is busy, and a table of the session's chargers; then the Events tab listing every plug, unplug and link reset." caption="The same session at x4 on the Charts tab, then Events." >}}
+
 The Charts tab puts power and CPU on one time axis, up to the last 10
 minutes, with a vertical marker at every plug and unplug:
 

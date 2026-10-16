@@ -63,6 +63,15 @@ recording may come from another machine). Replay takes plain and `.gz`
 files; a cut-off last line or gzip stream (a crash) is skipped, with a
 warning in the status line.
 
+The demos on this site are replays too: `examples/demo_recording.rs` builds
+a session from the test fixtures (fixed timestamps, redacted) into
+`site/demos/daisy-session.jsonl.gz`, and VHS films `plugii replay` playing
+it. [Download it](/demos/daisy-session.jsonl.gz) (5 KB) to try the keys:
+
+```sh
+plugii replay daisy-session.jsonl.gz --speed 4
+```
+
 ## The file format
 
 JSON lines. The first line is a header:

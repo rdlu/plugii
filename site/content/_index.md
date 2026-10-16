@@ -31,6 +31,7 @@ layout: hextra-home
 {{< hextra/hero-button text="GitHub" link="https://github.com/rdlu/plugii" >}}
 </div>
 
+{{< demo name="ports" title="plugii replay daisy-session.jsonl.gz --speed 2" speed="×2" alt="plugii replaying a recorded session on the Ports tab: a dock plugged into the hinge USB-C port comes up with its hub stuck at USB 2 and a red health finding, then links at 5G; a device's details popup, the filter, the help overlay, and the dock's devices left as ghosts after the unplug." caption="A recorded session, replayed: the dock's hub first comes up at USB 2 only, then at 5G. [More on the TUI](docs/tui/)." >}}
 
 <div class="hx:mt-12"></div>
 
