@@ -15,9 +15,9 @@ script is the baseline, the TUI and charts are the point.
   `plugii -H` (health only), `plugii --json`, `plugii watch` / `-w` (TUI),
   `plugii capture <dir>` (dump relevant sysfs as a test fixture),
   `plugii watch --record f.jsonl`, `plugii replay f.jsonl`.
-- **Labels:** read `~/.config/plugii/labels`, falling back to
-  `~/.config/usb-ports/labels`. Same format as the script:
-  `<pci>-<port> label`, `peer:<usb2-key> <usb3-key>`, `typec:portN label`,
+- **Labels:** `~/.config/plugii/labels` only (the script's
+  `~/.config/usb-ports/labels` is retired with the script). Same format as
+  the script: `<pci>-<port> label`, `peer:<usb2-key> <usb3-key>`, `typec:portN label`,
   `esrt:<guid> label`.
 - **Firmware section** (DMI, fwupd, Lenovo/Dell catalogs): last milestone,
   opt-in with `--firmware` (network + cache).

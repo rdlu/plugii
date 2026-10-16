@@ -71,11 +71,7 @@ fn print_labels() -> Result<ExitCode> {
         bail!("can't find the config directory: neither XDG_CONFIG_HOME nor HOME is set");
     };
     let Some(path) = labels::find(&dir) else {
-        println!(
-            "no labels file ({} or {})",
-            dir.join("plugii/labels").display(),
-            dir.join("usb-ports/labels").display()
-        );
+        println!("no labels file ({})", labels::path(&dir).display());
         return Ok(ExitCode::SUCCESS);
     };
     let labels = labels::read(&path).wrap_err_with(|| format!("reading {}", path.display()))?;

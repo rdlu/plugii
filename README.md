@@ -35,9 +35,8 @@ plugii replay f.jsonl         play a recording back
 
 The kernel can't tell which socket on the chassis a root port is, so names
 come from a labels file: `$XDG_CONFIG_HOME/plugii/labels` (default
-`~/.config/plugii/labels`), falling back to `~/.config/usb-ports/labels`. One
-entry per line; blank lines and `#` comments are ignored, and the last line for
-a key wins.
+`~/.config/plugii/labels`). One entry per line; blank lines and `#` comments
+are ignored, and the last line for a key wins.
 
 ```text
 # <pci-address>-<port>  <label>

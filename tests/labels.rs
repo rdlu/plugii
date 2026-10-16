@@ -119,24 +119,21 @@ fn missing_file_is_empty_labels() {
 }
 
 #[test]
-fn falls_back_to_usb_ports_labels() {
+fn reads_plugii_labels() {
     let dir = tempfile::tempdir().unwrap();
-    let legacy = dir.path().join("usb-ports/labels");
-    write(&legacy, XPS);
-    assert_eq!(labels::find(dir.path()), Some(legacy));
+    let own = dir.path().join("plugii/labels");
+    write(&own, XPS);
+    assert_eq!(labels::find(dir.path()), Some(own));
     assert_eq!(labels::load(dir.path()).unwrap(), Labels::parse(XPS));
 }
 
+/// The usb-ports script's file is not read: plugii keeps its own.
 #[test]
-fn plugii_labels_win_over_usb_ports() {
+fn ignores_usb_ports_labels() {
     let dir = tempfile::tempdir().unwrap();
-    let own = dir.path().join("plugii/labels");
-    write(&own, "0000:06:00.4-1 mine\n");
     write(&dir.path().join("usb-ports/labels"), XPS);
-    assert_eq!(labels::find(dir.path()), Some(own));
-    let l = labels::load(dir.path()).unwrap();
-    assert_eq!(l.socket_label("0000:06:00.4-1"), Some("mine"));
-    assert_eq!(l.socket_label("0000:00:14.0-1"), None);
+    assert_eq!(labels::find(dir.path()), None);
+    assert_eq!(labels::load(dir.path()).unwrap(), Labels::default());
 }
 
 #[test]

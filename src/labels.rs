@@ -176,13 +176,14 @@ pub fn config_dir_from(
         .map(|h| PathBuf::from(h).join(".config"))
 }
 
-/// The labels file under `config_dir`: `plugii/labels`, falling back to the
-/// script's `usb-ports/labels`. `None` when neither exists.
+/// Where the labels file lives under `config_dir`: `plugii/labels`.
+pub fn path(config_dir: &Path) -> PathBuf {
+    config_dir.join("plugii/labels")
+}
+
+/// The labels file under `config_dir`; `None` when it doesn't exist.
 pub fn find(config_dir: &Path) -> Option<PathBuf> {
-    ["plugii/labels", "usb-ports/labels"]
-        .into_iter()
-        .map(|rel| config_dir.join(rel))
-        .find(|path| path.is_file())
+    Some(path(config_dir)).filter(|path| path.is_file())
 }
 
 /// Labels from [`find`]'s file; no file means no labels, not an error.
