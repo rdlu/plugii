@@ -1,4 +1,4 @@
-//! Command line: `plugii [-H] [--json] [--firmware]`, `plugii watch` / `-w`,
+//! Command line: `plugii [-H] [--json] [--firmware [--refresh]]`, `plugii watch` / `-w`,
 //! `plugii watch --record <file> [--redact] [--force]`, `plugii capture <dir>`,
 //! `plugii replay <file> [--speed N]`, `plugii labels`.
 
@@ -23,8 +23,16 @@ pub struct Cli {
     #[arg(long)]
     pub firmware: bool,
 
+    /// With --firmware: fetch the vendor catalog even if a cached copy is fresh.
+    #[arg(long, requires = "firmware")]
+    pub refresh: bool,
+
     /// Same as `plugii watch`.
-    #[arg(short = 'w', long = "watch", conflicts_with_all = ["health", "json", "firmware"])]
+    #[arg(
+        short = 'w',
+        long = "watch",
+        conflicts_with_all = ["health", "json", "firmware", "refresh"]
+    )]
     pub watch: bool,
 
     #[command(subcommand)]
@@ -67,6 +75,7 @@ pub enum Action {
         health_only: bool,
         json: bool,
         firmware: bool,
+        refresh: bool,
     },
     Watch {
         record: Option<Record>,
@@ -119,6 +128,7 @@ impl Cli {
                 health_only: self.health,
                 json: self.json,
                 firmware: self.firmware,
+                refresh: self.refresh,
             },
         }
     }

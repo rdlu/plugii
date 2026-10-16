@@ -18,6 +18,7 @@ fn report(health_only: bool, json: bool, firmware: bool) -> Action {
         health_only,
         json,
         firmware,
+        refresh: false,
     }
 }
 
@@ -41,6 +42,21 @@ fn report_flags() {
         action(&["-H", "--json", "--firmware"]),
         report(true, true, true)
     );
+}
+
+#[test]
+fn refresh_needs_firmware() {
+    assert_eq!(
+        action(&["--firmware", "--refresh"]),
+        Action::Report {
+            health_only: false,
+            json: false,
+            firmware: true,
+            refresh: true,
+        }
+    );
+    assert!(rejects(&["--refresh"]));
+    assert!(rejects(&["-w", "--refresh"]));
 }
 
 #[test]

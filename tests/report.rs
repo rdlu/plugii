@@ -2,11 +2,15 @@
 //! captures (with their labels and kernel log) and the hand-made power / CPU
 //! scenarios, collected offline.
 
+mod common;
+
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
+use common::fetch;
 use plugii::collect::{self, CollectOpts};
+use plugii::firmware::FwupdInput;
 use plugii::health;
 use plugii::labels::{self, Labels};
 use plugii::model::{Level, Snapshot};
@@ -304,4 +308,104 @@ fn desktop_report() {
 fn energy_unreadable_report() {
     let snap = scenario("energy-unreadable", 200, 200);
     insta::assert_snapshot!(text(&snap));
+}
+
+/// A fixture machine with `--firmware`, its catalogs and fwupd canned.
+fn with_firmware(machine: &str, fetch: &fetch::Canned, fwupd: FwupdInput) -> Snapshot {
+    let labels = labels::read(&fixtures().join("labels").join(machine_labels(machine))).unwrap();
+    let (root, mut snap) = collect(machine, &labels, Some(machine_labels(machine)));
+    snap.firmware = Some(fetch::collect(&root, &labels, fetch, fwupd));
+    snap
+}
+
+/// The labels file and kernel log a capture goes with.
+fn machine_labels(machine: &str) -> &'static str {
+    if machine.starts_with("daisy") {
+        "daisy"
+    } else {
+        "xps"
+    }
+}
+
+/// daisy as it is: BIOS build 40 and PD firmware 0x105, both the latest in
+/// Lenovo's catalog; fwupd has nothing pending. The script's output.
+#[test]
+fn daisy_charger_firmware_report() {
+    let snap = with_firmware("daisy-charger", &fetch::lenovo(), fetch::fwupd("daisy"));
+    let findings = health::check(&snap);
+    assert!(!health::is_bad(&findings), "{findings:#?}");
+    insta::assert_snapshot!(text(&snap));
+    insta::assert_json_snapshot!(json(&snap));
+}
+
+/// The PD firmware behind the catalog, a failed capsule update and a
+/// pending fwupd update: `-H --firmware` shows the findings.
+#[test]
+fn daisy_firmware_faults_health() {
+    let snap = with_firmware("daisy-charger", &fetch::lenovo(), fetch::fwupd("faults"));
+    let findings = health::check(&snap);
+    assert!(health::is_bad(&findings));
+    insta::assert_snapshot!(report::render_health(&findings, false));
+    insta::assert_snapshot!(text(&snap));
+}
+
+/// No network: the catalog line says so, fwupd still reports.
+#[test]
+fn daisy_firmware_offline_report() {
+    let snap = with_firmware(
+        "daisy-charger",
+        &fetch::Canned::default(),
+        fetch::fwupd("daisy"),
+    );
+    let text = text(&snap);
+    assert!(
+        text.contains(
+            "  Lenovo catalog for 21M4 unreachable (offline?) — latest versions not checked\n"
+        ),
+        "{text}"
+    );
+    insta::assert_snapshot!(text);
+}
+
+/// The XPS on 2.30.0 against a catalog whose newest BIOS is 2.30.0.
+#[test]
+fn xps_firmware_up_to_date_report() {
+    let snap = with_firmware(
+        "xps",
+        &fetch::dell("XPS_Notebook_0AF3-2.30.0.xml"),
+        fetch::fwupd_empty(),
+    );
+    assert!(
+        health::check(&snap)
+            .iter()
+            .any(|f| f.level == Level::Ok && f.message == "BIOS up to date (2.30.0)")
+    );
+    insta::assert_snapshot!(text(&snap));
+}
+
+/// Dell's catalog has 2.32.0, LVFS (fwupd) doesn't.
+#[test]
+fn xps_firmware_update_not_on_lvfs_report() {
+    let snap = with_firmware(
+        "xps",
+        &fetch::dell("XPS_Notebook_0AF3.xml"),
+        fetch::fwupd_empty(),
+    );
+    let findings = health::check(&snap);
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.level == Level::Warn && f.message.contains("not on LVFS yet")),
+        "{findings:#?}"
+    );
+    insta::assert_snapshot!(text(&snap));
+}
+
+/// Without `--firmware` the report and the JSON have no firmware at all.
+#[test]
+fn no_firmware_without_the_flag() {
+    let snap = daisy("daisy-charger");
+    assert_eq!(snap.firmware, None);
+    assert!(!text(&snap).contains("Firmware"));
+    assert!(json(&snap)["snapshot"].get("firmware").is_none());
 }

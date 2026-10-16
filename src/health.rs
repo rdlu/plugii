@@ -3,12 +3,21 @@
 //!
 //! Order: USB sockets (stuck hubs, over-current, then "USB 3 links up"),
 //! USB-C (UCSI up or missing, stale status, charging), Thunderbolt, external
-//! displays, power, CPU throttling, kernel log.
+//! displays, power, CPU throttling, kernel log, then firmware (with
+//! `--firmware`).
+//!
+//! Advice here is generic; [`crate::vendor::advise`] adds a vendor's own
+//! (Lenovo's EC reset procedure) on top.
 
 use crate::model::{
-    DisplayKind, Finding, Level, Pdo, Snapshot, Socket, Speed, TypecPort, Usb3Side, UsbCSource,
-    UsbDevice, Vrr,
+    Catalog, DisplayKind, Finding, Fwupd, Level, Pdo, Snapshot, Socket, Speed, TypecPort, Usb3Side,
+    UsbCSource, UsbDevice, Vrr,
 };
+use crate::vendor::{dell, lenovo};
+
+/// Findings that suggest resetting the embedded controller end with this,
+/// so a vendor module can add how.
+pub const EC_RESET: &str = "EC reset";
 
 /// Link resets this boot at which the cable or link is called flaky.
 pub const LINK_RESET_WARN: u32 = 5;
@@ -27,6 +36,7 @@ pub fn check(s: &Snapshot) -> Vec<Finding> {
     power(s, &mut out);
     cpu(s, &mut out);
     kernel_log(s, &mut out);
+    firmware(s, &mut out);
     out.0
 }
 
@@ -154,8 +164,7 @@ fn usb_sockets(s: &Snapshot, out: &mut Findings) {
         if hub_stuck_at_usb2(socket) {
             out.fail(format!(
                 "{name}: hub stuck at USB 2 — the port's SuperSpeed lanes are down, so no \
-                 USB 3 and no DP alt mode either. Flip the plug; if that fails, EC reset \
-                 (power off, unplug all, hold power 15 s)"
+                 USB 3 and no DP alt mode either. Flip the plug; if that fails, {EC_RESET}"
             ));
             ss_down = true;
         }
@@ -292,7 +301,7 @@ fn displays(s: &Snapshot, out: &mut Findings) {
     if !sinks.is_empty() && !dp {
         out.warn(format!(
             "USB-C device on {} but no DisplayPort output — if it's a monitor, alt mode \
-             failed: check the cable on another machine, then EC reset",
+             failed: check the cable on another machine, then {EC_RESET}",
             sinks.join(", ")
         ));
     }
@@ -456,6 +465,50 @@ fn kernel_log(s: &Snapshot, out: &mut Findings) {
     }
 }
 
+/// With `--firmware`, in the script's order: the BIOS against the vendor
+/// catalog, labelled PD firmware against it, fwupd's failed and pending
+/// updates, then a Dell BIOS update (worded by whether fwupd has it too).
+fn firmware(s: &Snapshot, out: &mut Findings) {
+    let Some(fw) = &s.firmware else { return };
+    let bios = match &fw.catalog {
+        Catalog::Lenovo(c) => lenovo::bios_finding(&fw.dmi, c),
+        Catalog::Dell(c) => dell::bios_finding(&fw.dmi, c),
+        _ => None,
+    };
+    out.0.extend(bios);
+    let state = match &fw.fwupd {
+        Fwupd::Checked(state) => Some(state),
+        Fwupd::NotInstalled => None,
+    };
+    if let (Catalog::Lenovo(c), Some(state)) = (&fw.catalog, state) {
+        out.0.extend(lenovo::pd_findings(c, state));
+    }
+    if let Some(state) = state {
+        if !state.failed.is_empty() {
+            out.fail(format!(
+                "fwupd recorded a failed firmware update: {}",
+                state.failed.join(", ")
+            ));
+        }
+        if !state.pending.is_empty() {
+            let list: Vec<String> = state.pending.iter().map(pending_text).collect();
+            out.warn(format!(
+                "fwupd has {} firmware update(s): {} — fwupdmgr update",
+                list.len(),
+                list.join("; ")
+            ));
+        }
+    }
+    if let Catalog::Dell(c) = &fw.catalog {
+        out.0.extend(dell::update_finding(&fw.dmi, c, state));
+    }
+}
+
+/// `Name Version → Release`.
+pub fn pending_text(p: &crate::model::PendingUpdate) -> String {
+    format!("{} {} → {}", p.name, p.version, p.release)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -483,6 +536,7 @@ mod tests {
                 benign_count: 0,
                 link_resets: Vec::new(),
             },
+            firmware: None,
         }
     }
 
@@ -619,7 +673,22 @@ mod tests {
         assert_eq!(stuck[0].level, Level::Fail);
         assert!(stuck[0].message.starts_with("USB-C (left): "));
         assert!(stuck[0].message.contains("Flip the plug"));
-        assert!(stuck[0].message.contains("EC reset"));
+        // Generic: how to reset the EC is the vendor module's to say.
+        assert!(stuck[0].message.ends_with(EC_RESET));
+        let mut lenovo = findings.clone();
+        crate::vendor::advise(Some(crate::vendor::Vendor::Lenovo), &mut lenovo);
+        let stuck = lenovo
+            .iter()
+            .find(|f| f.message.contains("hub stuck"))
+            .unwrap();
+        assert!(
+            stuck
+                .message
+                .ends_with("EC reset (power off, unplug all, hold power 15 s)")
+        );
+        let mut dell = findings.clone();
+        crate::vendor::advise(Some(crate::vendor::Vendor::Dell), &mut dell);
+        assert_eq!(dell, findings);
     }
 
     #[test]

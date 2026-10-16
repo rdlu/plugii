@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-16"?>
+<Manifest baseLocation="downloads.dell.com" dateTime="2026-10-14T04:53:59-05:00" identifier="316049e7-477a-47b5-bda0-2ef088d656e7" releaseID="D0T8G" version="2026.10.14" xmlns="openmanage/cm/dm">
+  <SoftwareComponent schemaVersion="3.0" releaseID="C34JV" releaseDate="May 18, 2026" vendorVersion="2.29.0" dellVersion="2.29.0" packageType="LWXP" path="FOLDER14372382M/1/XPS_9320_2_29_0.exe" packageID="C34JV" dateTime="2025-08-29T01:50:28-05:00" size="43132784" identifier="2699e03b-02e5-48bd-8f32-d8642379e440">
+    <Name>
+      <Display lang="en"><![CDATA[Dell XPS 9320 System BIOS]]></Display>
+    </Name>
+    <ComponentType value="BIOS">
+      <Display lang="en"><![CDATA[BIOS]]></Display>
+    </ComponentType>
+    <Description>
+      <Display lang="en"><![CDATA[This package contains the Dell system BIOS update. BIOS is a firmware package that is embedded on a small memory chip on the system board. It controls the keyboard, monitor, disk drives, and other devices. This update addresses the Dell Security Advisories (DSA). A security advisory is a statement when a security vulnerability impacts a product, and a remedy is available for the vulnerability.]]></Display>
+    </Description>
+    <Category value="BI">
+      <Display lang="en"><![CDATA[BIOS]]></Display>
+    </Category>
+    <SupportedDevices>
+      <Device componentID="159" embedded="false">
+        <Display><![CDATA[XPS 13 9320]]></Display>
+      </Device>
+    </SupportedDevices>
+    <SupportedSystems>
+      <Brand key="53" prefix="XPSNOTEBOOK">
+        <Display lang="en"><![CDATA[XPS Notebook]]></Display>
+        <Model systemID="0AF3">
+          <Display lang="en"><![CDATA[XPS 13 9320]]></Display>
+        </Model>
+      </Brand>
+    </SupportedSystems>
+    <ImportantInfo URL="https://www.dell.com/support/home/us/en/19/Drivers/DriversDetails?driverId=C34JV">
+      <Display lang="en"><![CDATA[NA]]></Display>
+    </ImportantInfo>
+    <Criticality value="2">
+      <Display lang="en"><![CDATA[Urgent]]></Display>
+    </Criticality>
+    <Cryptography>
+      <Hash algorithm="MD5">805e8a4e0302337f6243afd7c1791895</Hash>
+      <Hash algorithm="SHA256">07329d912a12a7a094fe1ba35294d3bcb492814928f9f639689c8069d2d99858</Hash>
+      <Hash algorithm="SHA1">88278bda82bd8301c6ce6faaeb5e6439f759b42e</Hash>
+    </Cryptography>
+  </SoftwareComponent>
+  <SoftwareComponent schemaVersion="3.0" releaseID="K08NW" releaseDate="June 18, 2026" vendorVersion="2.30.0" dellVersion="2.30.0" packageType="LWXP" path="FOLDER14474030M/1/XPS_9320_2_30_0.exe" packageID="K08NW" dateTime="2025-09-04T08:48:20-05:00" size="43358248" identifier="ded100b9-a9b7-4c54-b7c6-6a8a1e22486a">
+    <Name>
+      <Display lang="en"><![CDATA[Dell XPS 9320 System BIOS]]></Display>
+    </Name>
+    <ComponentType value="BIOS">
+      <Display lang="en"><![CDATA[BIOS]]></Display>
+    </ComponentType>
+    <Description>
+      <Display lang="en"><![CDATA[This package contains the Dell system BIOS update. BIOS is a firmware package that is embedded on a small memory chip on the system board. It controls the keyboard, monitor, disk drives, and other devices. This update addresses the Dell Security Advisories (DSA). A security advisory is a statement when a security vulnerability impacts a product, and a remedy is available for the vulnerability.]]></Display>
+    </Description>
+    <Category value="BI">
+      <Display lang="en"><![CDATA[BIOS]]></Display>
+    </Category>
+    <SupportedDevices>
+      <Device componentID="159" embedded="false">
+        <Display><![CDATA[XPS 13 9320]]></Display>
+      </Device>
+    </SupportedDevices>
+    <SupportedSystems>
+      <Brand key="53" prefix="XPSNOTEBOOK">
+        <Display lang="en"><![CDATA[XPS Notebook]]></Display>
+        <Model systemID="0AF3">
+          <Display lang="en"><![CDATA[XPS 13 9320]]></Display>
+        </Model>
+      </Brand>
+    </SupportedSystems>
+    <ImportantInfo URL="https://www.dell.com/support/home/us/en/19/Drivers/DriversDetails?driverId=K08NW">
+      <Display lang="en"><![CDATA[NA]]></Display>
+    </ImportantInfo>
+    <Criticality value="2">
+      <Display lang="en"><![CDATA[Urgent]]></Display>
+    </Criticality>
+    <Cryptography>
+      <Hash algorithm="MD5">7e4f0512a5f803937c1cab636e591868</Hash>
+      <Hash algorithm="SHA256">2d5d834b7bb5360e081bbbee3e7c230267a90f3d867efcfd33f99be2ffb52d57</Hash>
+      <Hash algorithm="SHA1">4ab70a8219f7d7375b9b850bfc19c6e1153857d8</Hash>
+    </Cryptography>
+  </SoftwareComponent>
+  <SoftwareComponent schemaVersion="3.0" releaseID="61R17" releaseDate="August 03, 2026" vendorVersion="5.7.1" dellVersion="A00" packageType="LW64" path="FOLDER14847280M/2/Dell-Command-Update-for-Win32_61R17_WIN64_5.7.1_A00.EXE" packageID="61R17" dateTime="2026-04-28T19:04:54-05:00" size="90702680" identifier="f62dfaca-af27-4892-9ac6-24299e7f3af8">
+    <Name>
+      <Display lang="en"><![CDATA[Dell Command | Update for Win32]]></Display>
+    </Name>
+    <ComponentType value="APAC">
+      <Display lang="en"><![CDATA[Application]]></Display>
+    </ComponentType>
+    <Description>
+      <Display lang="en"><![CDATA[This package contains the Dell Command | Update application. Dell Command Update is a stand-alone application for client systems that provides updates for system software that is released by Dell. This application simplifies the BIOS, firmware, driver, and application update experience for Dell client hardware. This update addresses the Dell Security Advisories (DSA). A security advisory is a statement when a security vulnerability impacts a product, and a remedy is available for the vulnerability.]]></Display>
+    </Description>
+    <Category value="SM">
+      <Display lang="en"><![CDATA[Systems Management]]></Display>
+    </Category>
+    <SupportedDevices>
+      <Device componentID="23400" embedded="false">
+        <Display><![CDATA[Dell Command | Update]]></Display>
+      </Device>
+    </SupportedDevices>
+    <SupportedSystems>
+      <Brand key="53" prefix="XPSNOTEBOOK">
+        <Display lang="en"><![CDATA[XPS Notebook]]></Display>
+        <Model systemID="0AF3">
+          <Display lang="en"><![CDATA[XPS 13 9320]]></Display>
+        </Model>
+      </Brand>
+    </SupportedSystems>
+    <SupportedOperatingSystems>
+      <OperatingSystem osCode="W21H4" osVendor="Microsoft" osArch="x64" majorVersion="10" minorVersion="0" spMajorVersion="0" spMinorVersion="0">
+        <Display lang="en"><![CDATA[Windows 11]]></Display>
+      </OperatingSystem>
+      <OperatingSystem osCode="W10H2" osVendor="Microsoft" osArch="x86" majorVersion="10" minorVersion="0" spMajorVersion="0" spMinorVersion="0">
+        <Display lang="en"><![CDATA[Windows 10 32-Bit]]></Display>
+      </OperatingSystem>
+      <OperatingSystem osCode="W21P4" osVendor="Microsoft" osArch="x64" majorVersion="10" minorVersion="0" spMajorVersion="0" spMinorVersion="0">
+        <Display lang="en"><![CDATA[Windows 11]]></Display>
+      </OperatingSystem>
+      <OperatingSystem osCode="W10P2" osVendor="Microsoft" osArch="x86" majorVersion="10" minorVersion="0" spMajorVersion="0" spMinorVersion="0">
+        <Display lang="en"><![CDATA[Windows 10 32-Bit]]></Display>
+      </OperatingSystem>
+      <OperatingSystem osCode="W10H4" osVendor="Microsoft" osArch="x64" majorVersion="10" minorVersion="0" spMajorVersion="0" spMinorVersion="0">
+        <Display lang="en"><![CDATA[Windows 10 64-Bit]]></Display>
+      </OperatingSystem>
+      <OperatingSystem osCode="W10P4" osVendor="Microsoft" osArch="x64" majorVersion="10" minorVersion="0" spMajorVersion="0" spMinorVersion="0">
+        <Display lang="en"><![CDATA[Windows 10 64-Bit]]></Display>
+      </OperatingSystem>
+    </SupportedOperatingSystems>
+    <ImportantInfo URL="https://www.dell.com/support/home/us/en/19/Drivers/DriversDetails?driverId=61R17">
+      <Display lang="en"><![CDATA[NA]]></Display>
+    </ImportantInfo>
+    <Criticality value="2">
+      <Display lang="en"><![CDATA[Urgent]]></Display>
+    </Criticality>
+    <Cryptography>
+      <Hash algorithm="MD5">bfa6e47f23dacbdb0535fab7b1420436</Hash>
+      <Hash algorithm="SHA256">1f7ae4e4a20e7005a894cf9429765e99cf197cc021303f7e105abac463114b0c</Hash>
+      <Hash algorithm="SHA1">58e8d4381fbb6b36e1033287b33527d2e632d99c</Hash>
+    </Cryptography>
+    <SharedModules>
+      <SharedModule moduleID="107714" />
+    </SharedModules>
+  </SoftwareComponent>
+  <SoftwareComponent schemaVersion="3.0" releaseID="RHFMN" releaseDate="February 16, 2026" vendorVersion="2.28.0" dellVersion="2.28.0" packageType="LWXP" path="FOLDER14018666M/1/XPS_9320_2_28_0.exe" packageID="RHFMN" dateTime="2025-08-28T03:30:49-05:00" size="43133536" identifier="12b9b9fb-0713-430f-89e8-fa9a78ccde7e">
+    <Name>
+      <Display lang="en"><![CDATA[Dell XPS 9320 System BIOS]]></Display>
+    </Name>
+    <ComponentType value="BIOS">
+      <Display lang="en"><![CDATA[BIOS]]></Display>
+    </ComponentType>
+    <Description>
+      <Display lang="en"><![CDATA[This package contains the Dell system BIOS update. BIOS is a firmware package that is embedded on a small memory chip on the system board. It controls the keyboard, monitor, disk drives, and other devices. This update addresses the Dell Security Advisories (DSA). A security advisory is a statement when a security vulnerability impacts a product, and a remedy is available for the vulnerability.]]></Display>
+    </Description>
+    <Category value="BI">
+      <Display lang="en"><![CDATA[BIOS]]></Display>
+    </Category>
+    <SupportedDevices>
+      <Device componentID="159" embedded="false">
+        <Display><![CDATA[XPS 13 9320]]></Display>
+      </Device>
+    </SupportedDevices>
+    <SupportedSystems>
+      <Brand key="53" prefix="XPSNOTEBOOK">
+        <Display lang="en"><![CDATA[XPS Notebook]]></Display>
+        <Model systemID="0AF3">
+          <Display lang="en"><![CDATA[XPS 13 9320]]></Display>
+        </Model>
+      </Brand>
+    </SupportedSystems>
+    <ImportantInfo URL="https://www.dell.com/support/home/us/en/19/Drivers/DriversDetails?driverId=RHFMN">
+      <Display lang="en"><![CDATA[NA]]></Display>
+    </ImportantInfo>
+    <Criticality value="2">
+      <Display lang="en"><![CDATA[Urgent]]></Display>
+    </Criticality>
+    <Cryptography>
+      <Hash algorithm="MD5">56592e857c89a89e20fc88502e163487</Hash>
+      <Hash algorithm="SHA256">3a8c5adab97135ef7bc19d91b001d3a12c8d36a47bffa1333890ce94cf4761f6</Hash>
+      <Hash algorithm="SHA1">33600bd0fb6dfc6a8735f546895329395638f9a4</Hash>
+    </Cryptography>
+  </SoftwareComponent>
+</Manifest>

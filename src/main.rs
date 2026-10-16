@@ -6,10 +6,12 @@ use clap::Parser;
 use color_eyre::eyre::{Result, WrapErr, bail};
 use plugii::cli::{self, Action, Cli};
 use plugii::collect::{self, CollectOpts};
+use plugii::firmware::FwupdInput;
 use plugii::labels::{self, Labels};
 use plugii::record::{self, Output, Recorder};
 use plugii::sysfs::Root;
 use plugii::tui::RecordTo;
+use plugii::vendor::{self, Cache, Http, Vendor};
 use plugii::{health, report};
 
 fn main() -> Result<ExitCode> {
@@ -19,10 +21,12 @@ fn main() -> Result<ExitCode> {
         .display_env_section(false)
         .install()?;
     match Cli::parse().action() {
-        Action::Report { firmware: true, .. } => not_yet("plugii --firmware"),
         Action::Report {
-            health_only, json, ..
-        } => run_report(health_only, json),
+            health_only,
+            json,
+            firmware,
+            refresh,
+        } => run_report(health_only, json, firmware.then_some(refresh)),
         Action::Watch { record } => watch(record),
         Action::Capture { dir } => capture(&dir),
         Action::Replay { file, speed } => replay(&file, speed),
@@ -31,11 +35,25 @@ fn main() -> Result<ExitCode> {
 }
 
 /// The report, `-H` or `--json`; exit status 1 when any finding is a
-/// warning or a failure, as the script does.
-fn run_report(health_only: bool, json: bool) -> Result<ExitCode> {
+/// warning or a failure, as the script does. `firmware` is `Some(refresh)`
+/// with `--firmware`: the firmware checks run alongside the scan.
+fn run_report(health_only: bool, json: bool, firmware: Option<bool>) -> Result<ExitCode> {
     let labels = load_labels()?;
-    let snapshot = collect::snapshot(&Root::live(), &labels, &CollectOpts::live());
-    let findings = health::check(&snapshot);
+    let root = Root::live();
+    let (mut snapshot, fw) = std::thread::scope(|scope| {
+        let fw = firmware.map(|refresh| {
+            let (root, labels) = (&root, &labels);
+            scope.spawn(move || {
+                let cache = Cache::new(Cache::default_dir(), refresh);
+                plugii::firmware::collect(root, labels, &Http, &cache, FwupdInput::Run)
+            })
+        });
+        let snapshot = collect::snapshot(&root, &labels, &CollectOpts::live());
+        (snapshot, fw.and_then(|h| h.join().ok()))
+    });
+    snapshot.firmware = fw;
+    let mut findings = health::check(&snapshot);
+    vendor::advise(Vendor::detect(&root), &mut findings);
     let mut stdout = std::io::stdout().lock();
     if json {
         let text = serde_json::to_string_pretty(&report::json(&snapshot, &findings))?;
@@ -128,8 +146,4 @@ fn capture(dir: &std::path::Path) -> Result<ExitCode> {
         summary.skipped
     );
     Ok(ExitCode::SUCCESS)
-}
-
-fn not_yet(what: &str) -> Result<ExitCode> {
-    bail!("`{what}` is not implemented yet")
 }

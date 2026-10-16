@@ -323,6 +323,7 @@ fn xps() -> Snapshot {
                 count: 2,
             }],
         },
+        firmware: None,
     }
 }
 
@@ -457,6 +458,7 @@ fn odd_machine() -> Snapshot {
             benign_count: 3,
             link_resets: Vec::new(),
         },
+        firmware: None,
     }
 }
 

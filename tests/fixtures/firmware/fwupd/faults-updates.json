@@ -1,0 +1,28 @@
+{
+  "Devices": [
+    {
+      "Name": "Integrated Camera",
+      "DeviceId": "REDACTED",
+      "Guid": [
+        "dfcfe656-fef7-545c-9ec0-1b8988cb4315"
+      ],
+      "Plugin": "dfu",
+      "Version": "59.14",
+      "VersionFormat": "bcd",
+      "Releases": [
+        {
+          "AppstreamId": "com.example.camera.firmware",
+          "Name": "Integrated Camera",
+          "Version": "59.16",
+          "Urgency": "medium"
+        },
+        {
+          "AppstreamId": "com.example.camera.firmware",
+          "Name": "Integrated Camera",
+          "Version": "59.15",
+          "Urgency": "low"
+        }
+      ]
+    }
+  ]
+}

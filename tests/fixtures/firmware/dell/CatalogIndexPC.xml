@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-16"?>
+<ManifestIndex baseLocation="downloads.dell.com" creationDateTime="2026-10-16T04:55:48-05:00" version="2026.10.16" baseLocationAccessProtocols="HTTPS" schemaVersion="3.0" xmlns="openmanage/cm/dm">
+  <InventoryComponent inventoryCollectorType="COMPACT" schemaVersion="3.0" releaseID="GHYXR" releaseDate="October 08,2026" vendorVersion="15.0.3.254" dellVersion="A00" osCode="WIN" path="FOLDER15102180M/1/InvColPC_x64_15.0.3.254.exe" size="2097016">
+    <ICManifest URL="https://dellupdater.dell.com/non_du/ClientService/invcol/10082026//1//ICManifest.cab">
+      <Cryptography>
+        <Hash algorithm="MD5">10E786559B8CBD041DBA57ECCF0CF092</Hash>
+        <Hash algorithm="SHA256">39B0A9BB9D753F5A5B17A3BF9FBDB56E2008B37806FC847D34E09045832CD4F5</Hash>
+        <Hash algorithm="SHA1">D66719B4CA039A2C11D70481C6A6162B18CF8770</Hash>
+      </Cryptography>
+    </ICManifest>
+    <Cryptography>
+      <Hash algorithm="MD5">4188cc6a5a978804b3a29a501739e569</Hash>
+      <Hash algorithm="SHA256">9e9e2d93db7dcc92320a83cd028f1b3f4187d7ff9fa83423f1148360c3328b54</Hash>
+      <Hash algorithm="SHA1">4b7d211956cc479b7ba48eeb48a4afcbe669a1c0</Hash>
+    </Cryptography>
+  </InventoryComponent>
+  <GroupManifest type="MTPDK" id="2f8be0b0-ace9-424b-9b28-ac4b13ba2e95" latest="53e85ade-495f-48c0-a7ef-2bdcbbedb7ab" eol="false" BKCCompliance="true" creationDateTime="2026-10-16T05:21:16-05:00">
+    <Display lang="en"><![CDATA[ PDK Catalog for Vostro Desktop ChengMing 3900/3901]]></Display>
+    <SupportedSystems>
+      <Brand key="50" prefix="VOSDT">
+        <Display lang="en"><![CDATA[Vostro Desktop]]></Display>
+        <Model systemID="0AF2" systemIDType="BIOS">
+          <Display lang="en"><![CDATA[ChengMing 3900/3901]]></Display>
+        </Model>
+      </Brand>
+    </SupportedSystems>
+    <ManifestInformation id="53e85ade-495f-48c0-a7ef-2bdcbbedb7ab" releaseID="FV988" creationDateTime="2026-10-04T03:39:55-05:00" version="2026.10.04" path="FOLDER15093790M/1/Vostro_Desktop_0AF2.cab" size="452084" inventoryCollectorType="COMPACT">
+      <Cryptography>
+        <Hash algorithm="MD5">ddd52476fbf3cb6911e971d4930d7c70</Hash>
+        <Hash algorithm="SHA1">1d7ac5fd093a70e8bc3cb535ba431770a4aeaaf5</Hash>
+        <Hash algorithm="SHA256">5aff7fde14bbe9d17e517d68ffb6902e17f6e8c23a420357c8d462b47b1ff9ff</Hash>
+      </Cryptography>
+      <Display lang="en"><![CDATA[ PDK Catalog for Vostro Desktop ChengMing 3900/3901]]></Display>
+    </ManifestInformation>
+  </GroupManifest>
+  <GroupManifest type="MTPDK" id="2dc0f497-085b-479f-9796-2a0b485495dc" latest="316049e7-477a-47b5-bda0-2ef088d656e7" eol="false" BKCCompliance="true" creationDateTime="2026-10-16T05:21:58-05:00">
+    <Display lang="en"><![CDATA[ PDK Catalog for XPS Notebook XPS 13 9320]]></Display>
+    <SupportedSystems>
+      <Brand key="53" prefix="XPSNOTEBOOK">
+        <Display lang="en"><![CDATA[XPS Notebook]]></Display>
+        <Model systemID="0AF3" systemIDType="BIOS">
+          <Display lang="en"><![CDATA[XPS 13 9320]]></Display>
+        </Model>
+      </Brand>
+    </SupportedSystems>
+    <ManifestInformation id="316049e7-477a-47b5-bda0-2ef088d656e7" releaseID="FMVCP" creationDateTime="2026-10-14T04:53:59-05:00" version="2026.10.14" path="FOLDER15136825M/1/XPS_Notebook_0AF3.cab" size="275517" inventoryCollectorType="COMPACT">
+      <Cryptography>
+        <Hash algorithm="MD5">5a679c586a00c48c9cf55aeb0ff94d49</Hash>
+        <Hash algorithm="SHA1">d30ec7cd06f563422d39ae84eaf4ee37ae931f1a</Hash>
+        <Hash algorithm="SHA256">9414e4154daf4c0a3afe0981a7c2e345de6dffdb4c4113f49c96e93d1fcbd8cf</Hash>
+      </Cryptography>
+      <Display lang="en"><![CDATA[ PDK Catalog for XPS Notebook XPS 13 9320]]></Display>
+    </ManifestInformation>
+  </GroupManifest>
+  <GroupManifest type="MTPDK" id="f57de2c6-7e26-4a06-ba37-525e64668845" latest="d24dfb11-ad23-4f52-bfc1-b4af1e35fccb" eol="false" BKCCompliance="true" creationDateTime="2026-10-16T05:08:56-05:00">
+    <Display lang="en"><![CDATA[ PDK Catalog for Inspiron Inspiron 15 3515]]></Display>
+    <SupportedSystems>
+      <Brand key="25" prefix="INS">
+        <Display lang="en"><![CDATA[Inspiron]]></Display>
+        <Model systemID="0AF4" systemIDType="BIOS">
+          <Display lang="en"><![CDATA[Inspiron 15 3515]]></Display>
+        </Model>
+      </Brand>
+    </SupportedSystems>
+    <ManifestInformation id="d24dfb11-ad23-4f52-bfc1-b4af1e35fccb" releaseID="6GD83" creationDateTime="2026-09-16T05:14:43-05:00" version="2026.09.16" path="FOLDER15041822M/1/Inspiron_0AF4.cab" size="119728" inventoryCollectorType="COMPACT">
+      <Cryptography>
+        <Hash algorithm="MD5">7b80923458c6ce9fa305b389accc4815</Hash>
+        <Hash algorithm="SHA1">ba22b0673253835c8124dab493276a653d51fc2e</Hash>
+        <Hash algorithm="SHA256">7085a486545fafef8d59e9f4e3caeac389037b95890c68b890b2b3ec647ba622</Hash>
+      </Cryptography>
+      <Display lang="en"><![CDATA[ PDK Catalog for Inspiron Inspiron 15 3515]]></Display>
+    </ManifestInformation>
+  </GroupManifest>
+  <GroupManifest type="MTPDK" id="ece0a8fb-2a8f-4415-8145-6f33d6c237fe" latest="516650ac-c851-4d4c-9210-2c00ba46c629" eol="false" BKCCompliance="true" creationDateTime="2026-10-16T05:21:09-05:00">
+    <Display lang="en"><![CDATA[ PDK Catalog for Precision Precision 3571]]></Display>
+    <SupportedSystems>
+      <Brand key="38" prefix="PRE">
+        <Display lang="en"><![CDATA[Precision]]></Display>
+        <Model systemID="0B10" systemIDType="BIOS">
+          <Display lang="en"><![CDATA[Precision 3571]]></Display>
+        </Model>
+      </Brand>
+    </SupportedSystems>
+    <ManifestInformation id="516650ac-c851-4d4c-9210-2c00ba46c629" releaseID="FMVCP" creationDateTime="2026-10-14T05:04:55-05:00" version="2026.10.14" path="FOLDER15136825M/1/Precision_0B10.cab" size="507217" inventoryCollectorType="COMPACT">
+      <Cryptography>
+        <Hash algorithm="MD5">935aaf6e756a210be9e1039650e5dd34</Hash>
+        <Hash algorithm="SHA1">bbc427e4ca3cfc4b6bb126b36b0b7983aab429cb</Hash>
+        <Hash algorithm="SHA256">e643fdfa1867120e4c1a7b63cf91cc915f16646bc431c8139fff0c3a7a98c352</Hash>
+      </Cryptography>
+      <Display lang="en"><![CDATA[ PDK Catalog for Precision Precision 3571]]></Display>
+    </ManifestInformation>
+  </GroupManifest>
+</ManifestIndex>

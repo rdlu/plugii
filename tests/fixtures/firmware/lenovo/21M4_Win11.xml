@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?><packages count="6">
+  <package>
+    <location>https://download.lenovo.com/pccbbs/mobiles/fwnva70_2_.xml</location>
+    <category>Storage</category>
+    <oslangs></oslangs>
+    <checksum type="sha256">fe234069ddfd7daf979cf0ab6fda906d12f51f0bd837ed6ddeb8daab384e01c5</checksum>
+  </package>
+  <package>
+    <location>https://download.lenovo.com/pccbbs/mobiles/r2kcm11w_2_.xml</location>
+    <category>Camera and Card Reader</category>
+    <oslangs></oslangs>
+    <checksum type="sha256">89e554aaeb6ec89f0325cc27666d56cab4cd8c0b127320985610b1fa545d1d93</checksum>
+  </package>
+  <package>
+    <location>https://download.lenovo.com/pccbbs/mobiles/r2kff07w_2_.xml</location>
+    <category>Fingerprint reader</category>
+    <oslangs></oslangs>
+    <checksum type="sha256">1a6b96174827006b2e20a464dc6e39cfa6eb0eccefb498cee98985f847ce3877</checksum>
+  </package>
+  <package>
+    <location>https://download.lenovo.com/pccbbs/mobiles/usbcundkfw3098_w10w11_2_.xml</location>
+    <category>Advanced Firmware</category>
+    <oslangs></oslangs>
+    <checksum type="sha256">df973a9cef8eeef44e12ca291737887b7626a3852a82eab643872e06621949e8</checksum>
+  </package>
+  <package>
+    <location>https://download.lenovo.com/pccbbs/mobiles/r2kpd16w_2_.xml</location>
+    <category>USB Device FireWire IEEE 1394 Thunderbolt</category>
+    <oslangs></oslangs>
+    <checksum type="sha256">9577af0cd1174f7d2050e2f81143d51ed3b7d3e49b8faf4e6f78cb29e91f8344</checksum>
+  </package>
+  <package>
+    <location>https://download.lenovo.com/pccbbs/mobiles/r2kuj40w_2_.xml</location>
+    <category>BIOS UEFI</category>
+    <oslangs></oslangs>
+    <checksum type="sha256">76b21cb5d77e53cd6a03c2c25bacc25dad5dafcaa94636a125616eac62a7a5db</checksum>
+  </package>
+</packages>

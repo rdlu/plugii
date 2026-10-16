@@ -1,0 +1,272 @@
+---
+source: tests/report.rs
+expression: json(&snap)
+---
+{
+  "findings": [
+    {
+      "level": "ok",
+      "message": "USB-C status driver (UCSI) up: 2 port(s)"
+    },
+    {
+      "level": "ok",
+      "message": "charging power arriving via USB-C port0 (USB-C (caps lock)) — power level not reported (drawing 3.25 A; charger's offers not reported)"
+    },
+    {
+      "level": "ok",
+      "message": "kernel log clean"
+    },
+    {
+      "level": "ok",
+      "message": "BIOS up to date (R2KET40W, 1.29)"
+    },
+    {
+      "level": "ok",
+      "message": "USB-C PD firmware up to date (0x105)"
+    }
+  ],
+  "snapshot": {
+    "cpu": null,
+    "displays": [],
+    "firmware": {
+      "catalog": {
+        "bios_check": "up_to_date",
+        "latest": {
+          "bios": {
+            "build": 40,
+            "package": "r2kuj40w",
+            "prefix": "r2k",
+            "url": "https://download.lenovo.com/pccbbs/mobiles/r2kuj40w_2_.xml"
+          },
+          "pd": {
+            "package": "r2kpd16w",
+            "release_date": "2026-03-17",
+            "url": "https://download.lenovo.com/pccbbs/mobiles/r2kpd16w_2_.xml",
+            "version_hex": "105"
+          }
+        },
+        "mtm": "21M4",
+        "status": "lenovo"
+      },
+      "dmi": {
+        "bios_date": "05/19/2026",
+        "bios_release": "1.29",
+        "bios_version": "R2KET40W (1.29 )",
+        "ec_firmware_release": "1.29",
+        "product_family": "ThinkPad E14 Gen 6",
+        "product_name": "21M4000RBO",
+        "product_sku": "LENOVO_MT_21M4_BU_Think_FM_ThinkPad E14 Gen 6",
+        "sys_vendor": "LENOVO"
+      },
+      "fwupd": {
+        "failed": [],
+        "labelled": [
+          {
+            "guid": "a77b326c-bbf9-4867-af3b-a01f96f274f5",
+            "label": "USB-C PD firmware",
+            "version": "261"
+          }
+        ],
+        "pending": [],
+        "status": "checked"
+      }
+    },
+    "host": "unknown",
+    "kernel_log": {
+      "benign_count": 2,
+      "errors": [],
+      "link_resets": []
+    },
+    "power": {
+      "ac_online": true,
+      "battery": {
+        "capacity_pct": 80,
+        "charge_limit_pct": 80,
+        "flow_mw": null,
+        "status": "Not charging"
+      },
+      "usb_c_sources": [
+        {
+          "current_ma": 3250,
+          "typec_port": "port0",
+          "voltage_mv": null
+        }
+      ]
+    },
+    "sockets": [
+      {
+        "key": "0000:05:00.4-1",
+        "label": "USB-A (right)",
+        "typec_port": null,
+        "usb2": {
+          "bus": 3,
+          "device": null,
+          "over_current_count": 0,
+          "physical_location": {
+            "dock": false,
+            "horizontal": "right",
+            "lid": false,
+            "panel": "front",
+            "vertical": "center"
+          },
+          "port": 1,
+          "port_state": "not attached"
+        },
+        "usb3": {
+          "paired": {
+            "bus": 4,
+            "device": null,
+            "over_current_count": 0,
+            "physical_location": {
+              "dock": false,
+              "horizontal": "right",
+              "lid": false,
+              "panel": "front",
+              "vertical": "center"
+            },
+            "port": 1,
+            "port_state": "not attached"
+          }
+        }
+      },
+      {
+        "key": "0000:05:00.4-2",
+        "label": "USB-A (left)",
+        "typec_port": null,
+        "usb2": {
+          "bus": 3,
+          "device": null,
+          "over_current_count": 0,
+          "physical_location": {
+            "dock": false,
+            "horizontal": "right",
+            "lid": false,
+            "panel": "front",
+            "vertical": "center"
+          },
+          "port": 2,
+          "port_state": "not attached"
+        },
+        "usb3": {
+          "paired": {
+            "bus": 4,
+            "device": null,
+            "over_current_count": 0,
+            "physical_location": {
+              "dock": false,
+              "horizontal": "right",
+              "lid": false,
+              "panel": "front",
+              "vertical": "center"
+            },
+            "port": 2,
+            "port_state": "not attached"
+          }
+        }
+      },
+      {
+        "key": "0000:06:00.3-1",
+        "label": "USB-C (hinge)",
+        "typec_port": null,
+        "usb2": {
+          "bus": 6,
+          "device": null,
+          "over_current_count": 0,
+          "physical_location": {
+            "dock": false,
+            "horizontal": "center",
+            "lid": false,
+            "panel": "right",
+            "vertical": "lower"
+          },
+          "port": 1,
+          "port_state": "not attached"
+        },
+        "usb3": {
+          "paired": {
+            "bus": 7,
+            "device": null,
+            "over_current_count": 0,
+            "physical_location": {
+              "dock": false,
+              "horizontal": "center",
+              "lid": false,
+              "panel": "right",
+              "vertical": "lower"
+            },
+            "port": 1,
+            "port_state": "not attached"
+          }
+        }
+      },
+      {
+        "key": "0000:06:00.4-1",
+        "label": "USB-C (caps lock)",
+        "typec_port": "port0",
+        "usb2": {
+          "bus": 8,
+          "device": null,
+          "over_current_count": 0,
+          "physical_location": {
+            "dock": false,
+            "horizontal": "center",
+            "lid": false,
+            "panel": "right",
+            "vertical": "lower"
+          },
+          "port": 1,
+          "port_state": "not attached"
+        },
+        "usb3": {
+          "paired": {
+            "bus": 9,
+            "device": null,
+            "over_current_count": 0,
+            "physical_location": {
+              "dock": false,
+              "horizontal": "center",
+              "lid": false,
+              "panel": "right",
+              "vertical": "lower"
+            },
+            "port": 1,
+            "port_state": "not attached"
+          }
+        }
+      }
+    ],
+    "taken_at_ms": 0,
+    "thunderbolt": null,
+    "typec": {
+      "ports": [
+        {
+          "cable_type": "passive",
+          "charging": true,
+          "label": "USB-C (caps lock)",
+          "name": "port0",
+          "partner": {
+            "alt_modes": 0,
+            "pd_revision": null,
+            "sink_pdos": [],
+            "source_pdos": [],
+            "supports_pd": true
+          },
+          "pd_contract": null,
+          "pd_inconsistent": true,
+          "power_role": "sink"
+        },
+        {
+          "cable_type": null,
+          "charging": false,
+          "label": null,
+          "name": "port1",
+          "partner": null,
+          "pd_contract": null,
+          "pd_inconsistent": false,
+          "power_role": "sink"
+        }
+      ],
+      "ucsi_present": true
+    }
+  }
+}

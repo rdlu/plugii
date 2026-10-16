@@ -10,7 +10,7 @@ ends in a health verdict; a ratatui TUI updates live while you swap hubs,
 cables, chargers and devices.
 
 **Status: early development.** The report, health verdict, `--json`, the TUI,
-recording and replay, `capture` and `labels` work; firmware checks don't yet.
+recording and replay, `capture`, `labels` and the `--firmware` checks work.
 
 ## Commands
 
@@ -18,6 +18,8 @@ recording and replay, `capture` and `labels` work; firmware checks don't yet.
 plugii                        full report + health; exit 1 if anything is wrong
 plugii -H                     health verdict only
 plugii --json                 the snapshot and findings as JSON
+plugii --firmware             also check BIOS / PD firmware versions (network)
+plugii --firmware --refresh   the same, ignoring the day-old catalog cache
 plugii watch                  live TUI (also: plugii -w)
 plugii watch --record f.jsonl record snapshots while watching
 plugii replay f.jsonl         play a recording back
@@ -25,11 +27,30 @@ plugii capture <dir>          copy the sysfs files plugii reads, as a test fixtu
 plugii labels                 list what the labels file names
 ```
 
-Planned:
+`--firmware` combines with `-H` and `--json`.
 
-```text
-plugii --firmware             also check BIOS / PD firmware versions (network)
-```
+## Firmware
+
+`plugii --firmware` adds a Firmware section before Health:
+
+- **BIOS and EC** from DMI (`/sys/class/dmi/id`).
+- **The vendor's catalog**, picked by DMI `sys_vendor`:
+  - Lenovo: the per-model update catalog
+    (`download.lenovo.com/catalog/<MTM>_Win11.xml`) for the latest BIOS
+    build and USB-C PD firmware. LVFS doesn't carry these for many
+    ThinkPads, so this is the only source.
+  - Dell: `CatalogIndexPC.cab` and the per-model catalog for the system ID
+    (DMI `product_sku`), which gets BIOS releases before LVFS does. The
+    advice says whether fwupd has the update yet.
+
+  Results are cached for a day in `$XDG_CACHE_HOME/plugii/` (default
+  `~/.cache/plugii/`); `--refresh` fetches again. Offline is not an error:
+  the report says the catalog was unreachable.
+- **fwupd** (when `fwupdmgr` is installed): devices an `esrt:` label names,
+  with their versions; failed updates; and pending updates from fwupd's
+  cached metadata (`fwupdmgr refresh` updates it).
+
+Other vendors get the DMI and fwupd parts.
 
 ## Record and replay
 

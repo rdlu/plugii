@@ -272,3 +272,46 @@ fn records_three_seconds_from_the_watcher() {
         text.lines().count()
     );
 }
+
+/// The real `--firmware` collection: DMI, the vendor catalog over the
+/// network (into a fresh cache, so it is fetched), and fwupdmgr.
+#[test]
+#[ignore = "uses the network and the running machine's DMI and fwupd"]
+fn firmware_collection() {
+    use plugii::firmware::{self, FwupdInput};
+    use plugii::vendor::{Cache, Http};
+
+    let root = Root::live();
+    let labels = labels::config_dir()
+        .and_then(|dir| labels::load(&dir).ok())
+        .unwrap_or_default();
+    let cache_dir = tempfile::TempDir::new().unwrap();
+    let cache = Cache::new(Some(cache_dir.path().to_owned()), false);
+    let started = std::time::Instant::now();
+    let fw = firmware::collect(&root, &labels, &Http, &cache, FwupdInput::Run);
+    println!("collected in {:?}", started.elapsed());
+    println!("{fw:#?}");
+    for entry in std::fs::read_dir(cache_dir.path()).unwrap() {
+        let path = entry.unwrap().path();
+        println!(
+            "cached {}:\n{}",
+            path.display(),
+            std::fs::read_to_string(&path).unwrap()
+        );
+    }
+    assert!(fw.dmi.sys_vendor.is_some(), "{:?}", fw.dmi);
+    assert!(fw.dmi.bios_version.is_some(), "{:?}", fw.dmi);
+}
+
+/// Dell's real catalogs for the XPS 9320 (system ID 0AF3), whatever this
+/// machine is: both cabs as Dell ships them, through the cab crate.
+#[test]
+#[ignore = "uses the network"]
+fn dell_catalog_for_the_xps_9320() {
+    use plugii::vendor::{Http, dell};
+
+    let bios = dell::fetch_latest("0AF3", &Http).unwrap();
+    println!("{bios:#?}");
+    assert!(bios.version.starts_with("2."), "{bios:?}");
+    assert!(!bios.package_id.is_empty());
+}

@@ -28,6 +28,7 @@ use crate::labels::{self, Labels};
 use crate::model::Snapshot;
 use crate::record::{Output, Recorder, Recording};
 use crate::sysfs::Root;
+use crate::vendor::Vendor;
 use crate::watch::{self, SharedLabels, Update};
 
 pub use app::App;
@@ -58,6 +59,7 @@ pub fn run(
     mut record: Option<RecordTo>,
 ) -> Result<()> {
     let mut app = App::new(local_offset());
+    app.vendor = Vendor::detect(&root);
     let shared: SharedLabels = Arc::new(RwLock::new(labels));
     let home = env::var_os("HOME").map(PathBuf::from);
     app.labels_file = labels_path.map(|path| {

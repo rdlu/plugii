@@ -1,0 +1,53 @@
+---
+source: tests/report.rs
+expression: text(&snap)
+---
+USB ports
+
+  USB-A (right)        0000:05:00.4-1
+    USB 3 half: idle
+    USB 2 half: idle
+
+  USB-A (left)         0000:05:00.4-2
+    USB 3 half: idle
+    USB 2 half: idle
+
+  USB-C (hinge)        0000:06:00.3-1
+    USB 3 half: idle
+    USB 2 half: idle
+
+  USB-C (caps lock)    0000:06:00.4-1
+    USB 3 half: idle
+    USB 2 half: idle
+    USB-C:      partner (port0)
+      └ no USB data, no DisplayPort (charger only?)
+
+USB-C (UCSI)
+  port0 (USB-C (caps lock)): partner  pd=yes  alt-modes=0  power-in=charging  cable=passive
+    offers: not reported
+  port1: empty
+
+Display connectors
+  no external display connected
+
+Power
+  AC: online  via USB-C port0 (USB-C (caps lock)) — power level not reported (drawing 3.25 A)  battery: 80% Not charging  (charge limit 80%)
+
+Kernel log (this boot)
+  no USB, USB-C or link-training errors (2 known-benign warning lines)
+
+Firmware
+  BIOS: R2KET40W (1.29)  05/19/2026  EC: 1.29
+  latest BIOS in Lenovo's catalog: build 40 — up to date
+  USB-C PD firmware: 260 (0x104)
+  update: Integrated Camera 59.14 → 59.16
+
+Health
+  ✓ USB-C status driver (UCSI) up: 2 port(s)
+  ✓ charging power arriving via USB-C port0 (USB-C (caps lock)) — power level not reported (drawing 3.25 A; charger's offers not reported)
+  ✓ kernel log clean
+  ✓ BIOS up to date (R2KET40W, 1.29)
+  ⚠ USB-C PD firmware update available: 0x104 → 0x105 (Windows-only installer)
+  ✗ fwupd recorded a failed firmware update: System Firmware
+  ⚠ fwupd has 1 firmware update(s): Integrated Camera 59.14 → 59.16 — fwupdmgr update
+  → something needs a look

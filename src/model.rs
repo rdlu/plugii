@@ -18,6 +18,185 @@ pub struct Snapshot {
     pub power: Power,
     pub cpu: Option<CpuSample>,
     pub kernel_log: KernelLog,
+    /// BIOS, vendor catalog and fwupd state; only with `--firmware`, and
+    /// left out of the JSON otherwise.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub firmware: Option<Firmware>,
+}
+
+/// What `--firmware` found: the running firmware from DMI, the newest the
+/// vendor's catalog lists, and fwupd's view.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Firmware {
+    pub dmi: Dmi,
+    pub catalog: Catalog,
+    pub fwupd: Fwupd,
+}
+
+/// `/sys/class/dmi/id/*`; each `None` when unreadable.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Dmi {
+    /// `LENOVO`, `Dell Inc.`, …
+    pub sys_vendor: Option<String>,
+    /// Lenovo puts the machine type model here (`21M4000RBO`).
+    pub product_name: Option<String>,
+    /// Dell's system ID (`0AF3`).
+    pub product_sku: Option<String>,
+    pub product_family: Option<String>,
+    /// `R2KET40W (1.29 )` on a ThinkPad, `2.30.0` on a Dell.
+    pub bios_version: Option<String>,
+    pub bios_release: Option<String>,
+    pub bios_date: Option<String>,
+    pub ec_firmware_release: Option<String>,
+}
+
+impl Dmi {
+    /// The BIOS version's first word: `R2KET40W (1.29 )` → `R2KET40W`.
+    pub fn bios_id(&self) -> Option<&str> {
+        self.bios_version.as_deref()?.split_whitespace().next()
+    }
+}
+
+/// The vendor catalog's answer, or why there is none.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "status", rename_all = "snake_case")]
+pub enum Catalog {
+    Lenovo(LenovoCatalog),
+    Dell(DellCatalog),
+    /// The catalog couldn't be fetched: offline, or the server failed.
+    Unreachable {
+        vendor: String,
+        model: String,
+    },
+    /// Fetched, but not readable (a broken cab, malformed XML).
+    Unreadable {
+        vendor: String,
+        model: String,
+        error: String,
+    },
+    /// Read, but it has nothing for this model.
+    NotListed {
+        vendor: String,
+        model: String,
+    },
+    /// DMI names a vendor without a catalog module, or the model is unknown.
+    NotChecked,
+}
+
+/// Lenovo's per-model update catalog (`<MTM>_Win11.xml`).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct LenovoCatalog {
+    /// Machine type: the first 4 characters of `product_name` (`21M4`).
+    pub mtm: String,
+    pub latest: LenovoLatest,
+    /// The running BIOS against `latest.bios`; `None` when the catalog
+    /// lists no BIOS package.
+    pub bios_check: Option<BiosCheck>,
+}
+
+/// What Lenovo's catalog lists; this is what the cache holds.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct LenovoLatest {
+    pub bios: Option<LenovoBios>,
+    pub pd: Option<LenovoPd>,
+}
+
+/// The BIOS package, from its file name: `r2kuj40w` → prefix `r2k`, build 40.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct LenovoBios {
+    /// `r2kuj40w`; the Windows installer is `<package>.exe`.
+    pub package: String,
+    pub prefix: String,
+    pub build: u32,
+    /// The package descriptor's URL.
+    pub url: String,
+}
+
+/// The USB-C PD firmware package.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct LenovoPd {
+    /// `r2kpd16w`.
+    pub package: String,
+    /// The version it installs, in hex as the package gives it (`105`).
+    pub version_hex: String,
+    pub release_date: Option<String>,
+    pub url: String,
+}
+
+/// Dell's catalog for one system ID.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct DellCatalog {
+    /// DMI `product_sku` (`0AF3`).
+    pub system_id: String,
+    pub bios: DellBios,
+    pub bios_check: BiosCheck,
+}
+
+/// The newest BIOS component in Dell's catalog; this is what the cache holds.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DellBios {
+    /// `vendorVersion`, e.g. `2.32.0`.
+    pub version: String,
+    /// `releaseDate`, as Dell writes it (`October 07, 2026`).
+    pub release_date: Option<String>,
+    /// `packageID` (`94TXT`): Dell's driver page is keyed by it.
+    pub package_id: String,
+    /// `Urgent`, `Recommended`, `Optional`.
+    pub criticality: Option<String>,
+}
+
+/// The running BIOS against the catalog's.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum BiosCheck {
+    UpToDate,
+    UpdateAvailable,
+    /// The catalog's BIOS is another family (Lenovo package prefix), or the
+    /// running version can't be read: not compared.
+    NotCompared,
+}
+
+/// fwupd's view, or why there is none.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "status", rename_all = "snake_case")]
+pub enum Fwupd {
+    NotInstalled,
+    Checked(FwupdState),
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct FwupdState {
+    /// Devices an `esrt:<guid>` label names, in GUID order.
+    pub labelled: Vec<EsrtDevice>,
+    /// Names of devices whose last update failed (UpdateState 3 or 5).
+    pub failed: Vec<String>,
+    /// Updates fwupd's cached metadata offers.
+    pub pending: Vec<PendingUpdate>,
+}
+
+/// A capsule device fwupd lists only as "UEFI Device Firmware", named by
+/// its `esrt:` label.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct EsrtDevice {
+    pub guid: String,
+    pub label: String,
+    /// As fwupd prints it; ESRT versions are plain numbers (`261`).
+    pub version: String,
+}
+
+impl EsrtDevice {
+    /// The version as a number, when it is one.
+    pub fn version_number(&self) -> Option<u64> {
+        self.version.trim().parse().ok()
+    }
+}
+
+/// `Name Version → Release`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PendingUpdate {
+    pub name: String,
+    pub version: String,
+    pub release: String,
 }
 
 /// One physical hotplug socket, seen from its USB 2 root port.

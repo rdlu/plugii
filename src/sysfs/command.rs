@@ -1,5 +1,5 @@
-//! Running the few external commands the readers ask (`journalctl`, `niri`)
-//! without ever failing or hanging the caller.
+//! Running the few external commands plugii asks (`journalctl`, `niri`,
+//! `fwupdmgr`) without ever failing or hanging the caller.
 
 use std::env;
 use std::io::Read;
@@ -25,6 +25,19 @@ fn is_executable(path: &Path) -> bool {
 /// `program args…`'s stdout, or `None` when it can't start, exits non-zero,
 /// or is still running after `timeout` (it is killed then).
 pub fn output(program: &str, args: &[&str], timeout: Duration) -> Option<String> {
+    let (success, out) = run(program, args, timeout)?;
+    success.then_some(out)
+}
+
+/// [`output`], keeping stdout whatever the exit status: older `fwupdmgr
+/// get-updates` exits non-zero when there is nothing to update.
+pub fn output_any_status(program: &str, args: &[&str], timeout: Duration) -> Option<String> {
+    run(program, args, timeout).map(|(_, out)| out)
+}
+
+/// Whether it exited 0, and its stdout; `None` when it can't start or timed
+/// out.
+fn run(program: &str, args: &[&str], timeout: Duration) -> Option<(bool, String)> {
     let mut child = Command::new(program)
         .args(args)
         .stdin(Stdio::null())
@@ -52,9 +65,7 @@ pub fn output(program: &str, args: &[&str], timeout: Duration) -> Option<String>
         }
     };
     let buf = reader.join().ok()?.ok()?;
-    status
-        .filter(|s| s.success())
-        .map(|_| String::from_utf8_lossy(&buf).into_owned())
+    status.map(|s| (s.success(), String::from_utf8_lossy(&buf).into_owned()))
 }
 
 #[cfg(test)]
@@ -80,6 +91,16 @@ mod tests {
         let started = Instant::now();
         assert_eq!(output("sleep", &["10"], Duration::from_millis(100)), None);
         assert!(started.elapsed() < Duration::from_secs(5));
+    }
+
+    #[test]
+    fn any_status_keeps_the_output_of_a_failure() {
+        let out = output_any_status("sh", &["-c", "echo no; exit 2"], Duration::from_secs(5));
+        assert_eq!(out.as_deref(), Some("no\n"));
+        assert_eq!(
+            output_any_status("sleep", &["10"], Duration::from_millis(100)),
+            None
+        );
     }
 
     #[test]

@@ -59,6 +59,11 @@ src/
   report.rs          colored text report
   watch.rs           udev monitor thread (debounce ~150 ms -> rescan) + 1 s tick -> channel
   record.rs          jsonl record / replay
+  firmware.rs        --firmware: DMI + vendor catalog + fwupd -> Firmware
+  fwupd.rs           fwupdmgr get-devices / get-updates JSON
+  vendor/            picked by DMI sys_vendor; Fetch (ureq) + day-long cache
+    lenovo.rs          per-model catalog (BIOS build, PD firmware), EC reset advice
+    dell.rs            CatalogIndexPC.cab -> per-model cab -> newest BIOS
   tui/               app state, layout, widgets, keys
 ```
 
@@ -150,6 +155,7 @@ No PRs or pushes until the user calls it reliable enough to release.
    **device labels** (`device:<vid>:<pid>  <name>` in the labels file; tree, details and events use the name;
    a labelled hub leaving collapses to one event, e.g. "− USB switch (desk): 6 devices left").
 7. ✅ `--record` / `replay` (JSONL keyframes + ticks, `.gz`, `--redact`; replay keys `p`, `+`/`-`, `]`/`[`).
-8. Firmware section (`--firmware`), with the vendor modules.
+8. ✅ Firmware section (`--firmware`, `--refresh`), with the vendor modules (Lenovo and Dell catalogs,
+   Lenovo EC reset advice) and fwupd.
 9. Release: GitHub Actions (CI + release binaries), docs, GitHub Pages site,
    first tagged release.

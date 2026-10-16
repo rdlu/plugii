@@ -1,0 +1,294 @@
+{
+  "Devices": [
+    {
+      "Name": "Bolt Receiver",
+      "DeviceId": "REDACTED",
+      "InstanceIds": [
+        "UFY\\VID_046D&PID_C548",
+        "HIDRAW\\VEN_046D&DEV_C548"
+      ],
+      "Guid": [
+        "1a6daa47-6506-55db-8eaa-d25b1b4b1e4b",
+        "f70d9241-2656-546b-a8e4-211bac348667"
+      ],
+      "Summary": "Miniaturised USB wireless receiver",
+      "Plugin": "logitech_hidpp",
+      "Protocols": [
+        "com.logitech.unifyingsigned"
+      ],
+      "Flags": [
+        "updatable",
+        "signed-payload",
+        "can-emulation-tag"
+      ],
+      "RequestFlags": [
+        "allow-generic-message"
+      ],
+      "Vendor": "Logitech",
+      "VendorIds": [
+        "USB:0x046D",
+        "HIDRAW:0x046D"
+      ],
+      "Version": "MPR05.01_B0010",
+      "VersionBootloader": "BOT30.01_B0010",
+      "VersionFormat": "plain",
+      "Icons": [
+        "usb-receiver"
+      ],
+      "InstallDuration": 30,
+      "Created": 1792180169
+    },
+    {
+      "Name": "Integrated Camera",
+      "DeviceId": "REDACTED",
+      "InstanceIds": [
+        "USB\\VID_5986&PID_1198"
+      ],
+      "Guid": [
+        "dfcfe656-fef7-545c-9ec0-1b8988cb4315"
+      ],
+      "Serial": "REDACTED",
+      "Plugin": "dfu",
+      "Protocols": [
+        "org.usb.dfu"
+      ],
+      "Flags": [
+        "updatable",
+        "can-emulation-tag"
+      ],
+      "Vendor": "Bison Electronics Inc.",
+      "VendorIds": [
+        "USB:0x5986"
+      ],
+      "Version": "59.14",
+      "VersionFormat": "bcd",
+      "VersionRaw": 22804,
+      "Icons": [
+        "camera-web"
+      ],
+      "Created": 1792169388
+    },
+    {
+      "Name": "Ryzen 7 7735HS with Radeon Graphics",
+      "DeviceId": "REDACTED",
+      "InstanceIds": [
+        "CPUID\\PRO_0&FAM_19&MOD_44",
+        "CPUID\\PRO_0&FAM_19&MOD_44&STP_1"
+      ],
+      "Guid": [
+        "52f8f9af-1ca9-5352-bef4-ceb232c888a5",
+        "e94372a3-3ffb-5d1c-a579-c415b7313e52"
+      ],
+      "Plugin": "cpu",
+      "Flags": [
+        "internal"
+      ],
+      "Vendor": "AMD",
+      "Version": "0x0a40410a",
+      "VersionFormat": "hex",
+      "VersionRaw": 171983114,
+      "Icons": [
+        "computer"
+      ],
+      "Created": 1792169388
+    },
+    {
+      "Name": "System Firmware",
+      "DeviceId": "REDACTED",
+      "Guid": [
+        "14da718a-e47b-42b0-9b93-1f71ad1af651"
+      ],
+      "Summary": "UEFI System Resource Table device (updated via NVRAM)",
+      "Plugin": "uefi_capsule",
+      "Protocols": [
+        "org.uefi.capsule"
+      ],
+      "Flags": [
+        "internal",
+        "require-ac",
+        "needs-reboot",
+        "can-verify",
+        "usable-during-update",
+        "updatable-hidden",
+        "affects-fde"
+      ],
+      "RequestFlags": [
+        "allow-generic-message"
+      ],
+      "Vendor": "LENOVO",
+      "VendorIds": [
+        "DMI:LENOVO"
+      ],
+      "Version": "65565",
+      "VersionFormat": "number",
+      "VersionRaw": 65565,
+      "Icons": [
+        "computer"
+      ],
+      "Created": 1792169388,
+      "UpdateState": 2,
+      "UpdateError": "BootOrder is locked in firmware setup"
+    },
+    {
+      "Name": "UEFI Device Firmware",
+      "DeviceId": "REDACTED",
+      "Guid": [
+        "a09d98b8-e3e0-46a2-a48a-c1e6a64bd9ce"
+      ],
+      "Summary": "UEFI System Resource Table device (updated via NVRAM)",
+      "Plugin": "uefi_capsule",
+      "Protocols": [
+        "org.uefi.capsule"
+      ],
+      "Flags": [
+        "internal",
+        "require-ac",
+        "needs-reboot",
+        "usable-during-update",
+        "updatable-hidden"
+      ],
+      "RequestFlags": [
+        "allow-generic-message"
+      ],
+      "VendorIds": [
+        "DMI:LENOVO"
+      ],
+      "Version": "262144",
+      "VersionLowest": "57374",
+      "VersionFormat": "number",
+      "VersionRaw": 262144,
+      "VersionLowestRaw": 57374,
+      "Created": 1792169388,
+      "UpdateState": 2,
+      "UpdateError": "BootOrder is locked in firmware setup"
+    },
+    {
+      "Name": "UEFI Device Firmware",
+      "DeviceId": "REDACTED",
+      "Guid": [
+        "acb9db56-8b83-42ac-8299-3a75ea43a09c"
+      ],
+      "Summary": "UEFI System Resource Table device (updated via NVRAM)",
+      "Plugin": "uefi_capsule",
+      "Protocols": [
+        "org.uefi.capsule"
+      ],
+      "Flags": [
+        "internal",
+        "require-ac",
+        "needs-reboot",
+        "usable-during-update",
+        "updatable-hidden"
+      ],
+      "RequestFlags": [
+        "allow-generic-message"
+      ],
+      "VendorIds": [
+        "DMI:LENOVO"
+      ],
+      "Version": "7",
+      "VersionFormat": "number",
+      "VersionRaw": 7,
+      "Created": 1792169388,
+      "UpdateState": 2,
+      "UpdateError": "BootOrder is locked in firmware setup"
+    },
+    {
+      "Name": "UEFI Device Firmware",
+      "DeviceId": "REDACTED",
+      "Guid": [
+        "a77b326c-bbf9-4867-af3b-a01f96f274f5"
+      ],
+      "Summary": "UEFI System Resource Table device (updated via NVRAM)",
+      "Plugin": "uefi_capsule",
+      "Protocols": [
+        "org.uefi.capsule"
+      ],
+      "Flags": [
+        "internal",
+        "require-ac",
+        "needs-reboot",
+        "usable-during-update",
+        "updatable-hidden"
+      ],
+      "RequestFlags": [
+        "allow-generic-message"
+      ],
+      "VendorIds": [
+        "DMI:LENOVO"
+      ],
+      "Version": "261",
+      "VersionFormat": "number",
+      "VersionRaw": 261,
+      "Created": 1792169388,
+      "UpdateState": 2,
+      "UpdateError": "BootOrder is locked in firmware setup"
+    },
+    {
+      "Name": "UEFI Device Firmware",
+      "DeviceId": "REDACTED",
+      "Guid": [
+        "73ee36de-f212-452a-adca-589a89701962"
+      ],
+      "Summary": "UEFI System Resource Table device (updated via NVRAM)",
+      "Plugin": "uefi_capsule",
+      "Protocols": [
+        "org.uefi.capsule"
+      ],
+      "Flags": [
+        "internal",
+        "require-ac",
+        "needs-reboot",
+        "usable-during-update",
+        "updatable-hidden"
+      ],
+      "RequestFlags": [
+        "allow-generic-message"
+      ],
+      "VendorIds": [
+        "DMI:LENOVO"
+      ],
+      "Version": "16842759",
+      "VersionLowest": "1",
+      "VersionFormat": "number",
+      "VersionRaw": 16842759,
+      "VersionLowestRaw": 1,
+      "Created": 1792169388,
+      "UpdateState": 2,
+      "UpdateError": "BootOrder is locked in firmware setup"
+    },
+    {
+      "Name": "UEFI Device Firmware",
+      "DeviceId": "REDACTED",
+      "Guid": [
+        "2c9769a8-bd83-4e1c-857b-471b64912ced"
+      ],
+      "Summary": "UEFI System Resource Table device (updated via NVRAM)",
+      "Plugin": "uefi_capsule",
+      "Protocols": [
+        "org.uefi.capsule"
+      ],
+      "Flags": [
+        "internal",
+        "require-ac",
+        "needs-reboot",
+        "usable-during-update",
+        "updatable-hidden"
+      ],
+      "RequestFlags": [
+        "allow-generic-message"
+      ],
+      "VendorIds": [
+        "DMI:LENOVO"
+      ],
+      "Version": "590080",
+      "VersionLowest": "590080",
+      "VersionFormat": "number",
+      "VersionRaw": 590080,
+      "VersionLowestRaw": 590080,
+      "Created": 1792169388,
+      "UpdateState": 2,
+      "UpdateError": "BootOrder is locked in firmware setup"
+    }
+  ]
+}

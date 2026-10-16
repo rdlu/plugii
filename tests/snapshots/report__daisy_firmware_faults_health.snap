@@ -1,0 +1,13 @@
+---
+source: tests/report.rs
+expression: "report::render_health(&findings, false)"
+---
+Health
+  ✓ USB-C status driver (UCSI) up: 2 port(s)
+  ✓ charging power arriving via USB-C port0 (USB-C (caps lock)) — power level not reported (drawing 3.25 A; charger's offers not reported)
+  ✓ kernel log clean
+  ✓ BIOS up to date (R2KET40W, 1.29)
+  ⚠ USB-C PD firmware update available: 0x104 → 0x105 (Windows-only installer)
+  ✗ fwupd recorded a failed firmware update: System Firmware
+  ⚠ fwupd has 1 firmware update(s): Integrated Camera 59.14 → 59.16 — fwupdmgr update
+  → something needs a look

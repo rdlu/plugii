@@ -9,8 +9,10 @@ use crate::health::{
     self, hub_stuck_at_usb2, link_reset_total, link_resets_text, milli, over_current,
 };
 use crate::model::{
-    Display, DisplayKind, Finding, Level, Pdo, Snapshot, TypecPort, Usb3Side, UsbDevice, Vrr,
+    BiosCheck, Catalog, Display, DisplayKind, Finding, Firmware, Fwupd, Level, Pdo, Snapshot,
+    TypecPort, Usb3Side, UsbDevice, Vrr,
 };
+use crate::vendor::{dell, lenovo};
 
 /// Error lines the kernel log section shows, the latest last.
 pub const LOG_LINES_SHOWN: usize = 5;
@@ -53,12 +55,11 @@ pub fn render(s: &Snapshot, findings: &[Finding], color: bool) -> String {
     if let Some(tb) = thunderbolt(s, st) {
         sections.push(tb);
     }
-    sections.extend([
-        displays(s, st),
-        power(s, st),
-        kernel_log(s, st),
-        render_health(findings, color),
-    ]);
+    sections.extend([displays(s, st), power(s, st), kernel_log(s, st)]);
+    if let Some(fw) = &s.firmware {
+        sections.push(firmware(fw, st));
+    }
+    sections.push(render_health(findings, color));
     sections.join("\n")
 }
 
@@ -537,6 +538,148 @@ fn kernel_log(s: &Snapshot, st: Style) -> String {
                 link_resets_text(s)
             ))
         );
+    }
+    out
+}
+
+/// The Firmware section (`--firmware`): the running BIOS, the vendor
+/// catalog's verdict, labelled capsule firmware and fwupd's pending updates.
+fn firmware(fw: &Firmware, st: Style) -> String {
+    let mut out = format!("{}\n", st.bold("Firmware"));
+    let dmi = &fw.dmi;
+    let mut line = format!("  BIOS: {}", dmi.bios_id().unwrap_or("?"));
+    if let Some(rel) = &dmi.bios_release {
+        let _ = write!(line, " ({rel})");
+    }
+    if let Some(date) = &dmi.bios_date {
+        let _ = write!(line, "  {}", st.dim(date));
+    }
+    if let Some(ec) = &dmi.ec_firmware_release {
+        let _ = write!(line, "  EC: {ec}");
+    }
+    let _ = writeln!(out, "{line}");
+
+    let not_checked = "latest versions not checked";
+    match &fw.catalog {
+        Catalog::Lenovo(c) => {
+            if let (Some(bios), Some(check)) = (&c.latest.bios, c.bios_check) {
+                let text = match check {
+                    BiosCheck::UpToDate => st.dim(&format!(
+                        "latest BIOS in Lenovo's catalog: build {:02} — up to date",
+                        bios.build
+                    )),
+                    BiosCheck::UpdateAvailable => {
+                        let have = dmi
+                            .bios_id()
+                            .and_then(lenovo::bios_build)
+                            .map_or_else(|| "?".to_owned(), |b| format!("{b:02}"));
+                        st.yellow(&format!(
+                            "Lenovo has BIOS build {:02} (you have {have})",
+                            bios.build
+                        ))
+                    }
+                    BiosCheck::NotCompared => {
+                        st.dim("catalog BIOS package doesn't match this BIOS family — not compared")
+                    }
+                };
+                let _ = writeln!(out, "  {text}");
+            }
+        }
+        Catalog::Dell(c) => {
+            let text = match c.bios_check {
+                BiosCheck::UpToDate => st.dim(&format!(
+                    "latest BIOS in Dell's catalog: {} — up to date",
+                    c.bios.version
+                )),
+                BiosCheck::UpdateAvailable => {
+                    let note = dell::release_note(&c.bios);
+                    let note = if note.is_empty() {
+                        String::new()
+                    } else {
+                        format!(" ({note})")
+                    };
+                    format!(
+                        "{} {}",
+                        st.yellow(&format!("Dell has BIOS {}{note}", c.bios.version)),
+                        st.dim(&dell::driver_url(&c.bios.package_id))
+                    )
+                }
+                BiosCheck::NotCompared => st.dim(&format!(
+                    "latest BIOS in Dell's catalog: {} — this BIOS's version can't be read, \
+                     not compared",
+                    c.bios.version
+                )),
+            };
+            let _ = writeln!(out, "  {text}");
+        }
+        Catalog::Unreachable { vendor, model } => {
+            let _ = writeln!(
+                out,
+                "  {}",
+                st.dim(&format!(
+                    "{vendor} catalog for {model} unreachable (offline?) — {not_checked}"
+                ))
+            );
+        }
+        Catalog::Unreadable {
+            vendor,
+            model,
+            error,
+        } => {
+            let _ = writeln!(
+                out,
+                "  {}",
+                st.dim(&format!(
+                    "can't read {vendor}'s catalog for {model} ({error}) — {not_checked}"
+                ))
+            );
+        }
+        Catalog::NotListed { vendor, model } => {
+            let _ = writeln!(
+                out,
+                "  {}",
+                st.dim(&format!(
+                    "{vendor}'s catalog lists nothing for {model} — {not_checked}"
+                ))
+            );
+        }
+        Catalog::NotChecked => {}
+    }
+
+    match &fw.fwupd {
+        Fwupd::NotInstalled => {
+            let _ = writeln!(
+                out,
+                "  {}",
+                st.dim("fwupd not installed — skipping capsule firmware checks")
+            );
+        }
+        Fwupd::Checked(state) => {
+            for d in &state.labelled {
+                let hex = d
+                    .version_number()
+                    .map(|n| format!(" {}", st.dim(&format!("(0x{n:x})"))))
+                    .unwrap_or_default();
+                let _ = writeln!(out, "  {}: {}{hex}", d.label, d.version);
+            }
+            for p in &state.pending {
+                let _ = writeln!(
+                    out,
+                    "  {} {}",
+                    st.yellow("update:"),
+                    health::pending_text(p)
+                );
+            }
+            if state.pending.is_empty() {
+                let _ = writeln!(
+                    out,
+                    "  {}",
+                    st.dim(
+                        "fwupd: no pending updates (cached metadata; fwupdmgr refresh to re-check)"
+                    )
+                );
+            }
+        }
     }
     out
 }

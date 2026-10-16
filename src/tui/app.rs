@@ -18,6 +18,7 @@ use crate::health;
 use crate::history::{History, Sample};
 use crate::labels::{self, Key, Labels};
 use crate::model::{Finding, Snapshot};
+use crate::vendor::{self, Vendor};
 use crate::watch::{self, SharedLabels};
 
 /// Samples kept for the charts: 10 minutes at the watcher's 1 s tick.
@@ -199,6 +200,9 @@ pub struct App {
     /// Set in `plugii replay`: the player's state for the status line, and
     /// the replay key last pressed.
     pub replay: Option<ReplayView>,
+    /// The machine's vendor, for its advice on findings; `None` in a replay,
+    /// which may come from another machine.
+    pub vendor: Option<Vendor>,
 }
 
 /// What a replay shows in the status line; [`super::replay::Replay`] keeps
@@ -265,7 +269,15 @@ impl App {
             notice: None,
             recording: None,
             replay: None,
+            vendor: None,
         }
+    }
+
+    /// Health findings for `s`, with the vendor's advice.
+    fn check(vendor: Option<Vendor>, s: &Snapshot) -> Vec<Finding> {
+        let mut findings = health::check(s);
+        vendor::advise(vendor, &mut findings);
+        findings
     }
 
     /// Forgets every snapshot, event and sample, keeping what the user set
@@ -540,7 +552,7 @@ impl App {
         let selected = self.selected_row().map(|r| r.id);
         if let Some(s) = &mut self.snapshot {
             collect::apply_labels(s, labels);
-            self.findings = health::check(s);
+            self.findings = Self::check(self.vendor, s);
         }
         if let Some(s) = &mut self.held.snapshot {
             collect::apply_labels(s, labels);
@@ -721,7 +733,7 @@ impl App {
         let now = snapshot.taken_at_ms;
         self.ghosts
             .retain(|g| g.live(now) && !ghosts::returned(g, &snapshot));
-        self.findings = health::check(&snapshot);
+        self.findings = Self::check(self.vendor, &snapshot);
         self.snapshot = Some(snapshot);
         self.reselect(selected);
     }

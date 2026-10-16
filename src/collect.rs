@@ -94,6 +94,7 @@ pub fn snapshot_with(
         cpu: opts.cpu_window.and_then(|w| cpu::measure(root, w)),
         kernel_log,
         sockets,
+        firmware: None,
     }
 }
 

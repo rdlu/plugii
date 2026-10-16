@@ -152,6 +152,7 @@ mod tests {
                 benign_count: 0,
                 link_resets: Vec::new(),
             },
+            firmware: None,
         }
     }
 

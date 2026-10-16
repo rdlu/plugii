@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Package name="PDFW_R2KPD" id="r2kpd16w" version="1.0.1.5" hide="False" pcdDescriptor="0230">
+  <Title default="EN">
+    <Desc id="EN">Type C PD Firmware - 10 (21H2 or Later)/11 (21H2 or Later)</Desc>
+  </Title>
+  <DetectVersion type="File" show="False">
+    <File>%WINDOWS%\explorer.exe</File>
+  </DetectVersion>
+  <Summary default="EN" />
+  <Severity type="2" />
+  <Vendor>Lenovo</Vendor>
+  <ExtractCommand>r2kpd16w-tvsu.exe /VERYSILENT /norestart /DIR=%PACKAGEPATH% /EXTRACT="YES"</ExtractCommand>
+  <ReleaseDate>2026-03-17</ReleaseDate>
+  <DiskSpaceNeeded>2518934</DiskSpaceNeeded>
+  <Reboot type="5" />
+  <Brand type="2" />
+  <PackageType type="4" />
+  <Install rc="0,259,3010" rccancel="20" type="cmd" default="EN">
+    <Cmdline id="EN">%PACKAGEPATH%\r2kpd16w-tvsu.exe /verysilent /norestart</Cmdline>
+  </Install>
+  <Uninstall />
+  <DetectInstall>
+    <_Firmware>
+      <HardwareIDs><![CDATA[UEFI\RES_{A77B326C-BBF9-4867-AF3B-A01F96F274F5}]]></HardwareIDs>
+      <Version hex2dec="True">105^</Version>
+    </_Firmware>
+  </DetectInstall>
+</Package>

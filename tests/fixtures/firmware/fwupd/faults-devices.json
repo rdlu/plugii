@@ -1,0 +1,40 @@
+{
+  "Devices": [
+    {
+      "Name": "System Firmware",
+      "DeviceId": "REDACTED",
+      "Guid": [
+        "14da718a-e47b-42b0-9b93-1f71ad1af651"
+      ],
+      "Plugin": "uefi_capsule",
+      "Version": "65565",
+      "VersionFormat": "number",
+      "VersionRaw": 65565,
+      "UpdateState": 3,
+      "UpdateError": "failed to update: hand-made fixture"
+    },
+    {
+      "Name": "UEFI Device Firmware",
+      "DeviceId": "REDACTED",
+      "Guid": [
+        "a77b326c-bbf9-4867-af3b-a01f96f274f5"
+      ],
+      "Plugin": "uefi_capsule",
+      "Version": "260",
+      "VersionFormat": "number",
+      "VersionRaw": 260,
+      "UpdateState": 2
+    },
+    {
+      "Name": "Integrated Camera",
+      "DeviceId": "REDACTED",
+      "Guid": [
+        "dfcfe656-fef7-545c-9ec0-1b8988cb4315"
+      ],
+      "Plugin": "dfu",
+      "Version": "59.14",
+      "VersionFormat": "bcd",
+      "VersionRaw": 22804
+    }
+  ]
+}
