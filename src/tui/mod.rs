@@ -4,6 +4,8 @@
 
 pub mod app;
 pub mod charts;
+pub mod detail;
+pub mod ghosts;
 pub mod keys;
 pub mod ports;
 pub mod ui;

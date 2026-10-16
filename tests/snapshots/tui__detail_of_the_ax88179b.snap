@@ -1,0 +1,44 @@
+---
+source: tests/tui.rs
+expression: screen
+---
+ Ports │ Charts │ Events   unknown                                                                      updated 12:00:00
+┌ Sockets ─────────────────────────────────────────────────┐┌ USB-C / PD ──────────────────────────────────────────────┐
+│─ USB-A (right) ───────────────────────── 0000:05:00.4-1 ─││port0 · USB-C (caps lock)  partner                        │
+│ USB 3  idle                                              ││  PD · charging · cable passive                           │
+│ USB 2  idle                                              ││  offers not reported                                     │
+│─ USB-A (left) ────────────────────────── 0000:05:00.4-2 ─││port1  empty                                              │
+│ USB 3  idle                                              │└──────────────────────────────────────────────────────────┘
+│ USB 2  idle                                              │┌ Power ───────────────────────────────────────────────────┐
+│─ USB-C (hinge) ───────────────────────── 0000:06:00.3-1 ─││AC       online                                           │
+│ USB 3  linked                                            ││USB-C    port0 (USB-C (caps lock)) — power level not      │
+│   ▾   5G  05e3:0626  USB3.1 ┌ 0b95:1790 AX88179B ──────────────────────────────────────┐75 A)                        │
+│         5G  0b95:1790  AX881│ vendor:product     0b95:1790                             │imit 80%)                    │
+│ USB 2  linked               │ manufacturer       ASIX                                  │                             │
+│   ▾ 480M  05e3:0610  USB2.1 │ product            AX88179B                              │─────────────────────────────┘
+│       480M  05e3:0608  USB2.│ serial             REDACTED                              │─────────────────────────────┐
+│─ USB-C (caps lock) ─────────│ driver             cdc_ncm                               │lanes working)               │
+│ USB 3  idle                 │ bcdUSB             3.20                                  │up: 2 port(s)                │
+│ USB 2  idle                 │ device class       00 (per interface)                    │ USB-C port0 (USB-C (caps    │
+│ USB-C  partner (port0) · cha│ bMaxPower          184 mA                                │ported (drawing 2.75 A;      │
+│   └ no USB data, no DisplayP│ lanes              rx 1 · tx 1                           │ed)                          │
+│                             │ urbnum             486                                   │                             │
+│                             │                                                          │                             │
+│                             │ sysfs name         7-1.2                                 │                             │
+│                             │ socket             USB-C (hinge) (0000:06:00.3-1)        │                             │
+│                             │ half               USB 3 (bus 7, root port 1)            │                             │
+│                             │ path               7-1 › 7-1.2                           │                             │
+│                             │ via                05e3:0626 USB3.1 Hub                  │                             │
+│                             │                                                          │                             │
+│                             │ linked at          5G (USB 3 Gen 1)                      │                             │
+│                             │ capable of         5G (USB 3 Gen 1)                      │                             │
+│                             │ capable vs linked  linked at its best speed (5G)         │                             │
+│                             └──────────────────────────────── Esc/q close · j/k scroll ┘                             │
+│                                                          ││                                                          │
+│                                                          ││                                                          │
+│                                                          ││                                                          │
+│                                                          ││                                                          │
+│                                                          ││                                                          │
+│                                                          ││                                                          │
+│                                                          ││                                                          │
+└──────────────────────────────────────────────────────────┘└──────────────────────────────────────────────────────────┘

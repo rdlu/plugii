@@ -6,7 +6,8 @@
 //! displays, power, CPU throttling, kernel log.
 
 use crate::model::{
-    DisplayKind, Finding, Level, Pdo, Snapshot, Socket, TypecPort, Usb3Side, UsbCSource, Vrr,
+    DisplayKind, Finding, Level, Pdo, Snapshot, Socket, Speed, TypecPort, Usb3Side, UsbCSource,
+    UsbDevice, Vrr,
 };
 
 /// Link resets this boot at which the cable or link is called flaky.
@@ -86,6 +87,60 @@ pub fn over_current(socket: &Socket) -> u32 {
         _ => 0,
     };
     socket.usb2.over_current_count.unwrap_or(0) + usb3
+}
+
+/// How a device's link compares with the fastest speed it supports.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LinkFit {
+    /// Linked at the fastest speed it supports.
+    Best,
+    /// Linked below what it supports: a cable, a hub or the port limits it.
+    Below { capable: Speed },
+    /// A hub on the USB 2 half while its socket's USB 3 half has a hub
+    /// linked: a USB 3 hub's USB 2 half carries the same BOS as its USB 3
+    /// half, so it reads "capable 5G, linked 480M" even when healthy.
+    Usb2HalfOfUsb3Hub,
+    /// `capable_speed` is unknown (a USB 2 device at full or low speed).
+    Unknown,
+}
+
+/// The capable-vs-linked verdict for `device`, found on `socket`'s USB 3
+/// half when `on_usb3` is set, else on its USB 2 half.
+pub fn link_fit(socket: &Socket, on_usb3: bool, device: &UsbDevice) -> LinkFit {
+    let Some(capable) = device.capable_speed else {
+        return LinkFit::Unknown;
+    };
+    if device.speed.mbps() >= capable.mbps() {
+        return LinkFit::Best;
+    }
+    let usb3_hub_linked = matches!(&socket.usb3, Usb3Side::Paired(h)
+        if h.device.as_ref().is_some_and(|d| d.device_class == 9));
+    if !on_usb3 && device.device_class == 9 && usb3_hub_linked {
+        return LinkFit::Usb2HalfOfUsb3Hub;
+    }
+    LinkFit::Below { capable }
+}
+
+impl LinkFit {
+    /// One line for the detail view.
+    pub fn text(self, linked: Speed) -> String {
+        match self {
+            Self::Best => format!("linked at its best speed ({})", linked.short()),
+            Self::Below { capable } => format!(
+                "{} capable, linked at {} → cable or hub limiting",
+                capable.short(),
+                linked.short()
+            ),
+            Self::Usb2HalfOfUsb3Hub => {
+                "USB 2 half of a USB 3 hub (its USB 3 half is linked)".into()
+            }
+            Self::Unknown => format!(
+                "can't be told: linked at {}, and a USB 2 device this slow may be \
+                 full-speed only",
+                linked.short()
+            ),
+        }
+    }
 }
 
 fn usb_sockets(s: &Snapshot, out: &mut Findings) {
@@ -564,6 +619,72 @@ mod tests {
         assert!(stuck[0].message.starts_with("USB-C (left): "));
         assert!(stuck[0].message.contains("Flip the plug"));
         assert!(stuck[0].message.contains("EC reset"));
+    }
+
+    #[test]
+    fn capable_vs_linked() {
+        let at = |speed, capable| UsbDevice {
+            capable_speed: capable,
+            ..device("2-1", speed, 0)
+        };
+        let s = socket(None, Usb3Side::Paired(half(2, None)));
+        // A 10G device on a 5G link: something limits it.
+        assert_eq!(
+            link_fit(&s, true, &at(Speed::Super, Some(Speed::SuperPlus))),
+            LinkFit::Below {
+                capable: Speed::SuperPlus
+            }
+        );
+        assert_eq!(
+            LinkFit::Below {
+                capable: Speed::SuperPlus
+            }
+            .text(Speed::Super),
+            "10G capable, linked at 5G → cable or hub limiting"
+        );
+        assert_eq!(
+            link_fit(&s, true, &at(Speed::Super, Some(Speed::Super))),
+            LinkFit::Best
+        );
+        // Full-speed USB 2 devices have no capable speed.
+        assert_eq!(
+            link_fit(&s, false, &at(Speed::Full, None)),
+            LinkFit::Unknown
+        );
+
+        // A USB 3 hub's USB 2 half reads "capable 5G, linked 480M" while its
+        // USB 3 half is linked: not flagged.
+        let usb2_hub = UsbDevice {
+            capable_speed: Some(Speed::Super),
+            ..device("3-1", Speed::High, 9)
+        };
+        let linked = socket(
+            Some(usb2_hub.clone()),
+            Usb3Side::Paired(half(2, Some(device("2-1", Speed::Super, 9)))),
+        );
+        assert_eq!(
+            link_fit(&linked, false, &usb2_hub),
+            LinkFit::Usb2HalfOfUsb3Hub
+        );
+        // The same hub with its USB 3 half idle is stuck: flagged.
+        let stuck = socket(Some(usb2_hub.clone()), Usb3Side::Paired(half(2, None)));
+        assert_eq!(
+            link_fit(&stuck, false, &usb2_hub),
+            LinkFit::Below {
+                capable: Speed::Super
+            }
+        );
+        // A non-hub device on the USB 2 half is flagged even then.
+        let dev = UsbDevice {
+            capable_speed: Some(Speed::Super),
+            ..device("3-1", Speed::High, 0)
+        };
+        assert_eq!(
+            link_fit(&linked, false, &dev),
+            LinkFit::Below {
+                capable: Speed::Super
+            }
+        );
     }
 
     #[test]

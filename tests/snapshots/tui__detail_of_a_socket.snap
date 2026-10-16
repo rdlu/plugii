@@ -1,0 +1,44 @@
+---
+source: tests/tui.rs
+expression: "render(&mut app, 120, 40)"
+---
+ Ports │ Charts │ Events   unknown                                                                      updated 12:00:00
+┌ Sockets ─────────────────────────────────────────────────┐┌ USB-C / PD ──────────────────────────────────────────────┐
+│─ USB-A (right) ───────────────────────── 0000:05:00.4-1 ─││port0 · USB-C (caps lock)  partner                        │
+│ USB 3  idle                                              ││  PD · charging · cable passive                           │
+│ USB 2  idle                                              ││  offers not reported                                     │
+│─ USB-A (left) ────────────────────────── 0000:05:00.4-2 ─││port1  empty                                              │
+│ USB 3  idle                                              │└──────────────────────────────────────────────────────────┘
+│ USB 2  idle                                              │┌ Power ───────────────────────────────────────────────────┐
+│─ USB-C (hinge) ───────────────────────── 0000:06:00.3-1 ─││AC       online                                           │
+│ USB 3  linked                                            ││USB-C    port0 (USB-C (caps lock)) — power level not      │
+│   ▾   5G  05e3:0626  USB3.1 Hub                          ││         reported (drawing 2.75 A)                        │
+│         5G  0b95:1790  AX88179B                          ││Battery  80% Not charging  (limit 80%)                    │
+│ USB 2  linked               ┌ USB-C (hinge) ───────────────────────────────────────────┐                             │
+│   ▾ 480M  05e3:0610  USB2.1 │ key                0000:06:00.3-1                        │─────────────────────────────┘
+│       480M  05e3:0608  USB2.│ label              USB-C (hinge)                         │─────────────────────────────┐
+│─ USB-C (caps lock) ─────────│                                                          │lanes working)               │
+│ USB 3  idle                 │ USB 3 half         bus 7, root port 1                    │up: 2 port(s)                │
+│ USB 2  idle                 │   device           05e3:0626 USB3.1 Hub                  │ USB-C port0 (USB-C (caps    │
+│ USB-C  partner (port0) · cha│   port state       configured                            │ported (drawing 2.75 A;      │
+│   └ no USB data, no DisplayP│   over-current     0                                     │ed)                          │
+│                             │   location         right panel · center · lower          │                             │
+│                             │ USB 2 half         bus 6, root port 1                    │                             │
+│                             │   device           05e3:0610 USB2.1 Hub                  │                             │
+│                             │   port state       suspended                             │                             │
+│                             │   over-current     0                                     │                             │
+│                             │   location         right panel · center · lower          │                             │
+│                             │                                                          │                             │
+│                             │ USB-C port         —                                     │                             │
+│                             │ location is ACPI's hint: labels win over it              │                             │
+│                             └──────────────────────────────── Esc/q close · j/k scroll ┘                             │
+│                                                          ││                                                          │
+│                                                          ││                                                          │
+│                                                          ││                                                          │
+│                                                          ││                                                          │
+│                                                          ││                                                          │
+│                                                          ││                                                          │
+│                                                          ││                                                          │
+│                                                          ││                                                          │
+│                                                          ││                                                          │
+└──────────────────────────────────────────────────────────┘└──────────────────────────────────────────────────────────┘

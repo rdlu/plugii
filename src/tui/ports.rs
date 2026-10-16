@@ -6,7 +6,8 @@ use std::collections::HashSet;
 use ratatui::style::{Color, Modifier, Style, Stylize};
 use ratatui::text::{Line, Span};
 
-use crate::health::{self, hub_stuck_at_usb2, over_current};
+use super::ghosts::Ghost;
+use crate::health::{self, LinkFit, hub_stuck_at_usb2, link_fit, over_current};
 use crate::model::{
     DisplayKind, Finding, Level, Snapshot, Socket, Speed, TypecPort, Usb3Side, UsbDevice,
 };
@@ -17,6 +18,8 @@ use crate::report;
 pub struct Row {
     /// Stable across scans, to keep the selection on the same row.
     pub id: String,
+    /// The key of the socket the row belongs to.
+    pub socket: String,
     pub kind: RowKind,
 }
 
@@ -38,18 +41,28 @@ pub enum RowKind {
         stuck: bool,
         /// Its subtree is hidden.
         collapsed: bool,
+        /// Linked below the speed it supports (see [`health::link_fit`]).
+        below: bool,
+        /// Unplugged a moment ago: shown dim and struck through.
+        ghost: bool,
+        /// The top of a ghost's subtree: says `(gone)`.
+        gone: bool,
+        /// It matches the filter itself (not only a device below it).
+        matched: bool,
     },
     /// A warning or a USB-C remark under a card.
     Note(Line<'static>),
 }
 
 impl Row {
-    /// The sysfs name of a device with devices below it.
+    /// The sysfs name of a device with devices below it (ghosts don't fold).
     pub fn hub_name(&self) -> Option<&str> {
         match &self.kind {
-            RowKind::Device { device, .. } if !device.children.is_empty() => {
-                Some(&device.sysfs_name)
-            }
+            RowKind::Device {
+                device,
+                ghost: false,
+                ..
+            } if !device.children.is_empty() => Some(&device.sysfs_name),
             _ => None,
         }
     }
@@ -59,70 +72,233 @@ impl Row {
         matches!(&self.kind, RowKind::Socket { key, label, .. }
             if key == socket || label.as_deref() == Some(socket))
     }
+
+    /// A device that matches the filter itself: where `n` / `N` stop.
+    pub fn is_match(&self) -> bool {
+        matches!(self.kind, RowKind::Device { matched: true, .. })
+    }
+}
+
+/// What shapes the tree besides the snapshot.
+#[derive(Debug, Clone, Copy)]
+pub struct TreeOpts<'a> {
+    /// Hubs folded, by sysfs name.
+    pub collapsed: &'a HashSet<String>,
+    /// Live ghosts, drawn where their devices were.
+    pub ghosts: &'a [&'a Ghost],
+    /// Keep devices matching this (and the hubs above them) and the socket
+    /// titles; empty keeps everything.
+    pub filter: &'a str,
+}
+
+/// Whether `device` itself matches `filter`: its vid:pid, product or
+/// manufacturer contains it, ignoring case. An empty filter matches all.
+pub fn device_matches(device: &UsbDevice, filter: &str) -> bool {
+    if filter.is_empty() {
+        return true;
+    }
+    let needle = filter.to_lowercase();
+    let id = format!("{:04x}:{:04x}", device.vendor_id, device.product_id);
+    [
+        Some(id.as_str()),
+        device.product.as_deref(),
+        device.manufacturer.as_deref(),
+    ]
+    .into_iter()
+    .flatten()
+    .any(|s| s.to_lowercase().contains(&needle))
+}
+
+fn subtree_matches(device: &UsbDevice, filter: &str) -> bool {
+    device_matches(device, filter) || device.children.iter().any(|c| subtree_matches(c, filter))
 }
 
 /// Every socket as a card: title, USB 3 half, USB 2 half (each with its
-/// device tree), USB-C partner, warnings.
-pub fn rows(s: &Snapshot, collapsed: &HashSet<String>) -> Vec<Row> {
+/// device tree and ghosts), USB-C partner, warnings. With a filter, only the
+/// titles and the devices that match or lead to a match.
+pub fn rows(s: &Snapshot, opts: TreeOpts) -> Vec<Row> {
     let mut out = Vec::new();
     for socket in &s.sockets {
-        card(s, socket, collapsed, &mut out);
+        card(s, socket, opts, &mut out);
     }
     out
 }
 
-fn card(s: &Snapshot, socket: &Socket, collapsed: &HashSet<String>, out: &mut Vec<Row>) {
+/// One half's devices and ghosts, as a tree.
+struct HalfTree<'a> {
+    socket: &'a Socket,
+    usb3: bool,
+    opts: TreeOpts<'a>,
+}
+
+impl HalfTree<'_> {
+    fn ghosts(&self, parent: Option<&str>) -> impl Iterator<Item = &Ghost> {
+        self.opts.ghosts.iter().copied().filter(move |g| {
+            g.socket == self.socket.key && g.usb3 == self.usb3 && g.parent.as_deref() == parent
+        })
+    }
+
+    /// Whether anything in this half survives the filter.
+    fn any(&self) -> bool {
+        let filter = self.opts.filter;
+        let [usb3, usb2] = super::ghosts::halves(self.socket);
+        let devices = if self.usb3 { usb3 } else { usb2 };
+        devices.iter().any(|d| subtree_matches(d, filter))
+            || self
+                .opts
+                .ghosts
+                .iter()
+                .filter(|g| g.socket == self.socket.key && g.usb3 == self.usb3)
+                .any(|g| subtree_matches(&g.device, filter))
+    }
+
+    fn rows(&self, device: Option<&UsbDevice>, stuck: bool, out: &mut Vec<Row>) {
+        if let Some(d) = device {
+            self.tree(d, 0, stuck, out);
+        }
+        for g in self.ghosts(None) {
+            self.ghost(&g.device, g.depth, true, out);
+        }
+    }
+
+    fn row(&self, id: String, kind: RowKind) -> Row {
+        Row {
+            id,
+            socket: self.socket.key.clone(),
+            kind,
+        }
+    }
+
+    fn tree(&self, device: &UsbDevice, depth: usize, stuck: bool, out: &mut Vec<Row>) {
+        let filter = self.opts.filter;
+        if !subtree_matches(device, filter) {
+            return;
+        }
+        let is_collapsed =
+            !device.children.is_empty() && self.opts.collapsed.contains(&device.sysfs_name);
+        let below = matches!(
+            link_fit(self.socket, self.usb3, device),
+            LinkFit::Below { .. }
+        );
+        out.push(self.row(
+            device.sysfs_name.clone(),
+            RowKind::Device {
+                device: Box::new(device.clone()),
+                depth,
+                stuck,
+                collapsed: is_collapsed,
+                below,
+                ghost: false,
+                gone: false,
+                matched: !filter.is_empty() && device_matches(device, filter),
+            },
+        ));
+        if !is_collapsed {
+            for child in &device.children {
+                self.tree(child, depth + 1, false, out);
+            }
+            for g in self.ghosts(Some(&device.sysfs_name)) {
+                self.ghost(&g.device, g.depth, true, out);
+            }
+        }
+    }
+
+    /// A ghost's subtree; only its top row says `(gone)`.
+    fn ghost(&self, device: &UsbDevice, depth: usize, top: bool, out: &mut Vec<Row>) {
+        let filter = self.opts.filter;
+        if !subtree_matches(device, filter) {
+            return;
+        }
+        out.push(self.row(
+            format!("ghost:{}", device.sysfs_name),
+            RowKind::Device {
+                device: Box::new(device.clone()),
+                depth,
+                stuck: false,
+                collapsed: false,
+                below: false,
+                ghost: true,
+                gone: top,
+                matched: !filter.is_empty() && device_matches(device, filter),
+            },
+        ));
+        for child in &device.children {
+            self.ghost(child, depth + 1, false, out);
+        }
+    }
+}
+
+fn card(s: &Snapshot, socket: &Socket, opts: TreeOpts, out: &mut Vec<Row>) {
     let key = &socket.key;
-    out.push(Row {
-        id: key.clone(),
-        kind: RowKind::Socket {
+    let filtering = !opts.filter.is_empty();
+    let row = |id: String, kind: RowKind| Row {
+        id,
+        socket: key.clone(),
+        kind,
+    };
+    out.push(row(
+        key.clone(),
+        RowKind::Socket {
             name: health::socket_name(socket).to_owned(),
             key: key.clone(),
             label: socket.label.clone(),
         },
-    });
+    ));
     let half = |name: &str, state: Span<'static>| {
         Line::from(vec![Span::raw(format!(" {name}  ")).bold(), state])
     };
     let stuck = hub_stuck_at_usb2(socket);
+    let usb3_tree = HalfTree {
+        socket,
+        usb3: true,
+        opts,
+    };
+    let usb2_tree = HalfTree {
+        socket,
+        usb3: false,
+        opts,
+    };
     let mut usb3_linked = false;
     match &socket.usb3 {
         Usb3Side::Paired(h) => {
-            let state = if h.device.is_some() {
-                usb3_linked = true;
-                "linked".green()
-            } else {
-                "idle".dark_gray()
-            };
-            out.push(Row {
-                id: format!("{key}/usb3"),
-                kind: RowKind::Half(half("USB 3", state)),
-            });
-            if let Some(d) = &h.device {
-                tree(d, 0, false, collapsed, out);
+            usb3_linked = h.device.is_some();
+            if !filtering || usb3_tree.any() {
+                let state = if usb3_linked {
+                    "linked".green()
+                } else {
+                    "idle".dark_gray()
+                };
+                out.push(row(
+                    format!("{key}/usb3"),
+                    RowKind::Half(half("USB 3", state)),
+                ));
+                usb3_tree.rows(h.device.as_ref(), false, out);
             }
         }
-        Usb3Side::Unknown => out.push(Row {
-            id: format!("{key}/usb3"),
-            kind: RowKind::Half(Line::from(vec![
+        Usb3Side::Unknown if !filtering => out.push(row(
+            format!("{key}/usb3"),
+            RowKind::Half(Line::from(vec![
                 Span::raw(" USB 3  ").bold(),
                 "unknown".yellow(),
                 " (no peer link — add a peer: line)".dark_gray(),
             ])),
-        }),
-        Usb3Side::Usb2Only => {}
+        )),
+        Usb3Side::Unknown | Usb3Side::Usb2Only => {}
     }
-    let state = if socket.usb2.device.is_some() {
-        "linked".green()
-    } else {
-        "idle".dark_gray()
-    };
-    out.push(Row {
-        id: format!("{key}/usb2"),
-        kind: RowKind::Half(half("USB 2", state)),
-    });
-    if let Some(d) = &socket.usb2.device {
-        tree(d, 0, stuck, collapsed, out);
+    if !filtering || usb2_tree.any() {
+        let state = if socket.usb2.device.is_some() {
+            "linked".green()
+        } else {
+            "idle".dark_gray()
+        };
+        out.push(row(
+            format!("{key}/usb2"),
+            RowKind::Half(half("USB 2", state)),
+        ));
+        usb2_tree.rows(socket.usb2.device.as_ref(), stuck, out);
+    }
+    if filtering {
+        return;
     }
     let typec = socket
         .typec_port
@@ -138,10 +314,10 @@ fn card(s: &Snapshot, socket: &Socket, collapsed: &HashSet<String>, out: &mut Ve
             spans.push(" · ".dark_gray());
             spans.push("charging".yellow());
         }
-        out.push(Row {
-            id: format!("{key}/typec"),
-            kind: RowKind::Half(Line::from(spans)),
-        });
+        out.push(row(
+            format!("{key}/typec"),
+            RowKind::Half(Line::from(spans)),
+        ));
         if !usb3_linked && socket.usb2.device.is_none() {
             let lit: Vec<&str> = s
                 .displays
@@ -157,56 +333,29 @@ fn card(s: &Snapshot, socket: &Socket, collapsed: &HashSet<String>, out: &mut Ve
                     lit.join(" ").green(),
                 ])
             };
-            out.push(Row {
-                id: format!("{key}/typec-note"),
-                kind: RowKind::Note(note),
-            });
+            out.push(row(format!("{key}/typec-note"), RowKind::Note(note)));
         }
     }
     if stuck {
-        out.push(Row {
-            id: format!("{key}/stuck"),
-            kind: RowKind::Note(Line::from(
+        out.push(row(
+            format!("{key}/stuck"),
+            RowKind::Note(Line::from(
                 " ⚠ hub linked at USB 2 only — its USB 3 half is missing"
                     .red()
                     .bold(),
             )),
-        });
+        ));
     }
     let oc = over_current(socket);
     if oc > 0 {
-        out.push(Row {
-            id: format!("{key}/oc"),
-            kind: RowKind::Note(Line::from(
+        out.push(row(
+            format!("{key}/oc"),
+            RowKind::Note(Line::from(
                 format!(" ⚠ over-current reported on this socket ({oc}×)")
                     .red()
                     .bold(),
             )),
-        });
-    }
-}
-
-fn tree(
-    device: &UsbDevice,
-    depth: usize,
-    stuck: bool,
-    collapsed: &HashSet<String>,
-    out: &mut Vec<Row>,
-) {
-    let is_collapsed = !device.children.is_empty() && collapsed.contains(&device.sysfs_name);
-    out.push(Row {
-        id: device.sysfs_name.clone(),
-        kind: RowKind::Device {
-            device: Box::new(device.clone()),
-            depth,
-            stuck,
-            collapsed: is_collapsed,
-        },
-    });
-    if !is_collapsed {
-        for child in &device.children {
-            tree(child, depth + 1, false, collapsed, out);
-        }
+        ));
     }
 }
 
@@ -258,22 +407,48 @@ pub fn row_line(row: &Row, width: usize) -> Line<'static> {
             depth,
             stuck,
             collapsed,
+            below,
+            ghost,
+            gone,
+            matched,
         } => {
             let marker = match (device.children.is_empty(), collapsed) {
                 (true, _) => "  ",
                 (false, false) => "▾ ",
                 (false, true) => "▸ ",
             };
+            let indent = Span::raw(format!("   {:indent$}", "", indent = depth * 2));
+            let badge = format!("{:>4}", speed_badge(device.speed));
+            let id = format!("{:04x}:{:04x}", device.vendor_id, device.product_id);
+            let product = device.product.clone().unwrap_or_default();
+            if *ghost {
+                let dim = Style::new()
+                    .fg(Color::DarkGray)
+                    .add_modifier(Modifier::DIM | Modifier::CROSSED_OUT);
+                let mut spans = vec![
+                    indent,
+                    marker.dark_gray(),
+                    Span::styled(format!("{badge}  {id}  {product}"), dim),
+                ];
+                if *gone {
+                    spans.push("  (gone)".dark_gray());
+                }
+                return Line::from(spans);
+            }
             let color = speed_color(device.speed, *stuck);
+            // `↓` in the gap after the badge: linked below what it supports.
+            let gap = if *below { "↓ " } else { "  " };
+            let mut name = Span::raw(product);
+            if *matched {
+                name = name.cyan().bold();
+            }
             let mut spans = vec![
-                Span::raw(format!("   {:indent$}", "", indent = depth * 2)),
+                indent,
                 marker.dark_gray(),
-                Span::styled(
-                    format!("{:>4}", speed_badge(device.speed)),
-                    Style::new().fg(color).add_modifier(Modifier::BOLD),
-                ),
-                format!("  {:04x}:{:04x}  ", device.vendor_id, device.product_id).dark_gray(),
-                Span::raw(device.product.clone().unwrap_or_default()),
+                Span::styled(badge, Style::new().fg(color).add_modifier(Modifier::BOLD)),
+                gap.dark_gray(),
+                format!("{id}  ").dark_gray(),
+                name,
             ];
             if *collapsed {
                 spans.push(format!("  (+{})", count_below(device)).dark_gray());

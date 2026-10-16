@@ -6,13 +6,15 @@ use std::path::{Path, PathBuf};
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use plugii::collect::{self, CollectOpts};
-use plugii::diff::{Event, EventKind};
+use plugii::diff::{self, Event, EventKind};
 use plugii::history::{History, Sample};
 use plugii::labels;
-use plugii::model::Snapshot;
+use plugii::model::{Snapshot, Usb3Side};
 use plugii::sysfs::Root;
 use plugii::tui::App;
-use plugii::tui::app::{self, Pane, Tab};
+use plugii::tui::app::{self, Overlay, Pane, Tab};
+use plugii::tui::detail::Target;
+use plugii::tui::ports::RowKind;
 use plugii::tui::ui;
 use ratatui::Terminal;
 use ratatui::backend::TestBackend;
@@ -432,14 +434,331 @@ fn events_follow_until_moved_up_and_clear() {
 }
 
 #[test]
-fn later_keys_are_no_ops() {
+fn label_key_is_a_no_op_for_now() {
     let mut app = daisy_dock();
     keys(&mut app, "4j");
     let before = (app.tab, sel(&app), app.focus());
-    for c in ['o', '/', 'n', 'N', 'L', '?'] {
-        app.on_key(key(KeyCode::Char(c)));
-    }
-    app.on_key(key(KeyCode::Enter));
+    keys(&mut app, "L");
     assert_eq!((app.tab, sel(&app), app.focus()), before);
+    assert!(app.overlay.is_none());
     assert!(!app.should_quit);
+}
+
+/// Selects the row with this id in the Sockets tree.
+fn select(app: &mut App, id: &str) {
+    keys(app, "gg");
+    let i = app
+        .socket_rows()
+        .iter()
+        .position(|r| r.id == id)
+        .unwrap_or_else(|| panic!("no row {id}"));
+    for _ in 0..i {
+        keys(app, "j");
+    }
+    assert_eq!(app.selected_row().unwrap().id, id);
+}
+
+fn detail_target(app: &App) -> Option<Target> {
+    match &app.overlay {
+        Some(Overlay::Detail(t)) => Some(t.clone()),
+        _ => None,
+    }
+}
+
+#[test]
+fn enter_and_o_open_details_esc_and_q_close() {
+    let mut app = daisy_dock();
+    select(&mut app, "7-1.2");
+    app.on_key(key(KeyCode::Enter));
+    assert_eq!(detail_target(&app), Some(Target::Device("7-1.2".into())));
+    // `j` / `k` scroll the popup, not the tree.
+    keys(&mut app, "jj");
+    assert_eq!(app.selected_row().unwrap().id, "7-1.2");
+    app.on_key(key(KeyCode::Esc));
+    assert!(app.overlay.is_none());
+
+    keys(&mut app, "o");
+    assert!(app.overlay.is_some());
+    // `q` closes the popup; a second `q` quits.
+    keys(&mut app, "q");
+    assert!(app.overlay.is_none());
+    assert!(!app.should_quit);
+
+    // A socket title opens the socket's detail.
+    keys(&mut app, "gg");
+    keys(&mut app, "o");
+    assert_eq!(
+        detail_target(&app),
+        Some(Target::Socket("0000:05:00.4-1".into()))
+    );
+    keys(&mut app, "q");
+    keys(&mut app, "q");
+    assert!(app.should_quit);
+}
+
+#[test]
+fn detail_scrolls_when_long() {
+    let mut app = daisy_dock();
+    select(&mut app, "7-1.2");
+    keys(&mut app, "o");
+    let full = render(&mut app, 120, 40);
+    let short = render(&mut app, 120, 14);
+    assert!(full.contains("vendor:product"));
+    assert!(short.contains("vendor:product"));
+    keys(&mut app, "jjj");
+    let scrolled = render(&mut app, 120, 14);
+    assert!(!scrolled.contains("vendor:product"), "{scrolled}");
+    assert_eq!(app.overlay_scroll, 3);
+    keys(&mut app, "G");
+    render(&mut app, 120, 14);
+    assert!(app.overlay_scroll > 3);
+    keys(&mut app, "gg");
+    assert_eq!(app.overlay_scroll, 0);
+}
+
+#[test]
+fn detail_of_the_ax88179b() {
+    let mut app = daisy_dock();
+    select(&mut app, "7-1.2");
+    app.on_key(key(KeyCode::Enter));
+    let screen = render(&mut app, 120, 40);
+    assert!(screen.contains("0b95:1790 AX88179B"));
+    assert!(screen.contains("linked at its best speed (5G)"));
+    insta::assert_snapshot!(screen);
+}
+
+#[test]
+fn detail_of_the_docks_usb2_hub() {
+    let mut app = daisy_dock();
+    select(&mut app, "6-1");
+    keys(&mut app, "o");
+    let screen = render(&mut app, 120, 40);
+    assert!(screen.contains("USB 2 half of a USB 3 hub (its USB 3 half is linked)"));
+    insta::assert_snapshot!(screen);
+}
+
+#[test]
+fn detail_of_a_socket() {
+    let mut app = daisy_dock();
+    select(&mut app, "0000:06:00.3-1");
+    keys(&mut app, "o");
+    insta::assert_snapshot!(render(&mut app, 120, 40));
+}
+
+#[test]
+fn the_tree_marks_devices_linked_below_their_speed() {
+    // The dock's USB 2 hub reads "capable 5G, linked 480M": not marked.
+    let mut app = daisy_dock();
+    assert!(!render(&mut app, 120, 40).contains('↓'));
+
+    // With its USB 3 half gone the same hub is stuck: marked.
+    let mut snap = snapshot("daisy-dock", "daisy");
+    let hinge = snap
+        .sockets
+        .iter_mut()
+        .find(|s| s.key == "0000:06:00.3-1")
+        .unwrap();
+    if let Usb3Side::Paired(h) = &mut hinge.usb3 {
+        h.device = None;
+    }
+    let mut app = app_with(snap);
+    let screen = render(&mut app, 120, 40);
+    assert!(screen.contains("480M↓ 05e3:0610  USB2.1 Hub"), "{screen}");
+}
+
+#[test]
+fn help_toggles_with_question_mark() {
+    let mut app = daisy_dock();
+    keys(&mut app, "?");
+    assert_eq!(app.overlay, Some(Overlay::Help));
+    let screen = render(&mut app, 120, 40);
+    for b in plugii::tui::keys::BINDINGS {
+        assert!(screen.contains(b.help), "{}", b.help);
+    }
+    insta::assert_snapshot!(screen);
+    keys(&mut app, "?");
+    assert!(app.overlay.is_none());
+    keys(&mut app, "?");
+    app.on_key(key(KeyCode::Esc));
+    assert!(app.overlay.is_none());
+    keys(&mut app, "?q");
+    assert!(app.overlay.is_none());
+    assert!(!app.should_quit);
+    // `h` never opens help.
+    keys(&mut app, "h");
+    assert!(app.overlay.is_none());
+}
+
+#[test]
+fn filter_prompt_takes_every_key() {
+    let mut app = daisy_dock();
+    keys(&mut app, "/");
+    assert!(app.prompt);
+    // `q`, `j`, `?`, `o` and digits type text.
+    keys(&mut app, "qj?o1");
+    assert!(!app.should_quit);
+    assert!(app.overlay.is_none());
+    assert_eq!(app.tab, Tab::Ports);
+    assert_eq!(app.sockets_filter, "qj?o1");
+    let last = render(&mut app, 120, 40).lines().last().unwrap().to_owned();
+    assert_eq!(last, "/qj?o1");
+    app.on_key(key(KeyCode::Backspace));
+    assert_eq!(app.sockets_filter, "qj?o");
+    // Esc cancels and clears.
+    app.on_key(key(KeyCode::Esc));
+    assert!(!app.prompt);
+    assert_eq!(app.sockets_filter, "");
+    keys(&mut app, "q");
+    assert!(app.should_quit);
+}
+
+#[test]
+fn filtered_tree_for_hub() {
+    let mut app = daisy_dock();
+    let all = app.socket_rows().len();
+    keys(&mut app, "/HUB");
+    app.on_key(key(KeyCode::Enter));
+    assert!(!app.prompt);
+    assert_eq!(app.sockets_filter, "HUB");
+    let rows = app.socket_rows();
+    assert!(rows.len() < all);
+    // Every socket title stays; the AX88179B (no "hub" in it) goes.
+    assert_eq!(
+        rows.iter()
+            .filter(|r| matches!(r.kind, RowKind::Socket { .. }))
+            .count(),
+        4
+    );
+    assert!(!rows.iter().any(|r| r.id == "7-1.2"));
+    // ⏎ jumped to the first match.
+    assert_eq!(app.selected_row().unwrap().id, "7-1");
+    let screen = render(&mut app, 120, 40);
+    assert!(screen.lines().next().unwrap().contains("/HUB"));
+    insta::assert_snapshot!(screen);
+
+    // `n` / `N` step through the matches, wrapping.
+    keys(&mut app, "n");
+    assert_eq!(app.selected_row().unwrap().id, "6-1");
+    keys(&mut app, "n");
+    assert_eq!(app.selected_row().unwrap().id, "6-1.2");
+    keys(&mut app, "n");
+    assert_eq!(app.selected_row().unwrap().id, "7-1");
+    keys(&mut app, "N");
+    assert_eq!(app.selected_row().unwrap().id, "6-1.2");
+
+    // Esc on the tree clears the filter, keeping the selection.
+    app.on_key(key(KeyCode::Esc));
+    assert_eq!(app.sockets_filter, "");
+    assert_eq!(app.socket_rows().len(), all);
+    assert_eq!(app.selected_row().unwrap().id, "6-1.2");
+}
+
+#[test]
+fn filter_matches_vid_pid_and_manufacturer() {
+    let mut app = daisy_dock();
+    keys(&mut app, "/0b95:1790");
+    let ids: Vec<String> = app
+        .socket_rows()
+        .iter()
+        .filter(|r| matches!(r.kind, RowKind::Device { .. }))
+        .map(|r| r.id.clone())
+        .collect();
+    // The AX88179B and the hub above it.
+    assert_eq!(ids, ["7-1", "7-1.2"]);
+    app.on_key(key(KeyCode::Esc));
+    keys(&mut app, "/asix");
+    app.on_key(key(KeyCode::Enter));
+    assert_eq!(app.selected_row().unwrap().id, "7-1.2");
+}
+
+#[test]
+fn filter_on_events() {
+    let mut app = daisy_dock();
+    let snap = app.snapshot.clone().unwrap();
+    app.on_update(snap, some_events(), Sample::default());
+    keys(&mut app, "3/hinge");
+    app.on_key(key(KeyCode::Enter));
+    assert_eq!(app.visible_events().len(), 2);
+    let screen = render(&mut app, 100, 12);
+    assert!(screen.contains("05e3:0626 hub"));
+    assert!(!screen.contains("Unifying"));
+    assert!(screen.lines().next().unwrap().contains("/hinge"));
+    keys(&mut app, "n");
+    assert_eq!(sel(&app), 0);
+    keys(&mut app, "N");
+    assert_eq!(sel(&app), 1);
+    app.on_key(key(KeyCode::Esc));
+    assert_eq!(app.visible_events().len(), 5);
+}
+
+#[test]
+fn n_without_a_filter_does_nothing() {
+    let mut app = daisy_dock();
+    keys(&mut app, "jj");
+    keys(&mut app, "nN");
+    assert_eq!(sel(&app), 2);
+}
+
+/// daisy-dock at T0 − 1 s, then daisy-empty at T0 with its diff.
+fn unplugged() -> App {
+    let mut dock = snapshot("daisy-dock", "daisy");
+    dock.taken_at_ms = T0 - 1000;
+    let mut app = app_with(dock.clone());
+    let empty = snapshot("daisy-empty", "daisy");
+    let events = diff::diff(&dock, &empty);
+    assert!(events.iter().any(|e| e.kind == EventKind::Removed));
+    app.on_update(empty, events, Sample::default());
+    app
+}
+
+#[test]
+fn ghosts_stay_30_s() {
+    let mut app = unplugged();
+    let ghosts = |app: &App| {
+        app.socket_rows()
+            .iter()
+            .filter(|r| r.id.starts_with("ghost:"))
+            .count()
+    };
+    // Both halves' hubs with what hung off them.
+    assert_eq!(ghosts(&app), 4);
+    app.now_ms = T0 + 10_000;
+    let screen = render(&mut app, 120, 40);
+    assert!(screen.contains("(gone)"));
+    insta::assert_snapshot!(screen);
+
+    // Details still work on a ghost.
+    select(&mut app, "ghost:7-1.2");
+    keys(&mut app, "o");
+    let detail = render(&mut app, 120, 40);
+    assert!(detail.contains("unplugged 10 s ago"), "{detail}");
+    keys(&mut app, "q");
+
+    app.now_ms = T0 + 40_000;
+    assert_eq!(ghosts(&app), 0);
+    assert!(!render(&mut app, 120, 40).contains("(gone)"));
+}
+
+#[test]
+fn a_ghost_goes_when_its_device_comes_back() {
+    let mut app = unplugged();
+    let mut back = snapshot("daisy-dock", "daisy");
+    back.taken_at_ms = T0 + 2000;
+    app.now_ms = T0 + 2000;
+    app.on_update(back, Vec::new(), Sample::default());
+    assert!(app.ghosts.is_empty());
+    assert!(!app.socket_rows().iter().any(|r| r.id.starts_with("ghost:")));
+}
+
+#[test]
+fn no_ghosts_without_a_removed_event() {
+    let mut dock = snapshot("daisy-dock", "daisy");
+    dock.taken_at_ms = T0 - 1000;
+    let mut app = app_with(dock);
+    app.on_update(
+        snapshot("daisy-empty", "daisy"),
+        Vec::new(),
+        Sample::default(),
+    );
+    assert!(app.ghosts.is_empty());
 }

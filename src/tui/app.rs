@@ -4,10 +4,12 @@
 
 use std::collections::{HashSet, VecDeque};
 
-use crossterm::event::KeyEvent;
+use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 
+use super::detail::Target;
+use super::ghosts::{self, Ghost};
 use super::keys::{Action, Dir, Pending};
-use super::ports;
+use super::ports::{self, TreeOpts};
 use crate::diff::Event;
 use crate::health;
 use crate::history::{History, Sample};
@@ -80,6 +82,13 @@ impl Default for PaneState {
     }
 }
 
+/// A popup over the tab; it takes the keys until closed.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Overlay {
+    Detail(Target),
+    Help,
+}
+
 /// Updates held back while paused, applied on resume so the event list and
 /// the chart history have no gap.
 #[derive(Debug, Default)]
@@ -115,6 +124,18 @@ pub struct App {
     pub utc_offset_s: i32,
     /// Terminal columns and rows.
     pub size: (u16, u16),
+    pub overlay: Option<Overlay>,
+    /// The popup's first line shown, and its height at the last draw.
+    pub overlay_scroll: usize,
+    pub overlay_height: usize,
+    /// The `/` prompt is open: keys edit the current tab's filter.
+    pub prompt: bool,
+    /// Device filter on the Ports tab; empty is none.
+    pub sockets_filter: String,
+    /// Event-line filter on the Events tab.
+    pub events_filter: String,
+    /// Recently unplugged subtrees, shown until they expire.
+    pub ghosts: Vec<Ghost>,
 }
 
 impl App {
@@ -138,6 +159,13 @@ impl App {
             now_ms: 0,
             utc_offset_s,
             size: (120, 40),
+            overlay: None,
+            overlay_scroll: 0,
+            overlay_height: 20,
+            prompt: false,
+            sockets_filter: String::new(),
+            events_filter: String::new(),
+            ghosts: Vec::new(),
         }
     }
 
@@ -154,7 +182,7 @@ impl App {
             self.held.samples.drain(..extra);
             return;
         }
-        self.apply_snapshot(snapshot);
+        self.apply_snapshot(snapshot, &events);
         self.push_events(events);
         self.history.push(sample);
     }
@@ -164,9 +192,196 @@ impl App {
         self.warning = Some(warning);
     }
 
+    /// A key: to the prompt while it is open, else through the keymap to
+    /// the popup or the tab.
     pub fn on_key(&mut self, key: KeyEvent) {
+        if self.prompt {
+            self.prompt_key(key);
+            return;
+        }
         let action = self.keys.feed(key);
-        self.apply(action);
+        if self.overlay.is_some() {
+            self.overlay_action(action);
+        } else {
+            self.apply(action);
+        }
+    }
+
+    /// The filter of the current tab, if it has one.
+    pub fn filter(&self) -> Option<&str> {
+        match self.tab {
+            Tab::Ports => Some(&self.sockets_filter),
+            Tab::Events => Some(&self.events_filter),
+            Tab::Charts => None,
+        }
+    }
+
+    /// Changes the current tab's filter, keeping the selected row if it
+    /// stays.
+    fn set_filter(&mut self, change: impl FnOnce(&mut String)) {
+        match self.tab {
+            Tab::Ports => {
+                let selected = self.selected_row().map(|r| r.id);
+                change(&mut self.sockets_filter);
+                self.reselect(selected);
+            }
+            Tab::Events => {
+                let selected = self
+                    .visible_events()
+                    .get(self.pane(Pane::Events).sel)
+                    .map(|e| (*e).clone());
+                change(&mut self.events_filter);
+                let events = self.visible_events();
+                let i = selected
+                    .and_then(|s| events.iter().position(|e| **e == s))
+                    .unwrap_or(usize::MAX);
+                let len = events.len();
+                self.pane_mut(Pane::Events).sel = i.min(len.saturating_sub(1));
+            }
+            Tab::Charts => {}
+        }
+    }
+
+    fn prompt_key(&mut self, key: KeyEvent) {
+        if key.kind == KeyEventKind::Release {
+            return;
+        }
+        let ctrl = key.modifiers.contains(KeyModifiers::CONTROL);
+        match key.code {
+            KeyCode::Esc => self.cancel_prompt(),
+            KeyCode::Char('c') if ctrl => self.cancel_prompt(),
+            KeyCode::Char('u') if ctrl => self.set_filter(String::clear),
+            KeyCode::Enter => {
+                self.prompt = false;
+                if self.filter().is_some_and(str::is_empty) {
+                    return;
+                }
+                if self.tab == Tab::Ports && !self.selected_row().is_some_and(|r| r.is_match()) {
+                    self.jump_match(true);
+                }
+            }
+            KeyCode::Backspace => {
+                if self.filter().is_some_and(str::is_empty) {
+                    self.prompt = false;
+                } else {
+                    self.set_filter(|f| {
+                        f.pop();
+                    });
+                }
+            }
+            KeyCode::Char(c) if !ctrl && !key.modifiers.contains(KeyModifiers::ALT) => {
+                self.set_filter(|f| f.push(c));
+            }
+            _ => {}
+        }
+    }
+
+    fn cancel_prompt(&mut self) {
+        self.prompt = false;
+        self.set_filter(String::clear);
+    }
+
+    fn overlay_action(&mut self, action: Action) {
+        let half = (self.overlay_height / 2).max(1);
+        let scroll = &mut self.overlay_scroll;
+        match action {
+            // The renderer clamps the scroll to the content.
+            Action::Move(n) if n < 0 => *scroll = scroll.saturating_sub(n.unsigned_abs() as usize),
+            Action::Move(n) => *scroll = scroll.saturating_add(n as usize),
+            Action::HalfDown => *scroll = scroll.saturating_add(half),
+            Action::HalfUp => *scroll = scroll.saturating_sub(half),
+            Action::Top => *scroll = 0,
+            Action::Bottom => *scroll = usize::MAX,
+            Action::Back | Action::Close => self.overlay = None,
+            Action::Help if self.overlay == Some(Overlay::Help) => self.overlay = None,
+            Action::Help => self.open(Overlay::Help),
+            Action::Quit => self.should_quit = true,
+            _ => {}
+        }
+    }
+
+    fn open(&mut self, overlay: Overlay) {
+        self.overlay = Some(overlay);
+        self.overlay_scroll = 0;
+    }
+
+    /// The selected row of the Ports tree.
+    pub fn selected_row(&self) -> Option<ports::Row> {
+        self.socket_rows()
+            .into_iter()
+            .nth(self.pane(Pane::Sockets).sel)
+    }
+
+    /// Details of the selected device, or of the socket a row belongs to.
+    fn open_detail(&mut self) {
+        if self.tab != Tab::Ports || self.focus() != Pane::Sockets {
+            return;
+        }
+        let Some(row) = self.selected_row() else {
+            return;
+        };
+        let target = match &row.kind {
+            ports::RowKind::Device { device, .. } => Target::Device(device.sysfs_name.clone()),
+            _ => Target::Socket(row.socket),
+        };
+        self.open(Overlay::Detail(target));
+    }
+
+    /// `n` (`forward`) / `N`: the next or previous match, wrapping.
+    fn jump_match(&mut self, forward: bool) {
+        match self.tab {
+            Tab::Ports if !self.sockets_filter.is_empty() => {
+                self.focus[Tab::Ports.index()] = Pane::Sockets;
+                let matches: Vec<usize> = self
+                    .socket_rows()
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, r)| r.is_match())
+                    .map(|(i, _)| i)
+                    .collect();
+                let sel = self.pane(Pane::Sockets).sel;
+                let to = if forward {
+                    matches.iter().find(|&&i| i > sel).or(matches.first())
+                } else {
+                    matches.iter().rev().find(|&&i| i < sel).or(matches.last())
+                };
+                if let Some(&i) = to {
+                    self.pane_mut(Pane::Sockets).sel = i;
+                }
+            }
+            Tab::Events if !self.events_filter.is_empty() => {
+                // Every line shown matches: step one, wrapping.
+                let len = self.visible_events().len();
+                if len == 0 {
+                    return;
+                }
+                let sel = self.pane(Pane::Events).sel;
+                let to = if forward {
+                    (sel + 1) % len
+                } else {
+                    (sel + len - 1) % len
+                };
+                self.pane_mut(Pane::Events).sel = to;
+                self.events_follow = to + 1 >= len;
+            }
+            _ => {}
+        }
+    }
+
+    /// The events the Events tab lists: those whose line contains the
+    /// filter, ignoring case.
+    pub fn visible_events(&self) -> Vec<&Event> {
+        let needle = self.events_filter.to_lowercase();
+        self.events
+            .iter()
+            .filter(|e| needle.is_empty() || e.line().to_lowercase().contains(&needle))
+            .collect()
+    }
+
+    /// Ghosts still shown at the display's time.
+    pub fn live_ghosts(&self) -> Vec<&Ghost> {
+        let now = self.view_now_ms();
+        self.ghosts.iter().filter(|g| g.live(now)).collect()
     }
 
     /// The keys of an unfinished sequence (`5`, `g`, `^W`, `:q`).
@@ -199,32 +414,53 @@ impl App {
         &mut self.panes[pane as usize]
     }
 
-    /// The Ports tree as currently expanded.
+    /// The Ports tree as currently expanded, filtered, with live ghosts.
     pub fn socket_rows(&self) -> Vec<ports::Row> {
         match &self.snapshot {
-            Some(s) => ports::rows(s, &self.collapsed),
+            Some(s) => ports::rows(
+                s,
+                TreeOpts {
+                    collapsed: &self.collapsed,
+                    ghosts: &self.live_ghosts(),
+                    filter: &self.sockets_filter,
+                },
+            ),
             None => Vec::new(),
         }
     }
 
-    fn apply_snapshot(&mut self, snapshot: Snapshot) {
-        let rows = self.socket_rows();
-        let selected = rows.get(self.pane(Pane::Sockets).sel).map(|r| r.id.clone());
-        self.findings = health::check(&snapshot);
-        self.snapshot = Some(snapshot);
+    /// Puts the Sockets selection back on the row `id` if it is still
+    /// there, else keeps it in range.
+    fn reselect(&mut self, id: Option<String>) {
         let rows = self.socket_rows();
         let state = self.pane_mut(Pane::Sockets);
-        if let Some(i) = selected.and_then(|id| rows.iter().position(|r| r.id == id)) {
+        if let Some(i) = id.and_then(|id| rows.iter().position(|r| r.id == id)) {
             state.sel = i;
         }
         state.sel = state.sel.min(rows.len().saturating_sub(1));
+    }
+
+    /// The new snapshot; subtrees it lost on a socket a Removed event names
+    /// become ghosts, and ghosts whose device is back go.
+    fn apply_snapshot(&mut self, snapshot: Snapshot, events: &[Event]) {
+        let selected = self.selected_row().map(|r| r.id);
+        if let Some(old) = &self.snapshot {
+            let new = ghosts::removed(old, &snapshot, events);
+            self.ghosts.extend(new);
+        }
+        let now = snapshot.taken_at_ms;
+        self.ghosts
+            .retain(|g| g.live(now) && !ghosts::returned(g, &snapshot));
+        self.findings = health::check(&snapshot);
+        self.snapshot = Some(snapshot);
+        self.reselect(selected);
     }
 
     fn push_events(&mut self, events: Vec<Event>) {
         self.events.extend(events);
         let extra = self.events.len().saturating_sub(EVENTS_MAX);
         self.events.drain(..extra);
-        let len = self.events.len();
+        let len = self.visible_events().len();
         let state = self.pane_mut(Pane::Events);
         state.sel = state.sel.saturating_sub(extra);
         if self.events_follow {
@@ -262,7 +498,25 @@ impl App {
                 };
                 self.events_follow = true;
             }
-            Action::Quit => self.should_quit = true,
+            Action::Open => self.open_detail(),
+            Action::Search => {
+                if self.filter().is_some() {
+                    if self.tab == Tab::Ports {
+                        self.focus[Tab::Ports.index()] = Pane::Sockets;
+                    }
+                    self.set_filter(String::clear);
+                    self.prompt = true;
+                }
+            }
+            Action::NextMatch => self.jump_match(true),
+            Action::PrevMatch => self.jump_match(false),
+            Action::Help => self.open(Overlay::Help),
+            Action::Back => {
+                if self.filter().is_some_and(|f| !f.is_empty()) {
+                    self.set_filter(String::clear);
+                }
+            }
+            Action::Close | Action::Quit => self.should_quit = true,
             Action::NotYet | Action::None => {}
         }
     }
@@ -276,7 +530,7 @@ impl App {
         self.paused = false;
         let held = std::mem::take(&mut self.held);
         if let Some(snapshot) = held.snapshot {
-            self.apply_snapshot(snapshot);
+            self.apply_snapshot(snapshot, &held.events);
         }
         self.push_events(held.events);
         for sample in held.samples {
@@ -292,7 +546,7 @@ impl App {
     fn selectable_len(&self, pane: Pane) -> Option<usize> {
         match pane {
             Pane::Sockets => Some(self.socket_rows().len()),
-            Pane::Events => Some(self.events.len()),
+            Pane::Events => Some(self.visible_events().len()),
             _ => None,
         }
     }

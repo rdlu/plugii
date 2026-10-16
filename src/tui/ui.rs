@@ -1,12 +1,13 @@
 //! Drawing: the top line, then the current tab.
 
 use ratatui::Frame;
-use ratatui::layout::{Constraint, Layout, Rect};
+use ratatui::layout::{Constraint, Layout, Margin, Rect};
 use ratatui::style::{Color, Modifier, Style, Stylize};
 use ratatui::text::{Line, Span};
-use ratatui::widgets::{Block, Paragraph, Tabs};
+use ratatui::widgets::{Block, Clear, Paragraph, Tabs};
 
-use super::app::{App, FLASH_MS, Pane, Tab, clock};
+use super::app::{App, FLASH_MS, Overlay, Pane, Tab, clock};
+use super::detail::{self, Target};
 use super::{charts, ports};
 use crate::diff::{Event, EventKind};
 
@@ -15,19 +16,92 @@ use crate::diff::{Event, EventKind};
 pub fn draw(f: &mut Frame, app: &mut App) {
     let area = f.area();
     app.size = (area.width, area.height);
-    let [top, body] = Layout::vertical([Constraint::Length(1), Constraint::Min(0)]).areas(area);
+    let prompt_rows = u16::from(app.prompt);
+    let [top, body, prompt] = Layout::vertical([
+        Constraint::Length(1),
+        Constraint::Min(0),
+        Constraint::Length(prompt_rows),
+    ])
+    .areas(area);
     top_line(f, top, app);
     match app.tab {
         Tab::Ports => ports_tab(f, body, app),
         Tab::Charts => charts::draw(f, body, app),
         Tab::Events => {
-            let mut lines: Vec<Line> = app.events.iter().map(|e| event_line(e, app)).collect();
+            let mut lines: Vec<Line> = app
+                .visible_events()
+                .into_iter()
+                .map(|e| event_line(e, app))
+                .collect();
             if lines.is_empty() {
-                lines.push(Line::from("no events yet".dark_gray()));
+                let text = if app.events.is_empty() {
+                    "no events yet"
+                } else {
+                    "no events match the filter"
+                };
+                lines.push(Line::from(text.dark_gray()));
             }
             list_pane(f, body, app, Pane::Events, "Events", lines, &[]);
         }
     }
+    if app.prompt {
+        let text = app.filter().unwrap_or_default().to_owned();
+        f.render_widget(
+            Paragraph::new(Line::from(vec![
+                "/".cyan().bold(),
+                Span::raw(text),
+                " ".reversed(),
+            ])),
+            prompt,
+        );
+    }
+    overlay(f, body, app);
+}
+
+/// The detail or help popup, centred over `area`.
+fn overlay(f: &mut Frame, area: Rect, app: &mut App) {
+    let popup = match (&app.overlay, &app.snapshot) {
+        (Some(Overlay::Help), _) => detail::help(),
+        (Some(Overlay::Detail(Target::Device(name))), Some(s)) => {
+            detail::device(s, &app.live_ghosts(), name, app.view_now_ms())
+        }
+        (Some(Overlay::Detail(Target::Socket(key))), Some(s)) => detail::socket(s, key),
+        _ => return,
+    };
+    let content_width = popup.lines.iter().map(Line::width).max().unwrap_or(0) as u16;
+    let width = (content_width + 4).clamp(60, 96).min(area.width);
+    let height = (popup.lines.len() as u16 + 2).min(area.height);
+    let [_, mid, _] = Layout::vertical([
+        Constraint::Fill(1),
+        Constraint::Length(height),
+        Constraint::Fill(1),
+    ])
+    .areas(area);
+    let [_, rect, _] = Layout::horizontal([
+        Constraint::Fill(1),
+        Constraint::Length(width),
+        Constraint::Fill(1),
+    ])
+    .areas(mid);
+    let block = Block::bordered()
+        .border_style(Style::new().fg(Color::Cyan))
+        .title(Span::raw(format!(" {} ", popup.title)).bold().cyan())
+        .title_bottom(Line::from(" Esc/q close · j/k scroll ".dark_gray()).right_aligned());
+    let inner = block.inner(rect).inner(Margin::new(1, 0));
+    f.render_widget(Clear, rect);
+    f.render_widget(block, rect);
+    let height = inner.height as usize;
+    app.overlay_height = height;
+    app.overlay_scroll = app
+        .overlay_scroll
+        .min(popup.lines.len().saturating_sub(height));
+    let shown: Vec<Line> = popup
+        .lines
+        .into_iter()
+        .skip(app.overlay_scroll)
+        .take(height)
+        .collect();
+    f.render_widget(Paragraph::new(shown), inner);
 }
 
 fn top_line(f: &mut Frame, area: Rect, app: &App) {
@@ -69,6 +143,10 @@ fn status_spans(app: &App) -> Vec<Span<'static>> {
     let pending = app.pending_keys();
     if !pending.is_empty() {
         out.push(pending.cyan());
+        out.push("  ".into());
+    }
+    if let Some(filter) = app.filter().filter(|f| !f.is_empty() && !app.prompt) {
+        out.push(format!("/{filter}").cyan());
         out.push("  ".into());
     }
     if let Some(w) = &app.warning {

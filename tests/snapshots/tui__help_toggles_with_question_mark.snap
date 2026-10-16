@@ -1,0 +1,44 @@
+---
+source: tests/tui.rs
+expression: screen
+---
+ Ports │ Charts │ Events   unknown                                                                      updated 12:00:00
+┌ Sockets ──────────┌ Keys ────────────────────────────────────────────────────────────────────────┐───────────────────┐
+│─ USB-A (right) ───│ Move                                                                         │                   │
+│ USB 3  idle       │   j  ↓              down                                                     │                   │
+│ USB 2  idle       │   k  ↑              up                                                       │                   │
+│─ USB-A (left) ────│   gg  Home          top                                                      │                   │
+│ USB 3  idle       │   G  End            bottom                                                   │───────────────────┘
+│ USB 2  idle       │   Ctrl-d  PgDn      half a page down                                         │───────────────────┐
+│─ USB-C (hinge) ───│   Ctrl-u  PgUp      half a page up                                           │                   │
+│ USB 3  linked     │   h  ←              collapse a hub, else the pane to the left                │wer level not      │
+│   ▾   5G  05e3:062│   l  →              expand a hub, else the pane to the right                 │                   │
+│         5G  0b95:1│                                                                              │                   │
+│ USB 2  linked     │ Panes and tabs                                                               │                   │
+│   ▾ 480M  05e3:061│   Ctrl-w h j k l    focus the pane left / below / above / right              │───────────────────┘
+│       480M  05e3:0│   gt  Tab           next tab                                                 │───────────────────┐
+│─ USB-C (caps lock)│   gT  Shift-Tab     previous tab                                             │ing)               │
+│ USB 3  idle       │   1  2  3           Ports / Charts / Events tab                              │(s)                │
+│ USB 2  idle       │                                                                              │t0 (USB-C (caps    │
+│ USB-C  partner (po│ Details and filter                                                           │awing 2.75 A;      │
+│   └ no USB data, n│   ⏎  o              details of the selected device or socket                 │                   │
+│                   │   /                 filter devices (on Events: event lines)                  │                   │
+│                   │   n                 next match                                               │                   │
+│                   │   N                 previous match                                           │                   │
+│                   │   Esc               close a popup, else clear the filter                     │                   │
+│                   │                                                                              │                   │
+│                   │ Other                                                                        │                   │
+│                   │   p                 pause / resume updates                                   │                   │
+│                   │   c                 clear events                                             │                   │
+│                   │   ?                 this help                                                │                   │
+│                   │   q                 close a popup, else quit                                 │                   │
+│                   │   :q⏎  Ctrl-c       quit                                                     │                   │
+│                   │                                                                              │                   │
+│                   │ In the / prompt                                                              │                   │
+│                   │   text              filters as you type: vid:pid, product, manufacturer      │                   │
+│                   │   ⏎                 apply                                                    │                   │
+│                   │   Esc  Ctrl-c       cancel and clear the filter                              │                   │
+│                   │   Backspace         delete a character                                       │                   │
+│                   │                                                                              │                   │
+│                   │ A dim ↓ after a speed: linked below what the device supports (⏎ tells more). │                   │
+└───────────────────└──────────────────────────────────────────────────── Esc/q close · j/k scroll ┘───────────────────┘
