@@ -1,0 +1,120 @@
+# Cutting a release
+
+For now GitHub releases are the only channel: a `vX.Y.Z` tag builds the
+tarballs and publishes the release. crates.io and the AUR come later; their
+steps are at the end, ready but not part of a release yet.
+
+## What the workflows do
+
+- **CI** (`.github/workflows/ci.yml`), on pushes to `dev` and `main` and on
+  pull requests: rustfmt, clippy `-D warnings`, the tests (insta snapshots
+  fail instead of updating), a build with the MSRV from Cargo.toml's
+  `rust-version`, and the docs site with the pinned hugo.
+- **Release** (`release.yml`), on a `v*` tag: fails unless the tag is
+  `v` + Cargo.toml's version and CHANGELOG.md has a section for it. Builds
+  `x86_64-unknown-linux-gnu` and `aarch64-unknown-linux-gnu` natively on
+  the ubuntu-22.04 runners, so the binaries need glibc 2.35 or newer. Each
+  `plugii-X.Y.Z-<target>.tar.gz` holds the binary, man pages, bash/zsh/fish
+  completions, README, CHANGELOG and LICENSE, next to a `.sha256`. Then
+  `gh release create` publishes them with the CHANGELOG section as notes.
+- **Pages** (`pages.yml`), on pushes to `main` that touch the site (or
+  `src/tui/keys.rs` and the snapshots it shows), and by hand: builds `site/`
+  with the pinned hugo and deploys it to <https://plugii.dlu.one/>.
+
+## Checklist
+
+1. **Bump the version** in Cargo.toml (`version = "X.Y.Z"`), then
+   `cargo check` so Cargo.lock follows.
+2. **Update CHANGELOG.md**: move what's under `[Unreleased]` into a
+   `## [X.Y.Z] - YYYY-MM-DD` section, dated today (a section still saying
+   `unreleased` stops `release-tag`), and add its link at the bottom:
+   `[X.Y.Z]: https://github.com/rdlu/plugii/releases/tag/vX.Y.Z`, with
+   `[Unreleased]` comparing from `vX.Y.Z`.
+3. **Check:**
+
+   ```sh
+   mise run check           # fmt, clippy, tests
+   mise run docs-build      # the site still builds
+   mise run release-check   # version + CHANGELOG, crate contents, PKGBUILDs
+   ```
+
+   Commit (`Release X.Y.Z`) on local main.
+4. **Fast-forward GitHub main, tag and push the tag:**
+
+   ```sh
+   mise run release-tag
+   ```
+
+   On a clean main, it pushes main to GitHub `main` and `dev`, creates the
+   annotated tag `vX.Y.Z` and pushes it. Pushes go over SSH and retry up to
+   3 times, since the security key needs a touch. By hand, that's
+   `git push origin main:main main:dev`, then
+   `git tag -a vX.Y.Z -m "plugii X.Y.Z"` and
+   `git push origin refs/tags/vX.Y.Z`.
+5. **Wait for the Release workflow** (Actions tab, or `gh run watch`).
+   When it's green, check the release page: two tarballs, two `.sha256`,
+   and the notes. If it fails before publishing, fix it on main, delete the
+   tag locally and on GitHub (`git push origin :refs/tags/vX.Y.Z`), and
+   tag again.
+6. **Check the site**: the Pages workflow runs when main's push touched
+   `site/`; otherwise run it from the Actions tab (workflow_dispatch).
+
+### First release only
+
+From the first release on, `main` is the release branch: it carries what
+has been released (or is about to be), and changes arrive through pull
+requests from here on.
+
+Before or right after pushing the tag, in the repository's
+**Settings → Pages**:
+
+1. **Source: GitHub Actions.** Then run the Pages workflow once by hand,
+   since the push to main came before Pages existed.
+2. **Custom domain:** `plugii.dlu.one` (DNS is done and the domain is
+   verified). `site/static/CNAME` carries the same name.
+3. **Enforce HTTPS**, once GitHub has issued the certificate (the box is
+   greyed out until then, sometimes for a few minutes).
+
+## Later: crates.io
+
+Not part of a release yet. `cargo install --locked plugii` would then work
+for anyone with a Rust toolchain.
+
+- **What publishing does:** `cargo publish` packages the crate (what
+  `cargo package --list` shows: the sources, README, CHANGELOG, LICENSE;
+  the test fixtures, site and demos stay out through Cargo.toml's
+  `include`), builds it once from the package to verify, and uploads it.
+- **It's permanent.** A published version can never be deleted or
+  overwritten, only *yanked*: `cargo yank --version X.Y.Z` stops new
+  projects from picking it, but anyone can still download it. A mistake
+  means publishing X.Y.Z+1. Read the package list before the first one.
+- **The name:** the first publish claims `plugii` for your crates.io
+  account; it was free on 2026-10-16. There's no reserving it without
+  publishing something.
+- **The API token:** log in to crates.io with GitHub, verify your email
+  address, create a token under Account Settings → API Tokens (scope it to
+  `publish-new` and `publish-update`, and to the `plugii` crate once it
+  exists), then `cargo login` and paste it. It's stored in
+  `~/.cargo/credentials.toml`.
+- **Dry run first:** `cargo publish --dry-run` does everything except the
+  upload (`mise run release-check` runs it). Then, after the tag's release
+  workflow is green and from the tagged commit, `cargo publish`.
+- Once crates.io is a channel, add `cargo install --locked plugii` to the
+  install docs (README and `site/content/docs/getting-started.md`).
+
+## Later: AUR
+
+The PKGBUILDs are in `packaging/aur/` (`plugii` from the tag's source
+tarball, `plugii-bin` from the release tarballs), tested with
+`mise run aur-test`. `packaging/aur/README.md` has the details. Per
+release, once the GitHub release exists:
+
+1. Set `pkgver=X.Y.Z` and `pkgrel=1` in both PKGBUILDs.
+2. `updpkgsums` in each directory (pacman-contrib), replacing the `SKIP`
+   placeholders with the real checksums.
+3. `mise run aur-srcinfo`, then `mise run aur-test`, and commit.
+4. Copy each `PKGBUILD` and `.SRCINFO` into its AUR clone
+   (`ssh://aur@aur.archlinux.org/plugii.git`,
+   `ssh://aur@aur.archlinux.org/plugii-bin.git`), commit and push. This
+   needs your AUR account and SSH key.
+5. Add `paru -S plugii` / `plugii-bin` to the install docs.

@@ -87,3 +87,99 @@ run = "hugo --minify --cleanDestinationDir"
 [tasks.demos]
 description = "Regenerate the docs site demos: recording, VHS videos, posters (needs vhs, ffmpeg)"
 run = "site/demos/build.sh"
+
+# Releases: docs/RELEASE.md is the checklist these serve.
+
+[tasks.release-check]
+description = "Release dry runs: version and CHANGELOG, crate contents, cargo publish --dry-run, PKGBUILDs"
+run = '''
+set -euo pipefail
+version=$(sed -n '/^\[package\]/,/^\[/s/^version = "\(.*\)"$/\1/p' Cargo.toml)
+echo "== plugii $version"
+.github/scripts/changelog-section.sh "$version" >/dev/null
+echo "CHANGELOG.md has a $version section"
+if grep -q "^## \[$version\] - unreleased" CHANGELOG.md; then
+  echo "note: it is still dated 'unreleased'"
+fi
+
+echo "== crate contents (cargo package --list)"
+list=$(cargo package --list 2>/dev/null)
+echo "$list" | awk -F/ '{ print (NF > 1 ? $1 "/" : $0) }' | sort | uniq -c
+echo "$(echo "$list" | wc -l) files"
+
+echo "== cargo publish --dry-run"
+cargo publish --dry-run 2>&1 | grep -Ev 'File system loop|warning: ignoring (test|example)' | tail -n 5
+
+echo "== AUR PKGBUILDs"
+for dir in packaging/aur/*/; do
+  pkgver=$(sed -n 's/^pkgver=//p' "$dir/PKGBUILD")
+  [ "$pkgver" = "$version" ] || echo "note: ${dir}PKGBUILD is at $pkgver, Cargo.toml at $version"
+  if command -v makepkg >/dev/null; then
+    (cd "$dir" && makepkg --printsrcinfo | cmp -s - .SRCINFO) \
+      || echo "note: ${dir}.SRCINFO is stale: mise run aur-srcinfo"
+  fi
+  if command -v namcap >/dev/null; then
+    namcap "${dir}PKGBUILD"
+  fi
+done
+command -v namcap >/dev/null || echo "namcap not installed: skipped (mise run aur-test runs it in a container)"
+'''
+
+[tasks.aur-srcinfo]
+description = "Regenerate the AUR .SRCINFO files from the PKGBUILDs"
+run = '''
+set -euo pipefail
+for dir in packaging/aur/*/; do
+  (cd "$dir" && makepkg --printsrcinfo > .SRCINFO)
+  echo "wrote ${dir}.SRCINFO"
+done
+'''
+
+[tasks.aur-test]
+description = "makepkg the source PKGBUILD from a tarball of HEAD (tests included), then namcap it"
+run = '''
+set -euo pipefail
+version=$(sed -n 's/^pkgver=//p' packaging/aur/plugii/PKGBUILD)
+dir=$(mktemp -d "${TMPDIR:-/tmp}/plugii-aur.XXXXXX")
+git archive --format=tar.gz --prefix="plugii-$version/" -o "$dir/plugii-$version.tar.gz" HEAD
+sed 's|^source=.*|source=("$pkgname-$pkgver.tar.gz")|' packaging/aur/plugii/PKGBUILD > "$dir/PKGBUILD"
+(cd "$dir" && makepkg -f --cleanbuild)
+if command -v namcap >/dev/null; then
+  namcap "$dir/PKGBUILD" "$dir"/plugii-*.pkg.tar.zst
+elif command -v podman >/dev/null; then
+  echo "namcap not installed: running it in an Arch container"
+  podman run --rm -v "$dir:/pkg:ro,Z" docker.io/library/archlinux:latest \
+    sh -c 'pacman -Sy --noconfirm --needed namcap >/dev/null && namcap /pkg/PKGBUILD /pkg/plugii-*.pkg.tar.zst'
+else
+  echo "neither namcap nor podman: skipped namcap"
+fi
+echo "built in $dir"
+'''
+
+[tasks.release-tag]
+description = "Fast-forward GitHub main and dev to main, then tag v<version> and push the tag (retries for the security key)"
+run = '''
+set -euo pipefail
+[ "$(git branch --show-current)" = main ] || { echo "not on main"; exit 1; }
+[ -z "$(git status --porcelain)" ] || { echo "working tree not clean"; exit 1; }
+version=$(sed -n '/^\[package\]/,/^\[/s/^version = "\(.*\)"$/\1/p' Cargo.toml)
+tag="v$version"
+.github/scripts/changelog-section.sh "$version" >/dev/null
+if grep -q "^## \[$version\] - unreleased" CHANGELOG.md; then
+  echo "CHANGELOG.md: date the $version section first"; exit 1
+fi
+if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+  echo "$tag already exists"; exit 1
+fi
+push() {
+  for i in 1 2 3; do
+    git push origin "$@" && return 0
+    echo "push failed (touch the security key?), retry $i/3"
+  done
+  return 1
+}
+push main:main main:dev
+git tag -a "$tag" -m "plugii $version"
+push "refs/tags/$tag"
+echo "pushed $tag: the Release workflow builds and publishes it"
+'''
