@@ -1,0 +1,33 @@
+---
+source: tests/readers.rs
+expression: tb
+---
+{
+  "domains": [
+    {
+      "index": 0,
+      "security": "user",
+      "iommu_dma_protection": true,
+      "controller_vendor": "INTEL",
+      "controller_device": "Gen12",
+      "generation": 4
+    }
+  ],
+  "devices": [
+    {
+      "route": "0-1",
+      "unique_id": "c4010000-0070-8c18-23a7-1b5d32c1e921",
+      "vendor": "Dell",
+      "name": "WD19TB",
+      "authorized": false,
+      "generation": 3,
+      "link": {
+        "rx_gbps": 20.0,
+        "rx_lanes": 2,
+        "tx_gbps": 20.0,
+        "tx_lanes": 2
+      },
+      "boltd_stored": null
+    }
+  ]
+}

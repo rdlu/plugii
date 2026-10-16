@@ -1,0 +1,93 @@
+---
+source: tests/readers.rs
+expression: state
+---
+{
+  "ucsi_present": true,
+  "ports": [
+    {
+      "name": "port0",
+      "label": "USB-C (rear)",
+      "partner": {
+        "supports_pd": true,
+        "pd_revision": "3.0",
+        "alt_modes": 0,
+        "source_pdos": [
+          {
+            "fixed": {
+              "mv": 5000,
+              "ma": 3000
+            }
+          },
+          {
+            "fixed": {
+              "mv": 9000,
+              "ma": 3000
+            }
+          },
+          {
+            "fixed": {
+              "mv": 15000,
+              "ma": 3000
+            }
+          },
+          {
+            "fixed": {
+              "mv": 20000,
+              "ma": 3250
+            }
+          },
+          {
+            "pps": {
+              "min_mv": 3300,
+              "max_mv": 21000,
+              "ma": 5000
+            }
+          },
+          {
+            "variable": {
+              "min_mv": 5000,
+              "max_mv": 20000,
+              "ma": 2000
+            }
+          },
+          {
+            "battery": {
+              "min_mv": 5000,
+              "max_mv": 20000,
+              "mw": 45000
+            }
+          },
+          {
+            "other": "8:spr_adjustable_voltage_supply"
+          }
+        ],
+        "sink_pdos": [
+          {
+            "fixed": {
+              "mv": 5000,
+              "ma": 900
+            }
+          }
+        ]
+      },
+      "cable_type": "passive",
+      "power_role": "sink",
+      "charging": true,
+      "pd_contract": {
+        "voltage_mv": 15000,
+        "current_ma": 3000,
+        "source_pdo": 3
+      }
+    },
+    {
+      "name": "port1",
+      "label": null,
+      "partner": null,
+      "cable_type": null,
+      "power_role": "source",
+      "charging": false,
+      "pd_contract": null
+    }
+  ]
+}

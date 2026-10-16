@@ -1,0 +1,79 @@
+---
+source: tests/readers.rs
+expression: sockets
+---
+[
+  {
+    "key": "0000:00:14.0-1",
+    "label": "USB-C (left)",
+    "usb2": {
+      "bus": 3,
+      "port": 1,
+      "device": {
+        "sysfs_name": "3-1",
+        "vendor_id": 1507,
+        "product_id": 1552,
+        "manufacturer": null,
+        "product": "USB2.1 Hub",
+        "serial": null,
+        "speed": "high",
+        "capable_speed": "super",
+        "rx_lanes": 1,
+        "tx_lanes": 1,
+        "bcd_usb": 528,
+        "device_class": 9,
+        "max_power_ma": 100,
+        "driver": "hub",
+        "urbnum": 42,
+        "children": [
+          {
+            "sysfs_name": "3-1.2",
+            "vendor_id": 4176,
+            "product_id": 1031,
+            "manufacturer": null,
+            "product": "YubiKey",
+            "serial": null,
+            "speed": "full",
+            "capable_speed": null,
+            "rx_lanes": 1,
+            "tx_lanes": 1,
+            "bcd_usb": 512,
+            "device_class": 0,
+            "max_power_ma": 100,
+            "driver": "usbhid",
+            "urbnum": 42,
+            "children": []
+          }
+        ]
+      },
+      "over_current_count": 0,
+      "port_state": "not attached",
+      "physical_location": null
+    },
+    "usb3": {
+      "paired": {
+        "bus": 2,
+        "port": 1,
+        "device": null,
+        "over_current_count": 0,
+        "port_state": "not attached",
+        "physical_location": null
+      }
+    },
+    "typec_port": null
+  },
+  {
+    "key": "0000:00:14.0-3",
+    "label": null,
+    "usb2": {
+      "bus": 3,
+      "port": 3,
+      "device": null,
+      "over_current_count": 0,
+      "port_state": "not attached",
+      "physical_location": null
+    },
+    "usb3": "unknown",
+    "typec_port": null
+  }
+]

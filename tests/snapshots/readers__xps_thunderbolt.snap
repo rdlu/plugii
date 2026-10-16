@@ -1,0 +1,25 @@
+---
+source: tests/readers.rs
+expression: tb
+---
+{
+  "domains": [
+    {
+      "index": 0,
+      "security": "user",
+      "iommu_dma_protection": true,
+      "controller_vendor": "INTEL",
+      "controller_device": "Gen12",
+      "generation": 4
+    },
+    {
+      "index": 1,
+      "security": "user",
+      "iommu_dma_protection": true,
+      "controller_vendor": "INTEL",
+      "controller_device": "Gen12",
+      "generation": 4
+    }
+  ],
+  "devices": []
+}
