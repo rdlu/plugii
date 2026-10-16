@@ -1,0 +1,14 @@
+---
+source: tests/power.rs
+expression: "power::read(&fixture(\"amd-battery\"))"
+---
+{
+  "ac_online": false,
+  "battery": {
+    "capacity_pct": 88,
+    "status": "Discharging",
+    "charge_limit_pct": 80,
+    "flow_mw": -23100
+  },
+  "usb_c_sources": []
+}
