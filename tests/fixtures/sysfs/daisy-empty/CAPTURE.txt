@@ -1,0 +1,6 @@
+plugii capture
+date: 2026-10-16
+kernel: 7.2.9-2-cachyos
+machine: LENOVO 21M4000RBO
+plugii: 0.1.0
+files: 981, symlinks: 119, bytes: 10853; 12 redacted (serials, unique IDs), 4 skipped

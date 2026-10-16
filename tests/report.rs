@@ -174,11 +174,24 @@ fn daisy_charger_report() {
         snap.sockets
     );
     assert_eq!(charging_ports(&snap), ["port0"]);
+    // UCSI reports no voltage: no contract or watts are made up.
+    assert!(snap.typec.ports.iter().all(|p| p.pd_contract.is_none()));
     assert!(snap.kernel_log.errors.is_empty(), "{:#?}", snap.kernel_log);
     assert!(snap.kernel_log.benign_count > 0);
     assert!(health::check(&snap).iter().all(|f| f.level == Level::Ok));
     insta::assert_snapshot!(text(&snap));
     insta::assert_json_snapshot!(json(&snap));
+}
+
+/// The ThinkPad with nothing plugged in, on battery.
+#[test]
+fn daisy_empty_report() {
+    let snap = daisy("daisy-empty");
+    assert!(snap.typec.ports.iter().all(|p| p.partner.is_none()));
+    assert_eq!(snap.power.ac_online, Some(false));
+    assert!(snap.power.usb_c_sources.is_empty());
+    assert!(snap.sockets.iter().all(|s| s.usb2.device.is_none()));
+    insta::assert_snapshot!(text(&snap));
 }
 
 /// The faults log (resets on `usb 2-1`, `2-1.3`) against the XPS sockets:
