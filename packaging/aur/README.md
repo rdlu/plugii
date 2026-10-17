@@ -29,8 +29,9 @@ mise run aur-test
 
 builds the source PKGBUILD with `makepkg` from a `git archive` of HEAD in a
 temporary directory (prepare, build, the tests in check, package), then runs
-`namcap` on the PKGBUILD and the package, in an `archlinux` container with
-podman when namcap isn't installed. `mise run release-check` also checks
+`namcap` on the PKGBUILD and the package (`pacman -S namcap`). namcap's
+"Unused shared library ld-linux-x86-64.so.2" warning is a known false
+positive for Rust binaries. `mise run release-check` also checks
 that each `.SRCINFO` is current and that `pkgver` matches Cargo.toml.
 
 ## Updating for a release

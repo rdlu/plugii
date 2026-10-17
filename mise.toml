@@ -122,7 +122,7 @@ for dir in packaging/aur/*/; do
     namcap "${dir}PKGBUILD"
   fi
 done
-command -v namcap >/dev/null || echo "namcap not installed: skipped (mise run aur-test runs it in a container)"
+command -v namcap >/dev/null || echo "namcap not installed (pacman -S namcap): skipped"
 '''
 
 [tasks.aur-srcinfo]
@@ -146,12 +146,8 @@ sed 's|^source=.*|source=("$pkgname-$pkgver.tar.gz")|' packaging/aur/plugii/PKGB
 (cd "$dir" && makepkg -f --cleanbuild)
 if command -v namcap >/dev/null; then
   namcap "$dir/PKGBUILD" "$dir"/plugii-*.pkg.tar.zst
-elif command -v podman >/dev/null; then
-  echo "namcap not installed: running it in an Arch container"
-  podman run --rm -v "$dir:/pkg:ro,Z" docker.io/library/archlinux:latest \
-    sh -c 'pacman -Sy --noconfirm --needed namcap >/dev/null && namcap /pkg/PKGBUILD /pkg/plugii-*.pkg.tar.zst'
 else
-  echo "neither namcap nor podman: skipped namcap"
+  echo "namcap not installed (pacman -S namcap): skipped"
 fi
 echo "built in $dir"
 '''
