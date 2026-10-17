@@ -2,6 +2,14 @@
 title: plugii
 description: A live USB port monitor for Linux. Which socket, what link speed, USB-C / PD power, a health verdict, and a vim-key TUI.
 layout: hextra-home
+# The headline, typed round and round (layouts/_shortcodes/hero-typed.html):
+# each line held for `hold` ms. `tagline` is what screen readers, reduced
+# motion and no-JS get, and where a return visit picks up.
+hero:
+  - { text: "plugii: a live USB port monitor for Linux", hold: 4500 }
+  - { text: "Know what every USB port is really doing", hold: 5000, tagline: true }
+  - { text: "10G capable, linked at 5G. It's the cable.", hold: 2500 }
+  - { text: "USB-C: the C is for Could be anything.", hold: 2500 }
 ---
 
 {{< hextra/hero-badge link="https://github.com/rdlu/plugii" >}}
@@ -12,9 +20,7 @@ layout: hextra-home
 
 <div class="plugii-hero">
 <div class="hx:mt-6 hx:mb-6">
-{{< hextra/hero-headline >}}
-  Know what every USB port&nbsp;<br class="hx:sm:block hx:hidden" />is really doing
-{{< /hextra/hero-headline >}}
+{{< hero-typed >}}
 </div>
 
 <div class="hx:mb-10">

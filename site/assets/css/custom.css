@@ -587,12 +587,24 @@ nav[aria-label="breadcrumb"],
   -webkit-text-fill-color: currentColor;
   letter-spacing: -0.02em;
 }
-.plugii-hero h1::before {
+/* Every line of the typed headline (layouts/_shortcodes/hero-typed.html) in
+   one grid cell: the invisible ones hold the tallest line's height. Each gets
+   the prompt and the cursor so they wrap the same way. */
+.plugii-typed {
+  display: grid;
+}
+.plugii-typed > span {
+  grid-area: 1 / 1;
+}
+.plugii-typed > .sizer {
+  visibility: hidden;
+}
+.plugii-typed > span::before {
   content: "> ";
   color: var(--p-accent);
 }
-/* The block cursor. */
-.plugii-hero h1::after {
+/* The block cursor: solid while it types or erases, blinking otherwise. */
+.plugii-typed > span::after {
   content: "";
   display: inline-block;
   width: 0.55em;
@@ -602,15 +614,50 @@ nav[aria-label="breadcrumb"],
   background: var(--p-accent);
   animation: plugii-blink 1.1s steps(1, end) infinite;
 }
+.plugii-typed.busy > span::after {
+  animation: none;
+}
 @keyframes plugii-blink {
   50% {
     opacity: 0;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .plugii-hero h1::after {
+  .plugii-typed > span::after {
     animation: none;
   }
+}
+/* The pause toggle hangs in the headline's bottom margin, out of the flow,
+   so it takes no room and never shifts anything. 24px: the minimum target. */
+.plugii-typed-box {
+  position: relative;
+}
+.plugii-typed-pause {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  height: 24px;
+  padding: 0 6px;
+  font-family: var(--p-mono);
+  font-size: 0.75rem;
+  line-height: 1;
+  color: var(--p-faint);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.plugii-typed-pause span {
+  display: inline-block;
+  width: 1ch;
+  color: var(--p-accent);
+}
+.plugii-typed-pause:hover,
+.plugii-typed-pause:focus-visible {
+  color: var(--p-accent);
+}
+.plugii-typed-pause:focus-visible {
+  outline: 2px solid var(--p-accent);
+  outline-offset: 1px;
 }
 .plugii-hero p {
   color: var(--p-muted) !important;

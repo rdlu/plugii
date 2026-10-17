@@ -1,0 +1,99 @@
+{{- /*
+  The home page's headline, typed like a prompt, round and round: each line
+  of the page's `hero` front matter typed, held for its `hold` ms, backspaced,
+  then the next. The line marked `tagline: true` is the h1's aria-label (screen
+  readers never hear the typing), what shows without JavaScript or with
+  reduced motion, and where the rotation picks up on a return visit in the
+  same tab: the first line plays once per session.
+
+  Every line sits invisibly in the h1's grid cell, so the box is the tallest
+  one's height at any width and the typing never moves the page.
+
+  It stops while the mouse is over the line, the pause toggle has keyboard
+  focus, the tab is hidden or the hero is scrolled away, and for good with the
+  toggle (WCAG 2.2.2). A pause keeps its place in the line.
+*/ -}}
+{{- $lines := .Page.Params.hero -}}
+{{- $tagline := index $lines 0 -}}
+{{- range $lines }}{{ if .tagline }}{{ $tagline = . }}{{ end }}{{ end -}}
+<div class="plugii-typed-box">
+<h1 class="plugii-typed not-prose hx:text-4xl hx:font-bold hx:leading-none hx:tracking-tighter hx:md:text-5xl hx:py-2" aria-label="{{ $tagline.text }}">
+{{- range $lines }}<span class="sizer" aria-hidden="true">{{ .text }}</span>{{ end -}}
+<span class="typed" aria-hidden="true">{{ $tagline.text }}</span>
+</h1>
+<button type="button" class="plugii-typed-pause" hidden aria-label="Pause the title animation"><span aria-hidden="true">‖</span> pause</button>
+</div>
+<script>
+(() => {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const PHRASES = {{ $lines | jsonify | safeJS }};
+  const T = Math.max(0, PHRASES.findIndex((l) => l.tagline));
+  const box = document.currentScript.previousElementSibling;
+  const h1 = box.querySelector("h1");
+  const out = box.querySelector(".typed");
+  const btn = box.querySelector("button");
+  btn.hidden = false;
+
+  let fresh = true;
+  try { fresh = !sessionStorage.getItem("plugii-hero"); sessionStorage.setItem("plugii-hero", "1"); } catch {}
+
+  // The phrase on screen, how much of it, typing/holding/erasing, and the ms
+  // until the next key.
+  let p = fresh ? 0 : T;
+  let len = fresh ? 0 : PHRASES[T].text.length;
+  let phase = fresh ? "type" : "hold";
+  let wait = fresh ? 500 : PHRASES[T].hold;
+  let timer = null;
+  let paused = false, held = false, hovered = false, hidden = document.hidden, away = false;
+  const key = () => 35 + Math.random() * 35; // a human's 35-70 ms a key
+  const show = () => { out.textContent = PHRASES[p].text.slice(0, len); };
+  show();
+
+  function act() {
+    const { text, hold } = PHRASES[p];
+    if (phase === "type") {
+      len++;
+      if (len < text.length) wait = key();
+      else { phase = "hold"; wait = hold; }
+    } else {
+      phase = "erase";
+      len--;
+      wait = 18; // a quick backspace
+      if (len === 0) { p = (p + 1) % PHRASES.length; phase = "type"; wait = 350; }
+    }
+    show();
+  }
+
+  // Start or stop the clock to match the flags. The cursor blinks whenever
+  // the text isn't moving.
+  function sync() {
+    const run = !paused && !held && !hovered && !hidden && !away;
+    h1.classList.toggle("busy", run && phase !== "hold");
+    if (run && timer === null) {
+      timer = setTimeout(() => { timer = null; act(); sync(); }, wait);
+    } else if (!run && timer !== null) {
+      clearTimeout(timer);
+      timer = null;
+    }
+  }
+
+  // Resuming also lifts the focus hold, or it would only move again once
+  // focus left the button.
+  btn.addEventListener("click", () => {
+    paused = !paused;
+    if (!paused) held = false;
+    btn.setAttribute("aria-label", paused ? "Resume the title animation" : "Pause the title animation");
+    btn.innerHTML = paused ? '<span aria-hidden="true">▶</span> resume' : '<span aria-hidden="true">‖</span> pause';
+    sync();
+  });
+  btn.addEventListener("focus", () => { held = btn.matches(":focus-visible"); sync(); });
+  btn.addEventListener("blur", () => { held = false; sync(); });
+  // Mouse only, so a tap doesn't leave it stuck.
+  const hover = (on) => (e) => { if (e.pointerType === "mouse") { hovered = on; sync(); } };
+  h1.addEventListener("pointerenter", hover(true));
+  h1.addEventListener("pointerleave", hover(false));
+  document.addEventListener("visibilitychange", () => { hidden = document.hidden; sync(); });
+  new IntersectionObserver(([e]) => { away = !e.isIntersecting; sync(); }).observe(h1);
+  sync();
+})();
+</script>
