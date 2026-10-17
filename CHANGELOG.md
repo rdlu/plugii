@@ -6,7 +6,7 @@ All notable changes to plugii are documented here. The format is based on
 
 ## [Unreleased]
 
-## [0.1.0] - unreleased
+## [0.1.0] - 2026-10-17
 
 The first release: a rewrite of the `usb-ports` shell script as a Rust CLI
 and live TUI, with feature parity plus everything below.
