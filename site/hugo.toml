@@ -87,7 +87,7 @@ disableKinds = ["taxonomy", "term", "rss"]
   [params.page]
     width = "wide" # room for 100-column reports and TUI screens
     [params.page.tabs]
-      sync = true # the cargo / mise choice is remembered across pages
+      sync = true # the install method (binary / mise / source) is remembered across pages
 
   [params.search]
     enable = true
