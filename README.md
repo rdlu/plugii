@@ -13,13 +13,13 @@ cables, chargers and devices.
 
 ![The Charts tab: power and CPU with plug markers, each socket's link speed, URB/s and the chargers seen](docs/media/charts.png)
 
-**Status: early development.** The report, health verdict, `--json`, the TUI,
-recording and replay, `capture`, `labels` and the `--firmware` checks work.
+**Status: 0.1.0, the first release.** Linux only; tested on a ThinkPad
+(AMD) and a Dell XPS (Intel, Thunderbolt). Reports from other machines are
+welcome.
 
 The full documentation (reading the report, every health check, the TUI,
-the keymap) is the docs site in `site/`, to be published at
-<https://plugii.dlu.one/>; until then, `mise run docs` serves it
-locally. This README is the short version.
+the keymap) is at **<https://plugii.dlu.one/>**, built from `site/`
+(`mise run docs` serves it locally). This README is the short version.
 
 ## Install
 
