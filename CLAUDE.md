@@ -30,6 +30,9 @@ pinned to a commit SHA with its version in a comment.
 
 ## Conventions
 
+- Branches: work on a `feat/`, `fix/`, `docs/` or `chore/` branch off main,
+  push it with `mise run push`, and open a PR to main. main only moves by
+  merged PRs; there is no `dev` branch.
 - Library + thin binary: everything lives in `src/lib.rs` modules so tests can
   reach it; `src/main.rs` only dispatches.
 - sysfs readers take a root path (`/` or a fixture dir), never hard-code

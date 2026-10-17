@@ -6,8 +6,8 @@ steps are at the end, ready but not part of a release yet.
 
 ## What the workflows do
 
-- **CI** (`.github/workflows/ci.yml`), on pushes to `dev` and `main` and on
-  pull requests: rustfmt, clippy `-D warnings`, the tests (insta snapshots
+- **CI** (`.github/workflows/ci.yml`), on pushes to `main` and on pull
+  requests: rustfmt, clippy `-D warnings`, the tests (insta snapshots
   fail instead of updating), a build with the MSRV from Cargo.toml's
   `rust-version`, and the docs site with the pinned hugo.
 - **Release** (`release.yml`), on a `v*` tag: fails unless the tag is
@@ -43,22 +43,24 @@ steps are at the end, ready but not part of a release yet.
    mise run release-check   # version + CHANGELOG, crate contents, PKGBUILDs
    ```
 
-   Commit (`Release X.Y.Z`) on local main.
-4. **Fast-forward GitHub main, tag and push the tag:**
+   Commit (`Release X.Y.Z`) on a `release/X.Y.Z` branch, push it
+   (`mise run push`) and open a PR to main. When CI is green, merge it and
+   pull main locally.
+4. **Tag and push the tag:**
 
    ```sh
    mise run release-tag
    ```
 
-   On a clean main, it pushes main to GitHub `main` and `dev`, creates the
-   annotated tag `vX.Y.Z` and pushes it. Pushes go over SSH and retry up to
-   3 times, since the security key needs a touch. By hand, that's
-   `git push origin main:main main:dev`, then
+   On a clean main that matches GitHub main, it creates the annotated tag
+   `vX.Y.Z` and pushes it. Nothing pushes main itself: it only moves by
+   merged PRs. The push goes over SSH and retries up to 3 times, since the
+   security key needs a touch. By hand, that's
    `git tag -a vX.Y.Z -m "plugii X.Y.Z"` and
    `git push origin refs/tags/vX.Y.Z`.
 5. **Wait for the Release workflow** (Actions tab, or `gh run watch`).
    When it's green, check the release page: two tarballs, two `.sha256`,
-   and the notes. If it fails before publishing, fix it on main, delete the
+   and the notes. If it fails before publishing, fix it through a PR, delete the
    tag locally and on GitHub (`git push origin :refs/tags/vX.Y.Z`), and
    tag again.
 6. **Check the site**: the Pages workflow runs when main's push touched
