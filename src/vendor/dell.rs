@@ -101,8 +101,10 @@ pub fn decode_xml(bytes: &[u8]) -> String {
     let utf16 = bytes.starts_with(&[0xff, 0xfe]) || (bytes.len() > 1 && bytes[1] == 0);
     let text = if utf16 {
         let units: Vec<u16> = bytes
-            .chunks_exact(2)
-            .map(|c| u16::from_le_bytes([c[0], c[1]]))
+            .as_chunks::<2>()
+            .0
+            .iter()
+            .map(|&pair| u16::from_le_bytes(pair))
             .collect();
         String::from_utf16_lossy(&units)
     } else {

@@ -214,7 +214,7 @@ mod tests {
             source("port2", None, Some(3250)),
         ];
         assert_eq!(Sample::from_snapshot(&s).pd_w, Some(40.0));
-        s.power.usb_c_sources.truncate(0);
+        s.power.usb_c_sources.clear();
         s.power
             .usb_c_sources
             .push(source("port2", None, Some(3250)));
