@@ -19,7 +19,8 @@ All three of test, fmt --check and clippy must pass before a commit
 `capture <name>`, `outdated`, `update`, `watch`, `install`, `push`, and for
 the docs site in `site/` (Hugo + Hextra): `docs` (dev server on
 http://127.0.0.1:1313/) and `docs-build` (`site/public/`, gitignored), and `demos` (re-records
-`site/demos/` with VHS). Releases (`docs/RELEASE.md`): `release-check`
+`site/demos/` with VHS). Releases (`docs/RELEASE.md`): `changelog`
+(drafts the next CHANGELOG section with git-cliff), `release-check`
 (crate contents, `cargo publish --dry-run`, PKGBUILD checks), `release-tag`
 (pushes main and the `vX.Y.Z` tag), and for `packaging/aur/`: `aur-srcinfo`
 and `aur-test` (makepkg + namcap from a `git archive` of HEAD).

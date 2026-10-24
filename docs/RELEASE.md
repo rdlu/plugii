@@ -25,11 +25,16 @@ steps are at the end, ready but not part of a release yet.
 
 1. **Bump the version** in Cargo.toml (`version = "X.Y.Z"`), then
    `cargo check` so Cargo.lock follows.
-2. **Update CHANGELOG.md**: move what's under `[Unreleased]` into a
-   `## [X.Y.Z] - YYYY-MM-DD` section, dated today (a section still saying
-   `unreleased` stops `release-tag`), and add its link at the bottom:
-   `[X.Y.Z]: https://github.com/rdlu/plugii/releases/tag/vX.Y.Z`, with
-   `[Unreleased]` comparing from `vX.Y.Z`.
+2. **Draft the CHANGELOG.md section:** `mise run changelog`. It runs
+   git-cliff (`cliff.toml`; `pacman -S git-cliff`) over the commits since
+   the last tag that touch `src/`, `Cargo.toml` or `Cargo.lock`, groups
+   them by first word (Add → Added, Fix → Fixed, Drop/Remove → Removed,
+   the rest → Changed), collapses dependency bumps into one line, and
+   merges in whatever was written under `[Unreleased]` by hand. It dates
+   the section today and updates the link references at the bottom.
+   Then edit it: commit subjects are for developers, so reword them for
+   users, drop what nobody would notice, and add a `### Security` entry
+   naming the advisory for a security fix.
 3. **Check:**
 
    ```sh
