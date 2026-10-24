@@ -75,6 +75,27 @@ Before or right after pushing the tag, in the repository's
 3. **Enforce HTTPS**, once GitHub has issued the certificate (the box is
    greyed out until then, sometimes for a few minutes).
 
+## Dependency updates
+
+Dependabot (`.github/dependabot.yml`) opens a grouped PR per week for cargo
+and for the pinned GitHub Actions, plus a PR right away for any crate with
+a security advisory. CI runs on each; merge when it's green. The MSRV job
+fails an update that needs a newer Rust than `rust-version`: close it, or
+raise `rust-version` on purpose.
+
+Merging doesn't release anything. The binaries are statically linked, so
+an update only reaches users with the next release:
+
+- **Security fix in a crate the binary uses** (check `cargo tree -i
+  <crate> -e normal`): cut a patch release soon, with a `### Security`
+  entry in CHANGELOG.md naming the advisory.
+- **Routine bumps, dev-dependencies, Actions:** no release of their own;
+  they ship with the next one. A one-line `### Changed` entry
+  ("Updated dependencies") is enough.
+
+`mise run outdated` shows what's pending, including major versions that
+Dependabot proposes on their own (they're outside the group).
+
 ## Later: crates.io
 
 Not part of a release yet. `cargo install --locked plugii` would then work

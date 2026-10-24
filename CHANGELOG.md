@@ -6,6 +6,10 @@ All notable changes to plugii are documented here. The format is based on
 
 ## [Unreleased]
 
+### Changed
+
+- Updated dependencies, among them ureq 3.5 and rustls-webpki 0.103.16.
+
 ## [0.1.0] - 2026-10-17
 
 The first release: a rewrite of the `usb-ports` shell script as a Rust CLI
