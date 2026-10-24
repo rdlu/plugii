@@ -90,6 +90,13 @@ run = "site/demos/build.sh"
 
 # Releases: docs/RELEASE.md is the checklist these serve.
 
+[tasks.changelog]
+description = "Draft CHANGELOG.md's section for Cargo.toml's version from the commits since the last tag (git-cliff)"
+run = '''
+version=$(sed -n '/^\[package\]/,/^\[/s/^version = "\(.*\)"$/\1/p' Cargo.toml)
+.github/scripts/changelog-draft.sh "$version"
+'''
+
 [tasks.release-check]
 description = "Release dry runs: version and CHANGELOG, crate contents, cargo publish --dry-run, PKGBUILDs"
 run = '''
