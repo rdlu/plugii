@@ -1,0 +1,27 @@
+# Weekly version updates, grouped into one PR per ecosystem. Security
+# updates come separately and right away (Settings → Advanced Security →
+# Dependabot security updates). CI runs on every PR, including the MSRV
+# build, which catches an update that needs a newer Rust than rust-version.
+version: 2
+updates:
+  - package-ecosystem: cargo
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: chore
+    groups:
+      cargo-minor:
+        update-types: [minor, patch]
+
+  # Actions stay pinned to a commit SHA; Dependabot bumps the SHA and the
+  # version comment together.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: chore
+    groups:
+      actions:
+        patterns: ['*']
