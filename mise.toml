@@ -61,14 +61,17 @@ description = "Update Cargo.lock within semver, then run the gates"
 run = ["cargo update", { task = "check" }]
 
 [tasks.push]
-description = "Run the gates and push main to GitHub dev (retries for the security key)"
+description = "Run the gates and push the current branch to GitHub, for a PR (retries for the security key)"
 run = '''
 set -e
-[ "$(git branch --show-current)" = main ] || { echo "not on main"; exit 1; }
+branch=$(git branch --show-current)
+case "$branch" in
+  main|"") echo "on ${branch:-a detached HEAD}: work on a feat/, fix/, docs/ or chore/ branch"; exit 1 ;;
+esac
 [ -z "$(git status --porcelain)" ] || { echo "working tree not clean"; exit 1; }
 mise run check
 for i in 1 2 3; do
-  git push origin main:dev && exit 0
+  git push -u origin "$branch" && exit 0
   echo "push failed (touch the security key?), retry $i/3"
 done
 exit 1
@@ -160,7 +163,7 @@ echo "built in $dir"
 '''
 
 [tasks.release-tag]
-description = "Fast-forward GitHub main and dev to main, then tag v<version> and push the tag (retries for the security key)"
+description = "Tag v<version> on main once it matches GitHub main, and push the tag (retries for the security key)"
 run = '''
 set -euo pipefail
 [ "$(git branch --show-current)" = main ] || { echo "not on main"; exit 1; }
@@ -181,7 +184,10 @@ push() {
   done
   return 1
 }
-push main:main main:dev
+git fetch -q origin main
+[ "$(git rev-parse main)" = "$(git rev-parse origin/main)" ] || {
+  echo "local main isn't GitHub main: merge the release PR, then pull"; exit 1
+}
 git tag -a "$tag" -m "plugii $version"
 push "refs/tags/$tag"
 echo "pushed $tag: the Release workflow builds and publishes it"
