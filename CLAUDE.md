@@ -22,7 +22,7 @@ http://127.0.0.1:1313/) and `docs-build` (`site/public/`, gitignored), and `demo
 `site/demos/` with VHS). Releases (`docs/RELEASE.md`): `changelog`
 (drafts the next CHANGELOG section with git-cliff), `release-check`
 (crate contents, `cargo publish --dry-run`, PKGBUILD checks), `release-tag`
-(pushes main and the `vX.Y.Z` tag), and for `packaging/aur/`: `aur-srcinfo`
+(tags `vX.Y.Z` on main and pushes the tag), and for `packaging/aur/`: `aur-srcinfo`
 and `aur-test` (makepkg + namcap from a `git archive` of HEAD).
 
 CI, release and Pages workflows are in `.github/workflows/`; every action is
